@@ -72,7 +72,7 @@ export function OpsShell({ children, operator, fixture, branchName }: {
                 onClick={() => setMobileOpen(false)}>
                 <Icon name={view.icon} size={16} />
                 <span>{view.title === 'Point of sale' ? 'POS' : view.title}</span>
-                <small>{String(index + 1).padStart(2, '0')}</small>
+                <small aria-hidden="true">{String(index + 1).padStart(2, '0')}</small>
               </Link>
             ))}
           </nav>
