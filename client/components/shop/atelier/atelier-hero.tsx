@@ -89,7 +89,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
   return (
     <section className={`atelier-hero ${shopper ? 'atelier-hero-shop' : 'atelier-hero-ops'}`} ref={root}>
       <div className="atelier-hero-display">
-        <p className="atelier-label">{shopper ? 'The neighbourhood edition / 001' : 'One stock ledger'}</p>
+        <p className="atelier-label">{shopper ? 'The neighbourhood edition' : 'One stock ledger'}</p>
         <h2 className="atelier-heading">{shopper ? <>Better things.<br /><em>Closer home.</em></> : <>Every counter.<br /><em>In sync.</em></>}</h2>
         <p>{shopper
           ? 'Great finds from the stores around you. Discover what is available, reserve your pick at checkout, and see alternatives when something sells out.'
@@ -108,7 +108,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
             type="button"
             className="atelier-hero-3d-toggle"
             onClick={() => setViewMode(prev => prev === '3d' ? 'editorial' : '3d')}
-            aria-label={`Switch to ${viewMode === '3d' ? 'Editorial View' : '3D Spatial Lock View'}`}
+            aria-label={`Switch to ${viewMode === '3d' ? 'photographic view' : 'interactive view'}`}
           >
             <span className="pulse" aria-hidden="true" />
             <span>{viewMode === '3d' ? 'Show photograph' : 'Explore in 3D'}</span>
