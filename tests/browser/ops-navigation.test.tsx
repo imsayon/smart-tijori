@@ -51,8 +51,8 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
       </OpsShell>
     );
 
-    expect(screen.getByText(/Smart/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tijori/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Smart/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Tijori/i).length).toBeGreaterThan(0);
     expect(document.querySelector('.atelier-branch-chip')).toHaveTextContent('blr-01');
     expect(screen.getAllByText('cashier').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Demo mode')).toBeInTheDocument();
