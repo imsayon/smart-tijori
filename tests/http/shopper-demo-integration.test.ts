@@ -47,9 +47,9 @@ describe('opt-in shopper demo routes', () => {
     expect(result.candidates.length).toBeLessThanOrEqual(3);
   });
 
-  it('enables the same rule handler with the explicitly selected PostgreSQL catalog', async () => {
+  it.each(['postgres', 'opensearch'])('keeps PostgreSQL rules recovery with the %s catalog', async (source) => {
     vi.stubEnv('SMARTTIJORI_DEMO_MODE', 'false');
-    vi.stubEnv('ST_CATALOG_SOURCE', 'postgres');
+    vi.stubEnv('ST_CATALOG_SOURCE', source);
     const response = await postRecovery(new Request('http://localhost:3000/api/recovery', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
