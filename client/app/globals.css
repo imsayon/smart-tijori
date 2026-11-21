@@ -728,3 +728,124 @@ html { scroll-padding-top: 86px; }
 @media (prefers-reduced-motion: reduce) {
   .atelier-ops[data-layout="rail"] .atelier-rail { transition: none; }
 }
+
+
+/* India neighbourhood directory and product components.
+   Shared with the supplied Green Atelier landing and merchant design. */
+.atelier-store-backdrop {
+  position: fixed; inset: 0; z-index: 110; display: grid; place-items: center;
+  padding: clamp(12px, 3vw, 30px); background: rgba(10, 23, 16, .65);
+  backdrop-filter: blur(9px);
+}
+.atelier-store-dialog {
+  width: min(100%, 780px); max-height: min(90dvh, 900px); display: flex;
+  flex-direction: column; overflow: hidden; background: var(--atelier-ivory);
+  border: 1px solid #d4dacd; border-radius: 6px;
+  box-shadow: 0 30px 100px rgba(0,0,0,.24);
+}
+.atelier-store-dialog-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 20px; padding: clamp(22px, 4vw, 36px) clamp(18px, 4vw, 34px) 16px;
+}
+.atelier-store-dialog-head .atelier-heading {font-size: clamp(31px,4.3vw,49px); margin: 9px 0 14px;}
+.atelier-store-dialog-head p:last-child, .atelier-directory-intro {
+  max-width: 60ch; color: var(--atelier-muted); line-height: 1.6;
+}
+.atelier-store-filters {
+  display: flex; gap: 14px; padding: 16px clamp(18px,4vw,34px);
+  background: #f1f2e9; border-block: 1px solid var(--atelier-line);
+}
+.atelier-store-filters label {
+  font: 500 .72rem/1.5 var(--atelier-mono); color: var(--atelier-forest);
+  letter-spacing: .035em;
+}
+.atelier-store-search {min-width: 0; flex: 1;}
+.atelier-store-city {width: min(42%, 230px);}
+.atelier-store-filters .atelier-input { margin-top: 7px; height: 45px; background: white; }
+.atelier-store-count {
+  padding: 13px clamp(18px,4vw,34px) 7px; font: 500 .72rem var(--atelier-mono);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--atelier-muted);
+}
+.atelier-store-results {
+  overflow-y: auto; overscroll-behavior: contain; padding: 9px clamp(18px,4vw,34px) 16px;
+  display: grid; gap: 10px; min-height: 90px;
+}
+.atelier-store-note {
+  margin: 0; padding: 14px clamp(18px,4vw,34px);
+  font-size: .77rem; line-height: 1.55; color: var(--atelier-muted);
+  background: #eff0e8; border-top: 1px solid var(--atelier-line);
+}
+.atelier-store-empty {padding: 30px 10px; text-align: center; color: var(--atelier-muted);}
+.atelier-directory {max-width: 1100px; margin: 0 auto; padding: clamp(28px,5vw,70px) 0;}
+.atelier-directory > .atelier-heading {margin: 13px 0 16px;}
+.atelier-directory-intro {margin-bottom: 24px;}
+.atelier-directory .atelier-store-filters {padding: 18px; border: 1px solid var(--atelier-line); border-radius: 4px;}
+.atelier-directory .atelier-store-count {padding: 20px 0 12px;}
+.atelier-directory .atelier-store-note {margin-top: 22px; padding: 15px;}
+.atelier-directory-grid {display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px;}
+.atelier-store-card {
+  display: flex; align-items: flex-start; gap: 14px; width: 100%; padding: 18px;
+  border: 1px solid #d6dacd; border-radius: 3px; text-align: left;
+  background: var(--atelier-ivory); transition: border-color .22s, box-shadow .22s, transform .22s;
+}
+.atelier-store-card:hover {border-color: #7c9b7d; box-shadow: 0 8px 24px rgba(24,51,40,.08); transform: translateY(-2px);}
+.atelier-store-card.is-selected {border-color: var(--atelier-forest); background: #e7edde;}
+.atelier-store-initial {
+  flex: none; width: 39px; height: 39px; display: grid; place-items:center;
+  background: var(--atelier-forest); color: var(--atelier-citron);
+  font: 400 23px var(--atelier-serif); border-radius: 2px;
+}
+.atelier-store-card-details {display: flex; flex: 1; flex-direction: column; gap: 4px; min-width:0;}
+.atelier-store-card-name {font-weight: 700; color: var(--atelier-ink); line-height: 1.25;}
+.atelier-store-card-location, .atelier-store-card-address {font-size: .8rem; color: var(--atelier-muted); line-height: 1.4;}
+.atelier-store-demo-label {font: 500 .57rem/1.6 var(--atelier-mono); letter-spacing: .075em; color: #92663e;}
+.atelier-store-card-action {
+  flex: none; align-self: center; color: var(--atelier-forest); font-size: .75rem; font-weight: 700; white-space: nowrap;
+}
+.atelier-store-card-action.is-selected {color: #3a663a;}
+.atelier-product-card {
+  display:flex; flex-direction: column; min-width:0; height: 100%;
+  background: var(--atelier-ivory); border: 1px solid #d6dacd; border-radius: 3px;
+  overflow: hidden; transition: transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .3s;
+}
+.atelier-product-card:hover {transform: translateY(-4px); border-color: #a9baa3; box-shadow:0 15px 38px rgba(24,51,40,.11);}
+.atelier-product-media {
+  display:flex; align-items: center; justify-content:center; position:relative;
+  background: linear-gradient(140deg,#e6e7dd,#ccd6c4); aspect-ratio: 1.22; overflow:hidden;
+}
+.atelier-product-media img {object-fit: cover; transition:transform .55s cubic-bezier(.16,1,.3,1);}
+.atelier-product-card:hover .atelier-product-media img {transform:scale(1.05);}
+.atelier-product-stock {position:absolute; left:12px; top:12px; z-index:2;}
+.atelier-product-view {
+  position:absolute; right:13px; bottom:13px; display:grid; place-items:center;
+  width:32px; height:32px; border:1px solid rgba(24,51,40,.35);
+  border-radius:50%; background:rgba(252,251,247,.94); color:var(--atelier-forest);
+  transition: transform .25s,background .25s,color .25s;
+}
+.atelier-product-card:hover .atelier-product-view {transform:rotate(45deg);background:var(--atelier-forest);color:white;}
+.atelier-product-body {display:flex;flex:1;flex-direction:column; padding:17px 17px 16px;}
+.atelier-product-eyebrow {display:flex;justify-content:space-between;gap:8px; text-transform:uppercase;letter-spacing:.08em;font:500 .62rem/1.5 var(--atelier-mono);color:var(--atelier-muted);}
+.atelier-product-eyebrow span:last-child {white-space:nowrap;}
+.atelier-product-body h3 {margin:8px 0 7px;font-size:1rem;font-weight:700;line-height:1.35;color:var(--atelier-ink);}
+.atelier-product-body h3:hover {color:#507b59;}
+.atelier-product-purpose {margin:0 0 14px;color:var(--atelier-muted);font-size:.76rem;text-transform:capitalize;}
+.atelier-product-bottom {margin-top:auto;padding-top:14px;border-top:1px solid var(--atelier-line);display:flex;align-items:center;justify-content:space-between;gap:9px;}
+.atelier-product-bottom > strong {font-size:1.16rem;color:var(--atelier-forest);font-weight:750;font-variant-numeric:tabular-nums;}
+.atelier-product-add {background:var(--atelier-forest);color:white;border-radius:3px;display:flex;align-items:center;gap:9px;padding:9px 13px;font-size:.78rem;font-weight:700;}
+.atelier-product-add:hover {background:#315840;}
+.atelier-product-add:disabled, .atelier-product-stepper button:disabled {opacity:.45;cursor:not-allowed;}
+.atelier-product-restock {color:#7c512f;border-bottom:1px solid #ba9277;font-size:.74rem;font-weight:700;padding-bottom:3px;}
+.atelier-product-stepper {display:flex;align-items:center;border:1px solid #bdcbb7;border-radius:3px;font:700 .83rem var(--atelier-mono);}
+.atelier-product-stepper button {width:30px;height:30px;background:#edf1e6;}
+.atelier-product-stepper span {min-width:24px;text-align:center;}
+@media (max-width:740px) {
+  .atelier-store-filters {flex-direction:column;}
+  .atelier-store-city {width:100%;}
+  .atelier-directory-grid {grid-template-columns:1fr;}
+  .atelier-store-card {padding:14px;gap:10px;}
+  .atelier-store-initial {width:34px;height:34px;}
+  .atelier-store-card-action {font-size:.7rem;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .atelier-store-card,.atelier-product-card,.atelier-product-media img,.atelier-product-view {transition:none!important; transform:none!important;}
+}
