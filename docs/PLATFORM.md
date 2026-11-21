@@ -125,3 +125,8 @@ as checkout.
 ```sh
 pnpm sync:postgres-products blr-01 mys-01
 ```
+
+Run `TEST_BASE_URL=http://localhost:3000 pnpm test:api` against the running
+app using that PostgreSQL schema and matching index in OpenSearch catalog mode.
+For the separate lexical/ranking suite, seed the discovery fixtures into an
+isolated OpenSearch index and run `pnpm test:search` with that index selected.

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { Client } from "@opensearch-project/opensearch";
 import { createPostgresProductFactsReader } from "../server/discovery/postgres-product-facts-reader";
+import { searchProducts } from "../server/discovery/search-service";
 import type { ProductOffer } from "../server/contracts/commerce";
 
 const storedOffer: ProductOffer = {
@@ -42,4 +44,45 @@ test("discovery retains the authoritative quantity for the shopper catalog", asy
   const [offer] = await reader.readProductFacts("blr-01", ["tea-250"]);
   assert.equal(offer.available, true);
   assert.equal(offer.availableStock, 8);
+});
+
+test("search filters current branch, city, category, stock and price despite stale hits", async () => {
+  const client = {
+    async search({ body }: { body: { query: unknown } }) {
+      assert.doesNotMatch(JSON.stringify(body.query), /pricePaise/);
+      const hits = [
+        ["blr-01", "tea-250", 19000],
+        ["blr-01", "expensive", 15000],
+        ["blr-01", "wrong-city", 15000],
+        ["blr-01", "wrong-category", 15000],
+        ["blr-01", "sold-out", 15000],
+        ["blr-01", "missing", 15000],
+        ["mys-01", "tea-250", 15000],
+        ["blr-01", "tea-250", 19000],
+      ].map(([storeId, productId, pricePaise]) => ({ _source: { storeId, productId, pricePaise } }));
+      return { body: { hits: { hits } } };
+    },
+  } as unknown as Client;
+  const factsReader = createPostgresProductFactsReader({
+    async readProductFacts(storeId) {
+      const offer = { ...storedOffer, storeId, available: 8 };
+      return [
+        offer,
+        { ...offer, productId: "expensive", pricePaise: 16000 },
+        { ...offer, productId: "wrong-city", city: "Mysuru" },
+        { ...offer, productId: "wrong-category", category: "household" },
+        { ...offer, productId: "sold-out", available: 0 },
+      ];
+    },
+  });
+  const options = {
+    client, index: "test", factsReader, storeId: "blr-01", city: "Bengaluru",
+    category: "pantry", minPricePaise: 15000, maxPricePaise: 15000,
+  };
+  const inStock = await searchProducts(options);
+  assert.deepEqual(inStock.items.map(({ productId, pricePaise, availableStock }) =>
+    [productId, pricePaise, availableStock]), [["tea-250", 15000, 8]]);
+  const all = await searchProducts({ ...options, includeUnavailable: true });
+  assert.deepEqual(all.items.map(({ productId, availableStock }) =>
+    [productId, availableStock]), [["tea-250", 8], ["sold-out", 0]]);
 });
