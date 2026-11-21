@@ -23,12 +23,15 @@
     "test": "node --test tests/*.test.mjs",
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
     "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
+    "db:migrate": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/run-migrations.ts",
+    "worker": "node --conditions=react-server --env-file-if-exists=client/.env.local server/run-worker.ts",
+    "test:platform": "node --conditions=react-server --test tests/platform.integration.mjs",
     "dev:shopping": "SMARTTIJORI_DEMO_MODE=true next dev client",
     "test:unit": "vitest run tests/unit",
     "test:http": "vitest run tests/http",
     "test:security": "vitest run tests/security",
     "test:browser": "vitest run tests/browser",
-    "test:shopping": "vitest run"
+    "test:shopping": "vitest run tests/unit tests/http tests/security tests/browser"
   },
   "dependencies": {
     "cookie": "^2.0.2",

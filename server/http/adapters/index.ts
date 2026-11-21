@@ -1,3 +1,4 @@
+import { postgresCommerce } from './postgres-commerce';
 import type { CommerceCommands } from './commerce-commands';
 import { FixtureCommerceAdapter } from './fixture-commerce-adapter';
 
@@ -14,7 +15,9 @@ export function getCommerceCommands(): CommerceCommands {
   // Fixtures are permitted only for explicit demo runs or unit/HTTP tests.
   // Unconfigured live routes must fail rather than simulate a successful stock mutation.
   if (process.env.SMARTTIJORI_DEMO_MODE !== 'true' && process.env.NODE_ENV !== 'test') {
-    throw new Error('Authoritative commerce commands are not configured for this runtime');
+    const live = postgresCommerce();
+    globalForCommerce.smartTijoriCommerceAdapter = live;
+    return live;
   }
 
   const fixtureAdapter = new FixtureCommerceAdapter();

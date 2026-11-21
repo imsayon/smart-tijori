@@ -39,7 +39,7 @@ export interface CartLine {
 
 export interface Cart {
   id: string;
-  sessionId: string;
+  sessionId?: string;
   storeId: string;
   lines: CartLine[];
   totalPaise: number;
@@ -58,7 +58,7 @@ export interface HoldLine {
 export interface Hold {
   id: string;
   cartId: string;
-  sessionId: string;
+  sessionId?: string;
   storeId: string;
   status: HoldStatus;
   expiresAt: string;
@@ -123,6 +123,8 @@ export interface OpsState {
 // === Errors ===
 export type ErrorCode =
   | 'VALIDATION_ERROR'
+  | 'STOCK_LOCKED_ONLINE'
+  | 'ORDER_ALREADY_PLACED'
   | 'STOCK_UNAVAILABLE'
   | 'HOLD_EXPIRED'
   | 'HOLD_NOT_ACTIVE'

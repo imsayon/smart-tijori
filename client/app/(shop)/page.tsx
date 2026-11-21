@@ -12,6 +12,8 @@ import { CatalogSkeleton } from '@/components/shop/feedback/loading-skeleton';
 
 export default function HomePage() {
   const { selectedStoreId } = useStore();
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [products, setProducts] = useState<ProductOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,6 +25,7 @@ export default function HomePage() {
     async function loadProducts() {
       try {
         setIsLoading(true);
+        setFailed(false);
         const res = await api.getProducts({
           storeId: selectedStoreId,
           q: searchQuery || undefined,
@@ -31,8 +34,8 @@ export default function HomePage() {
         if (active) {
           setProducts(res.items);
         }
-      } catch (err) {
-        console.error('Failed to load products', err);
+      } catch {
+        if (active) setFailed(true);
       } finally {
         if (active) setIsLoading(false);
       }
@@ -42,7 +45,7 @@ export default function HomePage() {
     return () => {
       active = false;
     };
-  }, [selectedStoreId, searchQuery, category]);
+  }, [selectedStoreId, searchQuery, category, retry]);
 
   const displayedProducts = inStockOnly
     ? products.filter((p) => p.available > 0)
@@ -70,6 +73,8 @@ export default function HomePage() {
 
       {isLoading ? (
         <CatalogSkeleton />
+      ) : failed ? (
+        <div role="alert" className="py-8">The catalog is unavailable. <button className="underline" onClick={() => setRetry(n => n + 1)}>Try again</button></div>
       ) : (
         <ProductGrid
           products={displayedProducts}

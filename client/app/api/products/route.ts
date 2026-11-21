@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleGetProducts as handleDemoProducts } from "@server/http/routes/products-handler";
+import { handleGetProducts as handleCommerceProducts } from "@server/http/routes/products-handler";
 import {
   searchProducts,
   ValidationError,
@@ -9,8 +9,8 @@ import {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Explicitly opted-in local fixture mode; live discovery stays OpenSearch-based.
-  if (process.env.SMARTTIJORI_DEMO_MODE === "true") {
-    return handleDemoProducts(request);
+  if (process.env.SMARTTIJORI_DEMO_MODE === "true" || process.env.ST_CATALOG_SOURCE === "postgres") {
+    return handleCommerceProducts(request);
   }
 
   try {

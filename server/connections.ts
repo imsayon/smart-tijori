@@ -1,56 +1,10 @@
 import "server-only";
-import { readFileSync } from "node:fs";
 import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { Client as OpenSearchClient } from "@opensearch-project/opensearch";
-import { Pool } from "pg";
+import { certificate, required, serviceUrl, ServiceConfigurationError, type Environment } from "./service-config.ts";
 
-type Environment = NodeJS.ProcessEnv;
-
-export class ServiceConfigurationError extends Error {}
-
-function required(env: Environment, name: string): string {
-  const value = env[name];
-  if (!value?.trim()) throw new ServiceConfigurationError(`Missing ${name}`);
-  return value;
-}
-
-function serviceUrl(env: Environment, name: string, protocols: string[]): URL {
-  try {
-    const url = new URL(required(env, name));
-    if (!protocols.includes(url.protocol) || !url.hostname) throw new Error();
-    return url;
-  } catch (error) {
-    if (error instanceof ServiceConfigurationError) throw error;
-    throw new ServiceConfigurationError(`Invalid ${name}`);
-  }
-}
-
-function certificate(env: Environment, name: string): string {
-  try {
-    return readFileSync(required(env, name), "utf8");
-  } catch (error) {
-    if (error instanceof ServiceConfigurationError) throw error;
-    throw new ServiceConfigurationError(`Cannot read ${name}`);
-  }
-}
-
-// Construct once in application/worker composition; importing this module never connects.
-export function createPostgresPool(env: Environment = process.env): Pool {
-  const url = serviceUrl(env, "DATABASE_URL", ["postgres:", "postgresql:"]);
-  // pg URL SSL parameters replace its explicit ssl object, including the trusted CA.
-  for (const name of ["ssl", "sslmode", "sslcert", "sslkey", "sslrootcert", "sslpassword", "sslnegotiation"])
-    url.searchParams.delete(name);
-
-  const pool = new Pool({
-    connectionString: url.toString(),
-    ssl: { ca: certificate(env, "DATABASE_CA_CERT_PATH"), rejectUnauthorized: true },
-    max: 2,
-    connectionTimeoutMillis: 10_000,
-    idleTimeoutMillis: 30_000,
-  });
-  pool.on("error", () => console.error("PostgreSQL idle connection failed"));
-  return pool;
-}
+export { createPostgresPool } from "./db/pool.ts";
+export { ServiceConfigurationError } from "./service-config.ts";
 
 export function createKafka(env: Environment = process.env): KafkaJS.Kafka {
   const brokers = required(env, "KAFKA_BROKERS").split(",").map((host) => host.trim());

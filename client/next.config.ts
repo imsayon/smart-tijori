@@ -4,7 +4,10 @@ import type { NextConfig } from "next";
 const repositoryRoot = path.resolve(__dirname, "..");
 
 const nextConfig: NextConfig = {
-  turbopack: { root: repositoryRoot },
+  turbopack: {
+    root: repositoryRoot,
+    rules: { '*.css': { loaders: ['@tailwindcss/turbopack'], as: '*.css' } },
+  },
   outputFileTracingRoot: repositoryRoot,
 };
 
