@@ -20,6 +20,8 @@ export function ProductCard({ offer }: { offer: ProductOffer }) {
     try {
       if (inCart === 0 && next === 1) await addToCart(offer, 1);
       else await updateCartQuantity(offer.productId, next);
+    } catch {
+      // The shared store context publishes the actionable request error.
     } finally {
       setPending(false);
     }
@@ -46,7 +48,7 @@ export function ProductCard({ offer }: { offer: ProductOffer }) {
           {unavailable ? <Link className="atelier-product-restock" href={`/interest?storeId=${encodeURIComponent(offer.storeId)}&productId=${encodeURIComponent(offer.productId)}`}>
             Notify me
           </Link> : inCart === 0 ? <button className="atelier-product-add" type="button"
-            aria-label={`Add ${offer.name} to bag`} disabled={!cart || pending}
+            aria-label={`+ Add to cart — ${offer.name}`} disabled={!cart || pending}
             onClick={() => void changeQuantity(1)}>{pending ? '…' : '+'}<span>Add</span></button> :
           <div className="atelier-product-stepper" aria-label={`Quantity of ${offer.name}`}>
             <button aria-label={`Remove one ${offer.name}`} type="button" disabled={pending}
