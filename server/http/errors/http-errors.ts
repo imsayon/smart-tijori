@@ -61,9 +61,24 @@ export function handleServerError(err: unknown): NextResponse {
     return jsonError(err.code, err.message, err.status, err.details);
   }
 
-  // Never leak raw database queries, credentials, or internal stack traces to the client
-  // Do not log the raw Error: driver messages may contain credentials or SQL text.
-  console.error('[Internal Server Error]', { kind: err instanceof Error ? err.name : typeof err });
+  // Diagnose failures without exposing database queries, credentials, or Error.message.
+  // Keep this a strict allowlist: driver messages can contain SQL text and secret values.
+  const message = err instanceof Error ? err.message : '';
+  const reason = message === 'SESSION_SECRET must contain at least 32 characters.'
+    ? 'session_secret_not_configured'
+    : message === 'Set an explicit SmartTijori schema starting with st_'
+      ? 'commerce_schema_not_configured'
+      : err instanceof Error && err.name === 'ServiceConfigurationError'
+        ? 'service_configuration_invalid'
+        : 'unclassified';
+  const rawCode = err && typeof err === 'object' && 'code' in err ? err.code : undefined;
+  const sqlState = typeof rawCode === 'string' && /^[0-9A-Z]{5}$/.test(rawCode)
+    ? rawCode : undefined;
+  console.error('[Internal Server Error]', {
+    kind: err instanceof Error ? err.name : typeof err,
+    reason,
+    ...(sqlState ? { sqlState } : {}),
+  });
   return jsonError(
     'DEPENDENCY_UNAVAILABLE',
     'An unexpected service error occurred. Please try again.',
