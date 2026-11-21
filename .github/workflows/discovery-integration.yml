@@ -20,7 +20,9 @@ jobs:
           node-version: 24.22.3
           cache: pnpm
       - name: Prepare pnpm 12 lockfile for compatibility audit
-        run: pnpm install --lockfile-only --no-frozen-lockfile
+        run: |
+          pnpm clean --lockfile
+          pnpm install --lockfile-only --no-frozen-lockfile
       - name: Install pinned dependencies
         run: pnpm install --frozen-lockfile
       - name: Static TypeScript checks
