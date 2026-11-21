@@ -170,13 +170,13 @@ export function OpsOverview({
 
         <section className="atelier-panel atelier-surface-dark atelier-overview-activity">
           <p className="atelier-label">Activity</p>
-          <h2 className="atelier-panel-title">Event pipeline</h2>
+          <h2 className="atelier-panel-title">Store updates</h2>
           {pipelineError && <p role="alert">{pipelineError}</p>}
           {pipeline ? (
             <dl>
-              <div><dt>Pending events</dt><dd>{pipeline.pendingCount}</dd></div>
-              <div><dt>Last Kafka acknowledgment</dt><dd>{pipeline.lastBrokerAckAt ? formatTime.format(new Date(pipeline.lastBrokerAckAt)) : 'Awaiting first event'}</dd></div>
-              <div><dt>Last projection accepted</dt><dd>{pipeline.lastProjectionAcceptedAt ? formatTime.format(new Date(pipeline.lastProjectionAcceptedAt)) : 'Awaiting first projection'}</dd></div>
+              <div><dt>Updates waiting to share</dt><dd>{pipeline.pendingCount}</dd></div>
+              <div><dt>Last shared update</dt><dd>{pipeline.lastBrokerAckAt ? formatTime.format(new Date(pipeline.lastBrokerAckAt)) : 'No updates yet'}</dd></div>
+              <div><dt>Shop availability updated</dt><dd>{pipeline.lastProjectionAcceptedAt ? formatTime.format(new Date(pipeline.lastProjectionAcceptedAt)) : 'No updates yet'}</dd></div>
               {pipeline.lastError && <div><dt>Last recorded issue</dt><dd>{pipeline.lastError.code}</dd></div>}
             </dl>
           ) : (
