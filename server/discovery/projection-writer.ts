@@ -5,7 +5,7 @@ import type {
   ProjectionResult,
   ProjectionWriter,
 } from "../contracts/discovery";
-import { getOpenSearchClient, getOpenSearchConfig } from "./opensearch-client";
+import { getOpenSearchClient, getOpenSearchConfig } from "./opensearch-client.ts";
 
 export function getDocumentId(storeId: string, productId: string): string {
   return `${storeId}:${productId}`;
@@ -151,11 +151,10 @@ export async function writeProjection(
 
     const items = bulkRes.body?.items || [];
 
-    for (let i = 0; i < items.length; i++) {
-      const itemAction = items[i].index || items[i].create || items[i].update;
+    for (let i = 0; i < validOffersToWrite.length; i++) {
+      const item = items[i];
+      const itemAction = item?.index || item?.create || item?.update;
       const target = validOffersToWrite[i];
-
-      if (!target) continue;
       if (!itemAction) {
         results.push({ documentId: target.docId, productId: target.offer.productId, storeId: target.offer.storeId, status: "failure", version: target.offer.inventoryVersion, classification: "transient", error: "OpenSearch returned no bulk item outcome" });
         continue;
@@ -176,7 +175,7 @@ export async function writeProjection(
         const statusCode = itemAction.status;
         const errObj = itemAction.error;
         const errMsg = typeof errObj === "string" ? errObj : errObj?.reason || `HTTP ${statusCode}`;
-        const classification = isTransientStatusCode(statusCode) ? "transient" : "permanent";
+        const classification = statusCode === 400 ? "permanent" : "transient";
 
         results.push({
           documentId: target.docId,
@@ -190,7 +189,7 @@ export async function writeProjection(
       }
     }
   } catch (bulkError: unknown) {
-    const isTransient = isTransientError(bulkError);
+    // A failed request gives no document-level evidence for quarantine.
     const errObj = bulkError as { message?: string };
     const errMsg = errObj.message || String(bulkError);
     for (const { offer, docId } of validOffersToWrite) {
@@ -200,7 +199,7 @@ export async function writeProjection(
         storeId: offer.storeId,
         status: "failure",
         version: offer.inventoryVersion,
-        classification: isTransient ? "transient" : "permanent",
+        classification: "transient",
         error: `Bulk write failure: ${errMsg}`,
       });
     }
@@ -216,24 +215,4 @@ export async function writeProjection(
     failureCount,
     items: results,
   };
-}
-
-function isTransientStatusCode(status: number): boolean {
-  return status === 429 || status === 502 || status === 503 || status === 504 || status === 408;
-}
-
-function isTransientError(error: unknown): boolean {
-  const errObj = error as { meta?: { statusCode?: number }; statusCode?: number; status?: number; message?: string };
-  const code = errObj?.meta?.statusCode || errObj?.statusCode || errObj?.status;
-  if (code && isTransientStatusCode(code)) return true;
-
-  const msg = (errObj?.message || String(error) || "").toLowerCase();
-  return (
-    msg.includes("timeout") ||
-    msg.includes("econnrefused") ||
-    msg.includes("econnreset") ||
-    msg.includes("etimedout") ||
-    msg.includes("socket hang up") ||
-    msg.includes("network")
-  );
 }
