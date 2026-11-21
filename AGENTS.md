@@ -1,10 +1,8 @@
 # SmartTijori engineering rules
 
-One pnpm package, one Next.js App Router application and one eventual Node worker
-at `server/worker.ts`. The app is a startup page; lazy service clients and read-only
-connection checks also exist. The master and three-flow plans describe intended behavior;
-executable code and checks
-establish implemented behavior. Current task prompts/status belong in Linear.
+One pnpm package with a Next.js storefront and a Node worker at `server/worker.ts`.
+The plans describe intended behavior. Source and checks establish implemented
+behavior. Current tasks and status belong in Linear.
 
 ## Module ownership
 

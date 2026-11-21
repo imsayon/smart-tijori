@@ -28,15 +28,14 @@ describe('Accessibility & UI Controls Tests', () => {
     expect(screen.getByText(/Out of stock/i)).toBeInTheDocument();
   });
 
-  it('HoldTimer has role="timer" and aria-live="polite"', () => {
+  it('keeps countdown ticks quiet for screen readers', () => {
     const now = new Date().toISOString();
     const expiresAt = new Date(Date.now() + 180000).toISOString();
 
     render(<HoldTimer expiresAt={expiresAt} serverNow={now} />);
     const timer = screen.getByRole('timer');
     expect(timer).toBeInTheDocument();
-    expect(timer).toHaveAttribute('aria-live', 'polite');
-    expect(timer).toHaveAttribute('aria-atomic', 'true');
+    expect(timer).toHaveAttribute('aria-live', 'off');
   });
 
   it('BranchCard provides keyboard-accessible interactive button', () => {

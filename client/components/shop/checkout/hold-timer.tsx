@@ -51,17 +51,16 @@ export function HoldTimer({ expiresAt, serverNow, onExpire, className = '' }: Ho
   return (
     <div
       role="timer"
-      aria-live="polite"
-      aria-atomic="true"
+      aria-live="off"
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border font-mono text-sm font-bold shadow-2xs ${
         timerState.isExpired
           ? 'bg-red-100 text-red-800 border-red-300'
           : isLowTime
-          ? 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
+          ? 'bg-amber-100 text-amber-900 border-amber-300'
           : 'bg-[#F5F1E8] text-[#173F35] border-[#275546]/30'
       } ${className}`}
     >
-      <span className="text-base select-none">⏱️</span>
+      <span aria-hidden="true" className="text-base select-none">⏱️</span>
       <span>
         {timerState.isExpired ? 'Hold Expired' : `Stock reserved: ${timerState.formattedTime}`}
       </span>

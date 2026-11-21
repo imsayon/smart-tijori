@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import type { Hold, Order } from '@/contracts';
+import type { Cart, Hold, Order } from '@/contracts';
 import { api, ApiClientError } from '@/lib/api-client';
 import { useStore } from '@/lib/session/store-context';
 import { OperationKeyManager } from '@/lib/checkout/operation-key';
@@ -20,8 +20,12 @@ type CheckoutState =
   | 'CONFIRMING_ORDER'
   | 'ORDER_CONFIRMED';
 
+function revision(cart: Cart) {
+  return JSON.stringify([cart.id, cart.storeId, cart.totalPaise, cart.lines.map(line => [line.productId, line.quantity])]);
+}
+
 export function CheckoutView() {
-  const { cart, refreshCart, removeFromCart } = useStore();
+  const { cart, refreshCart } = useStore();
   const [state, setState] = useState<CheckoutState>('CREATING_HOLD');
   const [hold, setHold] = useState<Hold | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
@@ -40,9 +44,7 @@ export function CheckoutView() {
   const checkoutCartIdRef = useRef<string | null>(null);
 
   // Compute a stable cart fingerprint that changes when the cart content changes
-  const cartFingerprint = cart
-    ? `${cart.id}::${cart.lines.map(l => `${l.productId}:${l.quantity}`).join(',')}`
-    : '';
+  const cartFingerprint = cart ? revision(cart) : '';
 
   // Reset checkout state when cart has meaningfully changed after an order
   useEffect(() => {
@@ -68,16 +70,16 @@ export function CheckoutView() {
     }
   }, [cartFingerprint, state, hold, cart]);
   const requestReservation = useCallback(
-    async (options?: { forceNewKey?: boolean }) => {
-      if (!cart || cart.lines.length === 0) return;
+    async (options?: { forceNewKey?: boolean; updatedCart?: Cart }) => {
+      const reservationCart = options?.updatedCart ?? cart;
+      if (!reservationCart || reservationCart.lines.length === 0) return;
       if (isReservingRef.current) return;
 
       isReservingRef.current = true;
       setIsSubmitting(true);
 
       // Stable idempotency key for this exact cart snapshot (lines, quantities, and price)
-      const cartRevision = `${cart.id}_${cart.totalPaise}_${cart.lines.map((l) => `${l.productId}:${l.quantity}`).join(',')}`;
-      const intentId = `hold_${cartRevision}`;
+      const intentId = `hold_${revision(reservationCart)}`;
 
       let holdKey: string;
       if (options?.forceNewKey) {
@@ -97,7 +99,7 @@ export function CheckoutView() {
         setState('CREATING_HOLD');
         setErrorMessage(null);
 
-        const activeHold = await api.createReservation(cart.id, holdKey);
+        const activeHold = await api.createReservation(reservationCart.id, holdKey);
         setHold(activeHold);
         setState('HOLD_ACTIVE');
         setErrorMessage(null);
@@ -178,21 +180,21 @@ export function CheckoutView() {
     setState('HOLD_EXPIRED');
   }, []);
 
-  const handleRemoveUnavailableAndProceed = async () => {
-    if (isReservingRef.current) return;
-    for (const pId of unavailableProducts) {
-      await removeFromCart(pId);
-    }
-    setUnavailableProducts([]);
+  const handleReplacementApproved = async (updatedCart: Cart) => {
+    checkoutCartIdRef.current = revision(updatedCart);
     setHold(null);
-    void requestReservation({ forceNewKey: true });
+    await refreshCart();
+    await requestReservation({ forceNewKey: true, updatedCart });
   };
 
-  const handleReplacementApproved = async () => {
-    if (isReservingRef.current) return;
-    await refreshCart();
-    setHold(null);
-    void requestReservation({ forceNewKey: true });
+  const handleRemoveUnavailableAndProceed = async () => {
+    if (!cart || isReservingRef.current) return;
+    const remaining = cart.lines
+      .filter(line => !unavailableProducts.includes(line.productId))
+      .map(({ productId, quantity }) => ({ productId, quantity }));
+    const updated = await api.updateCart(cart.storeId, remaining);
+    setUnavailableProducts([]);
+    await handleReplacementApproved(updated);
   };
 
   if (!cart || cart.lines.length === 0) {

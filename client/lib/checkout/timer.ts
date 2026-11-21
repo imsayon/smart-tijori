@@ -29,7 +29,7 @@ export function calculateHoldRemaining(
   const estimatedServerNow = serverClockTime + elapsed;
 
   const remainingMs = Math.max(0, serverExpiryTime - estimatedServerNow);
-  const remainingSeconds = Math.floor(remainingMs / 1000);
+  const remainingSeconds = Math.ceil(remainingMs / 1000);
 
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;
@@ -38,7 +38,7 @@ export function calculateHoldRemaining(
   return {
     remainingSeconds,
     formattedTime,
-    isExpired: remainingSeconds <= 0,
+    isExpired: remainingMs <= 0,
     skewMs,
   };
 }

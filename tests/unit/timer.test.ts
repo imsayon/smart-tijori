@@ -25,6 +25,14 @@ describe('Hold Timer Calculation Unit Tests', () => {
     expect(result.isExpired).toBe(false);
   });
 
+  it('stays active through the last partial second', () => {
+    const now = '2026-11-20T10:00:00.000Z';
+    const expiresAt = '2026-11-20T10:00:59.000Z';
+    const timer = calculateHoldRemaining(expiresAt, now, Date.parse(expiresAt) - 1);
+    expect(timer.isExpired).toBe(false);
+    expect(timer.remainingSeconds).toBe(1);
+  });
+
   it('at 59 seconds it is expired', () => {
     const serverNow = '2026-11-20T10:00:00.000Z';
     const expiresAt = '2026-11-20T10:00:59.000Z'; // 59s total
