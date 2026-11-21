@@ -33,11 +33,11 @@ export function PipelineEventsTable({ events }: PipelineEventsTableProps) {
             const isPublished = Boolean(evt.publishedAt);
 
             const typeBadge =
-              evt.type === 'Stock updated' ? (
+              evt.type === 'inventory.changed' ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                   Stock updated
                 </span>
-              ) : evt.type === 'Order placed' ? (
+              ) : evt.type === 'order.placed' ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
                   Order placed
                 </span>
