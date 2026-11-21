@@ -23,7 +23,7 @@ interface IdempotencyEntry<T> {
   createdAt: number;
 }
 
-export const HOLD_DURATION_SECONDS = 60; // 60 seconds hold
+export const HOLD_DURATION_SECONDS = 59; // 59-second non-renewing hold
 
 export class FixtureCommerceAdapter implements CommerceCommands {
   private carts = new Map<string, Cart>(); // sessionId -> Cart
@@ -271,7 +271,7 @@ export class FixtureCommerceAdapter implements CommerceCommands {
       return result;
     }
 
-    // Create 5-minute active hold
+    // Create a fixed 59-second active hold
     const now = new Date();
     const expiresAt = new Date(now.getTime() + HOLD_DURATION_SECONDS * 1000);
 
