@@ -117,3 +117,11 @@ agreed index, then process the retained tail with the normal consumer.
 Version guards allow live updates to overlap the rebuild. The worker starts a
 new group at the earliest retained record. Monitoring for retention gaps and
 measuring live search visibility belong to the integration run.
+
+For a manual rebuild, supply the approved `OPENSEARCH_INDEX`, a migrated
+`ST_DB_SCHEMA` and explicit store IDs. The sync uses the same PostgreSQL facts
+as checkout.
+
+```sh
+pnpm sync:postgres-products blr-01 mys-01
+```

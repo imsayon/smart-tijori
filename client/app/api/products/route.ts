@@ -87,7 +87,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const result = await searchProducts(searchOptions);
 
     return NextResponse.json({
-      items: result.items,
+      items: result.items.map(({ available, availableStock, knownAttributes, ...offer }) => ({
+        ...offer,
+        available: availableStock ?? Number(available),
+        attributes: Object.fromEntries(Object.entries(knownAttributes).map(([name, value]) => [name, String(value)])),
+      })),
     });
   } catch (error: unknown) {
     if (error instanceof ValidationError) {
