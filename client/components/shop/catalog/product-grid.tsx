@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ProductOffer } from '@/contracts';
 import { ProductCard } from '../product/product-card';
+import { Interactive3DCard } from '../atelier/interactive-3d-card';
 
 interface ProductGridProps {
   products: ProductOffer[];
@@ -24,7 +25,9 @@ export function ProductGrid({
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
       {products.map((product) => (
-        <ProductCard key={product.productId} offer={product} />
+        <Interactive3DCard key={product.productId}>
+          <ProductCard offer={product} />
+        </Interactive3DCard>
       ))}
     </div>
   );

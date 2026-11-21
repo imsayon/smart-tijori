@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 
 type Mode = 'signin' | 'register' | 'reset';
 type Bag = { branch: string; quantity: number };
@@ -87,8 +87,21 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
     }
   }
 
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const switchMode = (newMode: Mode) => {
+    setMode(newMode);
+    setMessage('');
+    if (formRef.current) {
+      const el = formRef.current;
+      void import('animejs').then(({ animate }) => {
+        animate(el, { opacity: [0.7, 1], translateY: [8, 0], duration: 320, ease: 'outQuad' });
+      }).catch(() => {});
+    }
+  };
+
   return (
-    <form onSubmit={submit} className={signedIn ? 'atelier-signout' : 'atelier-access-form'}>
+    <form ref={formRef} onSubmit={submit} className={signedIn ? 'atelier-signout' : 'atelier-access-form'}>
       {!signedIn && <>
         <h1 className="atelier-heading atelier-form-title">{merchant ? 'Merchant sign-in' : mode === 'reset' ? 'Reset password' : mode === 'register' ? 'Create an account' : 'Sign in'}</h1>
         {conflict ? <>
@@ -115,9 +128,9 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
         {signedIn ? 'Sign out' : mode === 'reset' ? 'Send reset email' : mode === 'register' ? 'Register' : 'Sign in'}
       </button>}
       {!signedIn && !conflict && <div className="flex flex-wrap gap-4 text-sm">
-        {mode === 'signin' && !merchant && <button type="button" className="underline" onClick={() => setMode('register')}>Create an account</button>}
-        {mode === 'signin' ? <button type="button" className="underline" onClick={() => setMode('reset')}>Forgot password</button>
-          : <button type="button" className="underline" onClick={() => setMode('signin')}>Back to sign-in</button>}
+        {mode === 'signin' && !merchant && <button type="button" className="underline" onClick={() => switchMode('register')}>Create an account</button>}
+        {mode === 'signin' ? <button type="button" className="underline" onClick={() => switchMode('reset')}>Forgot password</button>
+          : <button type="button" className="underline" onClick={() => switchMode('signin')}>Back to sign-in</button>}
       </div>}
       {message && <p role="status" className="text-sm">{message}</p>}
     </form>

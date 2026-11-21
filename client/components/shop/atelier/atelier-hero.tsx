@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Icon } from '@/components/ui/atelier';
 import dynamic from 'next/dynamic';
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -36,6 +37,7 @@ function MechanismPoster() {
 export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
   const root = useRef<HTMLElement>(null);
   const [scene, setScene] = useState(false);
+  const [viewMode, setViewMode] = useState<'3d' | 'editorial'>('3d');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -47,21 +49,23 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
     let contextLost = false;
     let scope: { revert(): void } | undefined;
     let stopped = false;
+
     const sync = () => setScene(visible && !contextLost && !motion.matches && wide.matches && !document.hidden);
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); });
     observer.observe(section);
+
     function onScroll() {
       if (!visible || motion.matches) return;
       setProgress(Math.min(1, Math.max(0, -section!.getBoundingClientRect().top / (section!.offsetHeight * 0.65))));
     }
+
     if (!motion.matches) {
-      void import('animejs').then(({ createScope, animate }) => {
+      void import('animejs').then(({ animate }) => {
         if (stopped || motion.matches) return;
-        scope = createScope({ root: section }).add(() => {
-          animate('.atelier-hero-display', { opacity: [0.75, 1], y: [12, 0], duration: 600 });
-        });
+        animate('.atelier-hero-display', { opacity: [0.75, 1], translateY: [14, 0], duration: 650, ease: 'outQuad' });
       }).catch(() => {});
     }
+
     const onMotionChange = () => { scope?.revert(); sync(); };
     const onContextLost = () => { contextLost = true; sync(); };
     section.addEventListener('webglcontextlost', onContextLost, true);
@@ -69,6 +73,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
     motion.addEventListener('change', onMotionChange);
     wide.addEventListener('change', sync);
     document.addEventListener('visibilitychange', sync);
+
     return () => {
       stopped = true;
       scope?.revert();
@@ -79,24 +84,67 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
       wide.removeEventListener('change', sync);
       document.removeEventListener('visibilitychange', sync);
     };
-  }, []);
+  }, [shopper]);
 
   return (
-    <section className="atelier-hero" ref={root}>
+    <section className={`atelier-hero ${shopper ? 'atelier-hero-shop' : 'atelier-hero-ops'}`} ref={root}>
       <div className="atelier-hero-display">
         <p className="atelier-label">{shopper ? 'A neighbourhood shop, brought closer' : 'One stock ledger'}</p>
         <h2 className="atelier-heading">{shopper ? <>Good things.<br /><em>Close to home.</em></> : <>Every counter.<br /><em>In sync.</em></>}</h2>
         <p>{shopper
           ? 'Discover the shelves at your chosen branch, save the last one for your basket, and know exactly where it is waiting.'
           : 'Online reservations and counter sales draw from the same branch inventory.'}</p>
-        <Link href={shopper ? '/#market' : '/ops/inventory'} className="atelier-action">
-          {shopper ? 'Explore the market' : 'Explore inventory'} <Icon name="arrow" size={16} />
-        </Link>
+        <div className="atelier-hero-actions">
+          <Link href={shopper ? '/#market' : '/ops/inventory'} className="atelier-action">
+            {shopper ? 'Explore the market' : 'Explore inventory'} <Icon name="arrow" size={16} />
+          </Link>
+          {shopper && <Link href="/stores" className="atelier-secondary">Choose a branch <Icon name="arrow" size={15} /></Link>}
+        </div>
+        {shopper && <p className="atelier-hero-index"><span>01 — 04</span><span>A neighbourhood shop, brought closer</span></p>}
       </div>
       <div className="atelier-hero-art" aria-hidden="true">
-        <MechanismPoster />
-        <span className="atelier-hero-notes atelier-label">CartLock / one allocation</span>
-        {scene && <div className="atelier-canvas"><SceneBoundary><SpatialScene progress={progress} /></SceneBoundary></div>}
+        {shopper && (
+          <button
+            type="button"
+            className="atelier-hero-3d-toggle"
+            onClick={() => setViewMode(prev => prev === '3d' ? 'editorial' : '3d')}
+            aria-label={`Switch to ${viewMode === '3d' ? 'Editorial View' : '3D Spatial Lock View'}`}
+          >
+            <span className="pulse" aria-hidden="true" />
+            <span>{viewMode === '3d' ? '3D Spatial Lock' : 'Editorial View'}</span>
+          </button>
+        )}
+
+        {shopper && viewMode === 'editorial' ? (
+          <>
+            <Image
+              className="atelier-hero-photo"
+              src="/atelier/neighbourhood-editorial.jpeg"
+              alt="Warmly lit travel essentials arranged by a window"
+              fill
+              priority
+              sizes="(max-width: 760px) 100vw, 55vw"
+            />
+            <span className="atelier-photo-frame" />
+            <div className="atelier-photo-caption">
+              <span className="atelier-photo-dot" aria-hidden="true" />
+              <div><b>SMARTTIJORI / LOCAL GOODS</b><span>Good finds, just around the corner.</span></div>
+              <Icon name="upRight" size={16} />
+            </div>
+          </>
+        ) : (
+          <>
+            <MechanismPoster />
+            <span className="atelier-hero-notes atelier-label">CartLock / one allocation</span>
+            {scene && (
+              <div className="atelier-canvas">
+                <SceneBoundary>
+                  <SpatialScene mode={shopper ? 'hero' : 'telemetry'} progress={progress} interactive />
+                </SceneBoundary>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );
@@ -105,3 +153,4 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
 export function AtelierHero() {
   return <RetailPulse shopper />;
 }
+

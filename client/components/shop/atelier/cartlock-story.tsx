@@ -37,6 +37,16 @@ export function CartLockStory() {
           const index = Number((entry.target as HTMLElement).dataset.storyStep);
           setActive(index);
           (entry.target as HTMLElement).dataset.inView = 'true';
+          if (!motion.matches) {
+            void import('animejs').then(({ animate }) => {
+              animate(entry.target, {
+                opacity: [0.4, 1],
+                translateY: [18, 0],
+                duration: 520,
+                ease: 'outQuad',
+              });
+            }).catch(() => {});
+          }
         }
       }
     }, { threshold: 0.38 });
@@ -71,7 +81,7 @@ export function CartLockStory() {
       </div>
       <div className="atelier-story-model" aria-hidden="true">
         <MechanismDrawing />
-        {visible && <div className="atelier-story-canvas"><SceneBoundary><SpatialScene progress={progress} /></SceneBoundary></div>}
+        {visible && <div className="atelier-story-canvas"><SceneBoundary><SpatialScene mode="story" progress={progress} interactive /></SceneBoundary></div>}
       </div>
       <div className="atelier-story-stage-foot">
         <span>CartLock / one stock authority</span>
