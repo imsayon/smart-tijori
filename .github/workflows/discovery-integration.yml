@@ -6,9 +6,6 @@ on:
   push:
     branches: [feat/discovery-search-and-indexing]
 
-permissions:
-  contents: write
-
 jobs:
   discovery-offline:
     runs-on: ubuntu-latest
@@ -22,17 +19,8 @@ jobs:
         with:
           node-version: 24.22.3
           cache: pnpm
-      - name: Synchronize pnpm 12 lockfile on dedicated branch
-        if: github.event_name == 'push' && github.ref_name == 'feat/discovery-search-and-indexing'
-        run: |
-          pnpm install --lockfile-only --no-frozen-lockfile
-          git config user.name "smart-tijori-integration"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(discovery): normalize pnpm 12 lockfile"
-            git push origin HEAD:feat/discovery-search-and-indexing
-          fi
+      - name: Prepare pnpm 12 lockfile for compatibility audit
+        run: pnpm install --lockfile-only --no-frozen-lockfile
       - name: Install pinned dependencies
         run: pnpm install --frozen-lockfile
       - name: Static TypeScript checks
