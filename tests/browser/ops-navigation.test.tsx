@@ -27,7 +27,7 @@ vi.mock('@server/events/diagnostics', () => ({
     storeId, checkedAt: '2026-11-21T08:00:00.000Z', pendingCount: 0,
     oldestPendingAt: null, lastBrokerAckAt: '2026-11-21T08:00:00.000Z', lastProjectionAcceptedAt: null,
     projectionRetryCount: 0, quarantineCount: 0, unattributedQuarantineCount: 0, lastError: null,
-    recentEvents: [{ eventId: 'one', type: 'inventory.changed', occurredAt: '2026-11-21T07:59:00.000Z', publishedAt: '2026-11-21T08:00:00.000Z' }],
+    recentEvents: [{ eventId: 'one', type: 'Stock updated', occurredAt: '2026-11-21T07:59:00.000Z', publishedAt: '2026-11-21T08:00:00.000Z' }],
   }),
 }));
 
@@ -100,7 +100,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     expect(screen.getByRole('heading', { name: /A clearer view of commerce/i })).toBeInTheDocument();
     expect(screen.getByText('One stock ledger')).toBeInTheDocument();
     expect(screen.getByText('Recent stock movements')).toBeInTheDocument();
-    expect(screen.getByText('Event pipeline')).toBeInTheDocument();
+    expect(screen.getByText('Store updates')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/cashier');
   });
 
@@ -115,9 +115,9 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
 
   it('renders pipeline status from the existing reader', async () => {
     render(await OpsDiagnosticsPage());
-    expect(screen.getByText('Pipeline & Worker Diagnostics')).toBeInTheDocument();
-    expect(screen.getByText(/Outbox Queue Depth/i)).toBeInTheDocument();
-    const event = screen.getByRole('row', { name: /inventory.changed/ });
-    expect(within(event).getByText('Acked')).toBeInTheDocument();
+    expect(screen.getByText('Store activity & sync')).toBeInTheDocument();
+    expect(screen.getByText(/Unsent updates/i)).toBeInTheDocument();
+    const event = screen.getByRole('row', { name: /Stock updated/ });
+    expect(within(event).getByText('Shared')).toBeInTheDocument();
   });
 });
