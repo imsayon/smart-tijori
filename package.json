@@ -25,6 +25,7 @@
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
     "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
     "db:migrate": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/run-migrations.ts",
+    "db:seed:india-demo": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/seed-india-demo.ts",
     "worker": "node --conditions=react-server --env-file-if-exists=client/.env.local server/run-worker.ts",
     "test:platform": "node --conditions=react-server --test tests/platform.integration.mjs",
     "dev:shopping": "SMARTTIJORI_DEMO_MODE=true next dev client",
