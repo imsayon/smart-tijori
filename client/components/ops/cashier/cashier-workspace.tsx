@@ -29,7 +29,7 @@ export function CashierWorkspace({ storeId, operatorId, fixture }: {
   }, [storeId]);
 
   useEffect(() => {
-    void refresh();
+    queueMicrotask(() => { void refresh(); });
     const onSale = () => { void refresh(); };
     const onVisible = () => { if (!document.hidden) void refresh(); };
     window.addEventListener('smarttijori:stock-updated', onSale);
