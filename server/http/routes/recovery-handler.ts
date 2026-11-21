@@ -23,7 +23,7 @@ export async function handlePostRecovery(request: Request): Promise<NextResponse
       );
     }
 
-    const { storeId, unavailableProductId, text, explicitConstraints } = parsed.data;
+    const { storeId, unavailableProductId, explicitConstraints } = parsed.data;
     const adapter = getCommerceCommands();
 
     // Look up current offers for this store
