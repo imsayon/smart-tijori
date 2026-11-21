@@ -21,12 +21,11 @@ export function validateProductOffer(offer: ProductOffer): string | null {
   if (!offer.name || typeof offer.name !== "string") {
     return "Missing or invalid name";
   }
-  if (typeof offer.pricePaise !== "number" || isNaN(offer.pricePaise) || offer.pricePaise < 0) {
+  if (!Number.isSafeInteger(offer.pricePaise) || offer.pricePaise < 0) {
     return "Missing or invalid pricePaise (must be non-negative integer)";
   }
   if (
-    typeof offer.inventoryVersion !== "number" ||
-    isNaN(offer.inventoryVersion) ||
+    !Number.isSafeInteger(offer.inventoryVersion) ||
     offer.inventoryVersion < 0
   ) {
     return "Missing or invalid inventoryVersion (must be non-negative integer)";
@@ -121,103 +120,22 @@ export async function writeProjection(
     };
   }
 
-  // 2. Monotonic inventoryVersion check: fetch existing versions
-  const docIds = validOffersToWrite.map((v) => v.docId);
-  const existingVersionMap = new Map<string, number>();
-
-  try {
-    const mgetRes = await client.mget({
-      index,
-      body: {
-        ids: docIds,
-      },
-    });
-
-    const docs = mgetRes.body?.docs || [];
-    for (const doc of docs) {
-      if ("found" in doc && doc.found && doc._source) {
-        const source = doc._source as Record<string, unknown>;
-        const existingVer = source.inventoryVersion;
-        if (typeof existingVer === "number") {
-          existingVersionMap.set(doc._id, existingVer);
-        }
-      }
-    }
-  } catch (mgetError: unknown) {
-    const errorObj = mgetError as { meta?: { statusCode?: number }; message?: string };
-    // If index does not exist or transient network error
-    if (errorObj.meta?.statusCode === 404) {
-      // Index does not exist yet; all valid offers will attempt bulk write
-    } else {
-      const isTransient = isTransientError(mgetError);
-      const errorMsg = errorObj.message || String(mgetError);
-      // If we cannot check versions due to service error, mark remaining valid as failed
-      for (const { offer, docId } of validOffersToWrite) {
-        results.push({
-          documentId: docId,
-          productId: offer.productId,
-          storeId: offer.storeId,
-          status: "failure",
-          version: offer.inventoryVersion,
-          classification: isTransient ? "transient" : "permanent",
-          error: `Failed version verification check: ${errorMsg}`,
-        });
-      }
-
-      return {
-        appliedCount: 0,
-        unchangedCount: 0,
-        failureCount: results.length,
-        items: results,
-      };
-    }
-  }
-
-  // 3. Filter out equal or older versions
-  const eligibleOffersForBulk: { offer: ProductOffer; docId: string }[] = [];
-
-  for (const { offer, docId } of validOffersToWrite) {
-    const existingVersion = existingVersionMap.get(docId);
-
-    if (existingVersion !== undefined && offer.inventoryVersion <= existingVersion) {
-      // Monotonic guard: equal or older version cannot regress indexed doc
-      results.push({
-        documentId: docId,
-        productId: offer.productId,
-        storeId: offer.storeId,
-        status: "unchanged",
-        version: offer.inventoryVersion,
-        error: `Incoming version (${offer.inventoryVersion}) <= existing indexed version (${existingVersion})`,
-      });
-    } else {
-      eligibleOffersForBulk.push({ offer, docId });
-    }
-  }
-
-  if (eligibleOffersForBulk.length === 0) {
-    const applied = results.filter((r) => r.status === "applied").length;
-    const unchanged = results.filter((r) => r.status === "unchanged").length;
-    const failures = results.filter((r) => r.status === "failure").length;
-    return {
-      appliedCount: applied,
-      unchangedCount: unchanged,
-      failureCount: failures,
-      items: results,
-    };
-  }
-
-  // 4. Construct Bulk Index Operations
+  // External versioning is enforced atomically *by OpenSearch during each write*.
+  // A preceding mget cannot guard against concurrent/out-of-order bulk writes:
+  // another writer could index a newer version between the read and the write.
+  // Shift nonnegative inventoryVersion by one because external versions must be > 0.
   const bulkOperations: Record<string, unknown>[] = [];
   const now = new Date().toISOString();
 
-  for (const { offer, docId } of eligibleOffersForBulk) {
+  for (const { offer, docId } of validOffersToWrite) {
     bulkOperations.push({
       index: {
         _index: index,
         _id: docId,
+        version: offer.inventoryVersion + 1,
+        version_type: "external",
       },
     });
-
     bulkOperations.push({
       ...offer,
       indexedAt: now,
@@ -235,9 +153,13 @@ export async function writeProjection(
 
     for (let i = 0; i < items.length; i++) {
       const itemAction = items[i].index || items[i].create || items[i].update;
-      const target = eligibleOffersForBulk[i];
+      const target = validOffersToWrite[i];
 
-      if (!itemAction || !target) continue;
+      if (!target) continue;
+      if (!itemAction) {
+        results.push({ documentId: target.docId, productId: target.offer.productId, storeId: target.offer.storeId, status: "failure", version: target.offer.inventoryVersion, classification: "transient", error: "OpenSearch returned no bulk item outcome" });
+        continue;
+      }
 
       if (itemAction.status >= 200 && itemAction.status < 300) {
         results.push({
@@ -247,6 +169,9 @@ export async function writeProjection(
           status: "applied",
           version: target.offer.inventoryVersion,
         });
+      } else if (itemAction.status === 409) {
+        // OpenSearch rejected an equal/older external version atomically.
+        results.push({ documentId: target.docId, productId: target.offer.productId, storeId: target.offer.storeId, status: "unchanged", version: target.offer.inventoryVersion });
       } else {
         const statusCode = itemAction.status;
         const errObj = itemAction.error;
@@ -268,7 +193,7 @@ export async function writeProjection(
     const isTransient = isTransientError(bulkError);
     const errObj = bulkError as { message?: string };
     const errMsg = errObj.message || String(bulkError);
-    for (const { offer, docId } of eligibleOffersForBulk) {
+    for (const { offer, docId } of validOffersToWrite) {
       results.push({
         documentId: docId,
         productId: offer.productId,
