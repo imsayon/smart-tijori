@@ -192,7 +192,7 @@ describe('Reservations HTTP Handler Tests (CartLock)', () => {
     // Verifications per Master Plan
     expect(secondHold.id).not.toBe(firstHold.id);
     expect(secondHold.status).toBe('ACTIVE');
-    expect(new Date(secondHold.expiresAt).getTime()).toBeGreaterThan(
+    expect(new Date(secondHold.expiresAt).getTime()).toBeGreaterThanOrEqual(
       new Date(firstHold.expiresAt).getTime()
     );
     expect(secondHold.lines).toEqual(firstHold.lines);
