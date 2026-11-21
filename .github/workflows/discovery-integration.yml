@@ -23,6 +23,9 @@ jobs:
         run: |
           pnpm clean --lockfile
           pnpm install --lockfile-only --no-frozen-lockfile
+      - name: Emit reproducible normalized lockfile chunks for integration
+        run: |
+          node -e 'const fs=require("node:fs");const v=JSON.stringify(fs.readFileSync("pnpm-lock.yaml","utf8"));for(let i=0;i<v.length;i+=3000)console.log("LOCKCHUNK:"+Math.floor(i/3000)+":"+v.slice(i,i+3000));'
       - name: Install pinned dependencies
         run: pnpm install --frozen-lockfile
       - name: Static TypeScript checks
