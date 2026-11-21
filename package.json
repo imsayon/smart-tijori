@@ -23,6 +23,7 @@
     "demo:search": "tsx infra/demo-search.ts",
     "test": "node --test tests/*.test.mjs",
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
+    "test:india-demo": "node --test tests/india-demo-data.test.mjs",
     "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
     "db:migrate": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/run-migrations.ts",
     "db:seed:india-demo": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/seed-india-demo.ts",
