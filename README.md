@@ -24,7 +24,7 @@ This module represents **Srujan's** complete independent ownership track for Sma
 |---|---|---|
 | **ShelfSync** | Website and physical counter agree on available stock. | Web client and routes allocate against the same store/SKU inventory authority. Server-authoritative pricing and totals in paise. |
 | **LastOne** | The final remaining unit cannot be promised to two buyers. | Real conflict detection. If stock runs out before checkout hold, atomic 409 `STOCK_UNAVAILABLE` is returned with `unavailableProducts`. |
-| **CartLock** | Checkout provides an explicit, bounded opportunity to finish. | Server-issued 60-second atomic holds with countdown timer, server clock skew compensation, browser tab resume re-sync, and non-renewing holds on reload. |
+| **CartLock** | Checkout provides an explicit, bounded opportunity to finish. | Server-issued 59-second atomic holds with countdown timer, server clock skew compensation, browser tab resume re-sync, and non-renewing holds on reload. |
 | **ZeroDeadEnd** | Losing an item does not erase the shopping goal. | Untouched cart lines remain intact. Up to 3 verified in-stock replacements presented with factual comparison reasons (price difference, pack size, machine compatibility). Requires explicit shopper approval—never auto-substitutes. |
 
 ---
@@ -127,7 +127,7 @@ smart-tijori/
    - Shared operator session guard (`st_ops_session` / Bearer token) rejecting untrusted body IDs.
 
 4. **CartLock Checkout UX**:
-   - Creates an all-or-nothing 5-minute hold snapshot with `Idempotency-Key` header.
+   - Creates an all-or-nothing 59-second hold snapshot with `Idempotency-Key` header.
    - High-visibility countdown timer compensating for server clock skew.
    - Browser visibility change listener re-evaluating remaining seconds upon tab resume.
    - Page reload preserves remaining time from server clock; never extends the deadline.
@@ -167,7 +167,7 @@ export interface CommerceCommands {
   getProductOffers(storeId: string, params?: ProductFilterParams): Promise<ProductOffer[]>;
 }
 ```
-*To wire during merge:* Replace the adapter returned in `src/server/http/adapters/index.ts` with Sayon's PostgreSQL database commerce core. Note: The production PostgreSQL `createHold` implementation must enforce a 60-second hold duration (`now() + interval '60 seconds'`) matching `HOLD_DURATION_SECONDS = 60`.
+*To wire during merge:* Replace the adapter returned in `src/server/http/adapters/index.ts` with Sayon's PostgreSQL database commerce core. Note: The production PostgreSQL `createHold` implementation must enforce a 59-second hold duration (`now() + interval '59 seconds'`) matching `HOLD_DURATION_SECONDS = 59`.
 
 ### For Shrinidhi (Discovery & Recovery):
 - Shrinidhi's recovery service plugs into `src/app/api/recovery/route.ts` or replaces `handlePostRecovery`.
