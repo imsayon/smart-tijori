@@ -64,19 +64,19 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<PipelineMetricCards facts={mockPipelineFacts} />);
 
     // Queue depth
-    expect(screen.getByText('Outbox Queue Depth')).toBeInTheDocument();
+    expect(screen.getByText('Unsent updates')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
 
     // Broker ack and projection
-    expect(screen.getByText('Last Kafka Broker Ack')).toBeInTheDocument();
-    expect(screen.getByText('Last Projection Accepted')).toBeInTheDocument();
+    expect(screen.getByText('Last shared update')).toBeInTheDocument();
+    expect(screen.getByText('Availability updated')).toBeInTheDocument();
 
     // Quarantine and retries
-    expect(screen.getByText('Quarantine & Retries')).toBeInTheDocument();
+    expect(screen.getByText('Updates needing review')).toBeInTheDocument();
     expect(screen.getByText(/quarantined \/ 3 retries/i)).toBeInTheDocument();
 
     // Error banner
-    expect(screen.getByText(/Last Pipeline Error: OPENSEARCH_TIMEOUT/i)).toBeInTheDocument();
+    expect(screen.getByText(/Last Update issue: OPENSEARCH_TIMEOUT/i)).toBeInTheDocument();
 
     // Attention status
     expect(screen.getByText('ATTENTION REQUIRED')).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<PipelineMetricCards facts={mockHealthyFacts} />);
 
     expect(screen.getByText('HEALTHY')).toBeInTheDocument();
-    expect(screen.getByText(/All Events Published & Projected/i)).toBeInTheDocument();
+    expect(screen.getByText(/Store updates are up to date/i)).toBeInTheDocument();
     expect(screen.getByText('Zero backlog')).toBeInTheDocument();
     expect(screen.queryByText(/Last Pipeline Error/i)).not.toBeInTheDocument();
   });
@@ -100,7 +100,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<PipelineMetricCards facts={unconfirmedBroker} />);
 
     expect(screen.getByText('UNCONFIRMED / IDLE')).toBeInTheDocument();
-    expect(screen.getByText('Awaiting Initial Kafka Broker Acknowledgment')).toBeInTheDocument();
+    expect(screen.getByText('Waiting for first shared update')).toBeInTheDocument();
     expect(screen.queryByText('HEALTHY')).not.toBeInTheDocument();
   });
 
@@ -113,7 +113,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<PipelineMetricCards facts={unconfirmedProjection} />);
 
     expect(screen.getByText('UNCONFIRMED / IDLE')).toBeInTheDocument();
-    expect(screen.getByText('Awaiting Initial OpenSearch Projection Acceptance')).toBeInTheDocument();
+    expect(screen.getByText('Waiting for updated availability')).toBeInTheDocument();
     expect(screen.queryByText('HEALTHY')).not.toBeInTheDocument();
   });
 
@@ -129,7 +129,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<PipelineMetricCards facts={factsWithError} />);
 
     expect(screen.getByText('ATTENTION REQUIRED')).toBeInTheDocument();
-    expect(screen.getAllByText(/Pipeline Error: SCHEMA_REGISTRY_DOWN/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Update issue: SCHEMA_REGISTRY_DOWN/i).length).toBeGreaterThan(0);
     expect(screen.queryByText('HEALTHY')).not.toBeInTheDocument();
   });
 
@@ -143,7 +143,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<PipelineMetricCards facts={unattributedQuarantineFacts} />);
 
     expect(screen.getByText('ATTENTION REQUIRED')).toBeInTheDocument();
-    expect(screen.getByText('Poison Pill Quarantine Active')).toBeInTheDocument();
+    expect(screen.getByText('Some store updates need attention')).toBeInTheDocument();
     expect(screen.getByText(/\(2 unattributed\)/i)).toBeInTheDocument();
     expect(screen.queryByText('HEALTHY')).not.toBeInTheDocument();
   });
@@ -160,9 +160,9 @@ describe('Operations Workbench Diagnostics Screen', () => {
     expect(screen.getByText('order.placed')).toBeInTheDocument();
 
     // Publication Statuses
-    expect(screen.getByText('Acked')).toBeInTheDocument();
+    expect(screen.getByText('Shared')).toBeInTheDocument();
     expect(screen.getByText('Pending')).toBeInTheDocument();
-    expect(screen.getByText('Unpublished')).toBeInTheDocument();
+    expect(screen.getByText('Not shared yet')).toBeInTheDocument();
   });
 
   it('renders full DiagnosticsView with initialFacts and session-authorized store indicator', () => {
@@ -171,7 +171,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     // Derived store indicator from facts
     expect(screen.getByText('blr-01')).toBeInTheDocument();
     expect(screen.getByText('Read-Only')).toBeInTheDocument();
-    expect(screen.getByText('Recent Outbox Events')).toBeInTheDocument();
+    expect(screen.getByText('Recent activity')).toBeInTheDocument();
     expect(screen.getByText('evt-001')).toBeInTheDocument();
   });
 
@@ -180,10 +180,10 @@ describe('Operations Workbench Diagnostics Screen', () => {
 
     // Badge indicates session-authorized instead of hardcoded store ID
     expect(screen.getByText('Session Authorized')).toBeInTheDocument();
-    expect(screen.getByText('Pipeline & Worker Diagnostics')).toBeInTheDocument();
-    expect(screen.getByText(/⏳ Coming Soon \(Phase 4\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/server\/events\/diagnostics\.ts \(createPipelineReader\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/quarantineCount \(poison pill isolation\)/i)).toBeInTheDocument();
+    expect(screen.getByText('Store activity & sync')).toBeInTheDocument();
+    expect(screen.getByText(/Not available just yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/Awaiting activity/i)).toBeInTheDocument();
+    expect(screen.getByText(/Awaiting review/i)).toBeInTheDocument();
 
     // Clicking retry attempts fetch and stays in pending_api if 404
     vi.stubGlobal(
@@ -198,7 +198,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     await userEvent.click(retryButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Kafka Outbox & Worker Telemetry Coming Soon/i)).toBeInTheDocument();
+      expect(screen.getByText(/Store activity is temporarily unavailable/i)).toBeInTheDocument();
     });
 
     vi.unstubAllGlobals();
@@ -220,7 +220,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     };
 
     render(<DiagnosticsView initialFacts={emptyFacts} />);
-    expect(screen.getByText(/No Outbox Telemetry Logged/i)).toBeInTheDocument();
+    expect(screen.getByText(/No recent store activity/i)).toBeInTheDocument();
   });
 
   it('enforces read-only behavior: has no retry, publish, or flush actions', () => {
@@ -241,13 +241,13 @@ describe('Operations Workbench Diagnostics Screen', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     render(<DiagnosticsView />);
-    expect(screen.getByText(/Kafka Outbox & Worker Telemetry Coming Soon/i)).toBeInTheDocument();
+    expect(screen.getByText(/Store activity is temporarily unavailable/i)).toBeInTheDocument();
 
     const retryButton = screen.getByRole('button', { name: /Retry Connection/i });
     await userEvent.click(retryButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Outbox Queue Depth')).toBeInTheDocument();
+      expect(screen.getByText('Unsent updates')).toBeInTheDocument();
       expect(screen.getByText('2')).toBeInTheDocument();
       expect(screen.getByText('evt-001')).toBeInTheDocument();
     });
@@ -275,11 +275,11 @@ describe('Operations Workbench Diagnostics Screen', () => {
     await userEvent.click(retryButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to Load Pipeline Diagnostics')).toBeInTheDocument();
+      expect(screen.getByText('Activity is temporarily unavailable')).toBeInTheDocument();
       expect(screen.getByText('Kafka broker unavailable')).toBeInTheDocument();
     });
 
-    expect(screen.queryByText('Outbox Queue Depth')).not.toBeInTheDocument();
+    expect(screen.queryByText('Unsent updates')).not.toBeInTheDocument();
 
     vi.unstubAllGlobals();
   });
@@ -298,7 +298,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     await userEvent.click(retryButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Outbox Queue Depth')).toBeInTheDocument();
+      expect(screen.getByText('Unsent updates')).toBeInTheDocument();
     });
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/ops/diagnostics');
