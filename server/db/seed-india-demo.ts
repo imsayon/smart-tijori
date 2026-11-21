@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { createPostgresPool } from '../connections.ts';
+import { createPostgresPool } from './pool.ts';
 import { createDatabase } from './database.ts';
 
 const schema = process.env.ST_DB_SCHEMA ?? '';
