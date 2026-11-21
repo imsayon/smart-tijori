@@ -22,20 +22,36 @@ jobs:
         run: |
           set -euo pipefail
           failures=0
+          response="$(mktemp)"
+          trap 'rm -f "$response"' EXIT
           for path in "/" "/stores" "/api/stores" "/api/products?storeId=blr-01"; do
             echo "::group::GET $path"
             code="$(curl --silent --show-error --location \
               --retry 2 --retry-delay 5 --connect-timeout 15 --max-time 55 \
-              --output /dev/null --write-out '%{http_code}' "$HOST$path")" || code="000"
+              --output "$response" --write-out '%{http_code}' "$HOST$path")" || code="000"
             echo "HTTP $code"
             if [[ "$code" != "200" ]]; then
               echo "::error::GET $path returned HTTP $code, expected 200"
               failures=$((failures + 1))
+            elif [[ "$path" == "/" ]]; then
+              if ! grep -Fq 'Better things.' "$response"; then
+                echo "::error::Deployed homepage does not contain the expected Green Atelier hero"
+                failures=$((failures + 1))
+              fi
+            elif [[ "$path" == "/api/stores" || "$path" == "/api/products?storeId=blr-01" ]]; then
+              field="stores"
+              if [[ "$path" == /api/products* ]]; then field="items"; fi
+              count="$(python3 -c 'import json,sys; obj=json.load(open(sys.argv[1])); xs=obj.get(sys.argv[2]); assert isinstance(xs,list); print(len(xs))' "$response" "$field")" || count="invalid"
+              echo "Valid $field: $count"
+              if ! [[ "$count" =~ ^[1-9][0-9]*$ ]]; then
+                echo "::error::GET $path returned no usable $field"
+                failures=$((failures + 1))
+              fi
             fi
             echo "::endgroup::"
           done
           if (( failures > 0 )); then
-            echo "::error::$failures public route(s) failed; deployment is not end-to-end verified"
+            echo "::error::$failures live read-only assertion(s) failed"
             exit 1
           fi
-          echo "Four read-only routes returned HTTP 200."
+          echo "Editorial homepage and nonempty stores/products verified."
