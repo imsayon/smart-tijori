@@ -2,6 +2,7 @@ engineStrict: true
 saveExact: true
 allowBuilds:
   '@confluentinc/kafka-javascript@1.11.0': true
+  esbuild@0.28.2: true
 
 # Match vetted transitive Babel versions from the shared service baseline.
 overrides:
