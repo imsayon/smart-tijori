@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handlePostPosSale } from '@/server/http/routes/pos-handler';
+import { OPERATOR_COOKIE_NAME } from '@/server/http/auth/operator-guard';
 import type { CommerceCommands } from '@/server/contracts/commerce';
 
 const { authorizePosSale } = vi.hoisted(() => ({
@@ -63,5 +64,70 @@ describe('POS sale endpoint', () => {
     } finally {
       vi.unstubAllEnvs();
     }
+  });
+
+  // Extended Edge Cases (Preserving Canonical Handler Validation)
+  it('rejects missing Idempotency-Key header with HTTP 400 VALIDATION_ERROR', async () => {
+    const req = new Request('http://localhost:3000/api/pos/sale', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ops_cashier_blr-01',
+        Origin: 'http://localhost:3000',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ storeId: 'blr-01', barcode: 'ST:tea-250', quantity: 1 }),
+    });
+
+    const response = await handlePostPosSale(req);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(authorizePosSale).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid payload quantity with HTTP 400 VALIDATION_ERROR', async () => {
+    const req = new Request('http://localhost:3000/api/pos/sale', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ops_cashier_blr-01',
+        Origin: 'http://localhost:3000',
+        'Idempotency-Key': 'sale-invalid-qty',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ storeId: 'blr-01', barcode: 'ST:tea-250', quantity: 0 }),
+    });
+
+    const response = await handlePostPosSale(req);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(authorizePosSale).not.toHaveBeenCalled();
+  });
+
+  it('authenticates operator via st_ops_session cookie when Authorization header is absent', async () => {
+    const sale = {
+      saleId: 'sale-cookie-1', storeId: 'blr-01', status: 'CONFIRMED', source: 'postgresql',
+      totalPaise: 15000, soldAt: '2026-11-21T12:00:00.000Z',
+      lines: [{ name: 'Tea', productId: 'tea-250', quantity: 1, unitPricePaise: 15000, inventoryVersion: 2 }],
+    } as const;
+    authorizePosSale.mockResolvedValueOnce({ ok: true, value: { ...sale, lines: [...sale.lines] } });
+
+    const req = new Request('http://localhost:3000/api/pos/sale', {
+      method: 'POST',
+      headers: {
+        cookie: `${OPERATOR_COOKIE_NAME}=ops_cashier_blr-01`,
+        Origin: 'http://localhost:3000',
+        'Idempotency-Key': 'sale-cookie-1',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ storeId: 'blr-01', barcode: 'ST:tea-250', quantity: 1 }),
+    });
+
+    const response = await handlePostPosSale(req);
+    expect(response.status).toBe(200);
+    expect(authorizePosSale).toHaveBeenCalledWith(
+      { kind: 'operator', id: 'cashier', storeIds: ['blr-01'] },
+      { storeId: 'blr-01', barcode: 'ST:tea-250', quantity: 1, key: 'sale-cookie-1' },
+    );
   });
 });
