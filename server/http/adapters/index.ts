@@ -11,7 +11,12 @@ export function getCommerceCommands(): CommerceCommands {
     return globalForCommerce.smartTijoriCommerceAdapter;
   }
 
-  // In test environment or development demo mode, use the FixtureCommerceAdapter
+  // Fixtures are permitted only for explicit demo runs or unit/HTTP tests.
+  // Unconfigured live routes must fail rather than simulate a successful stock mutation.
+  if (process.env.SMARTTIJORI_DEMO_MODE !== 'true' && process.env.NODE_ENV !== 'test') {
+    throw new Error('Authoritative commerce commands are not configured for this runtime');
+  }
+
   const fixtureAdapter = new FixtureCommerceAdapter();
   globalForCommerce.smartTijoriCommerceAdapter = fixtureAdapter;
   return fixtureAdapter;
