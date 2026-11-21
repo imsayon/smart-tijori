@@ -32,13 +32,13 @@ export interface PosConflictState {
 export interface BarcodeSalePanelProps {
   storeId?: string;
   operatorId?: string;
-  operatorToken?: string;
+  fixture?: boolean;
 }
 
 export function BarcodeSalePanel({
   storeId = 'blr-01',
   operatorId = 'staff01',
-  operatorToken,
+  fixture = false,
 }: BarcodeSalePanelProps) {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -48,6 +48,8 @@ export function BarcodeSalePanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const inFlight = useRef(false);
+  const attempt = useRef<{ barcode: string; quantity: number; key: string } | null>(null);
 
   // Auto-focus input on mount for continuous scanner streams
   useEffect(() => {
@@ -57,20 +59,19 @@ export function BarcodeSalePanel({
   const handleAuthorizeSale = useCallback(
     async (codeToScan: string) => {
       const cleanCode = codeToScan.trim();
-      if (!cleanCode) return;
-
+      if (!cleanCode || inFlight.current) return;
+      const barcode = resolveBarcodeToSend(cleanCode);
+      const previous = attempt.current;
+      if (previous && (previous.barcode !== barcode || previous.quantity !== quantity)) {
+        setErrorMessage('Resolve the previous sale by retrying the same barcode and quantity first.');
+        return;
+      }
+      const operationKey = previous?.key ?? crypto.randomUUID();
+      attempt.current = { barcode, quantity, key: operationKey };
+      inFlight.current = true;
       setIsSubmitting(true);
       setErrorMessage(null);
       setLastConflict(null);
-
-      // Generate idempotent POS operation key
-      const operationKey = `pos_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-      // Resolve registered barcode format for participating store catalog
-      const barcodeToSend = resolveBarcodeToSend(cleanCode);
-
-      // Token format: ops_<operatorId>_<storeId> (strictly matching server-verified store)
-      const token = operatorToken || `ops_${operatorId}_${storeId}`;
 
       try {
         const response = await fetch('/api/pos/sale', {
@@ -78,11 +79,11 @@ export function BarcodeSalePanel({
           headers: {
             'Content-Type': 'application/json',
             'Idempotency-Key': operationKey,
-            Authorization: `Bearer ${token}`,
+            ...(fixture ? { Authorization: `Bearer ops_${operatorId}_${storeId}` } : {}),
           },
           body: JSON.stringify({
             storeId,
-            barcode: barcodeToSend,
+            barcode,
             quantity,
           }),
         });
@@ -90,6 +91,7 @@ export function BarcodeSalePanel({
         const data = await response.json();
 
         if (!response.ok) {
+          if (response.status < 500) attempt.current = null;
           const errCode = data.error?.code || 'VALIDATION_ERROR';
           const errMsg = data.error?.message || 'Sale authorization rejected';
           setLastConflict({
@@ -102,19 +104,21 @@ export function BarcodeSalePanel({
         }
 
         if (data.sale) {
+          attempt.current = null;
           const confirmed = data.sale as PosConfirmedSale;
           setRecentSales((prev) => [confirmed, ...prev.slice(0, 9)]);
           setBarcodeInput('');
           setQuantity(1);
         }
       } catch {
-        setErrorMessage('Failed to connect to store inventory authority. Please re-scan.');
+        setErrorMessage('Sale outcome is unknown. Retry the same barcode and quantity.');
       } finally {
+        inFlight.current = false;
         setIsSubmitting(false);
         setTimeout(() => inputRef.current?.focus(), 50);
       }
     },
-    [storeId, operatorId, operatorToken, quantity]
+    [storeId, operatorId, fixture, quantity]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -141,7 +145,7 @@ export function BarcodeSalePanel({
         <div className="flex items-center gap-2">
           {/* Label runtime adapter transparently */}
           <span className="text-xs bg-amber-500/20 text-amber-300 font-mono font-bold px-3 py-1.5 rounded-full border border-amber-500/40">
-            ⚡ [SIMULATED FIXTURE GATE]
+            {fixture ? '⚡ [SIMULATED FIXTURE GATE]' : 'PostgreSQL checkout gate'}
           </span>
         </div>
       </div>
@@ -224,7 +228,7 @@ export function BarcodeSalePanel({
             {/* Quick Test Barcode Buttons for Cashier Evaluation */}
             <div className="border-t border-[#E3DDD2] pt-4">
               <span className="text-[11px] font-bold text-[#78716C] block mb-2">
-                Quick Test Canonical Barcodes:
+                Load an example barcode
               </span>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(BARCODE_CATALOG)
@@ -234,9 +238,10 @@ export function BarcodeSalePanel({
                     <button
                       key={code}
                       type="button"
+                      disabled={isSubmitting}
                       onClick={() => {
                         setBarcodeInput(code);
-                        void handleAuthorizeSale(code);
+                        inputRef.current?.focus();
                       }}
                       className="text-[11px] bg-[#FAF8F5] hover:bg-[#F3EFEA] border border-[#E3DDD2] px-2.5 py-1 rounded-lg text-[#57534E] font-mono transition-all cursor-pointer"
                     >
@@ -249,13 +254,13 @@ export function BarcodeSalePanel({
 
           {/* Conflict & Error Alerts */}
           {errorMessage && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs leading-relaxed">
+            <div role="alert" className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs leading-relaxed">
               ⚠️ <span className="font-bold">System Error:</span> {errorMessage}
             </div>
           )}
 
           {lastConflict && (
-            <div
+            <div role="alert"
               className={`p-5 rounded-3xl border shadow-sm ${
                 lastConflict.code === 'STOCK_LOCKED_ONLINE'
                   ? 'bg-amber-50 border-amber-300 text-amber-900'

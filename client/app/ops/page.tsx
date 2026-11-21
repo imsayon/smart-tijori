@@ -27,14 +27,7 @@ export default function OpsOverviewPage() {
             Centralized terminal control, real-time single-stock authority monitoring, and asynchronous Kafka event telemetry for branch operations.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="px-3.5 py-2 rounded-2xl bg-[#FAF8F5] border border-[#E3DDD2] text-xs font-mono font-bold text-[#276350]">
-            Branch: <span className="text-[#0E2A22]">Bengaluru (blr-01)</span>
-          </div>
-          <div className="px-3.5 py-2 rounded-2xl bg-[#FAF8F5] border border-[#E3DDD2] text-xs font-mono text-[#57534E]">
-            Session: <span className="font-bold">staff01 (cashier)</span>
-          </div>
-        </div>
+
       </div>
 
       {/* Operations Quick Launch Grid */}
@@ -68,7 +61,7 @@ export default function OpsOverviewPage() {
           <div className="flex items-center justify-between">
             <span className="text-3xl">📦</span>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
-              Phase 3
+              Stock facts
             </span>
           </div>
           <div className="space-y-2">
@@ -92,7 +85,7 @@ export default function OpsOverviewPage() {
           <div className="flex items-center justify-between">
             <span className="text-3xl">⚡</span>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
-              Phase 4
+              Event history
             </span>
           </div>
           <div className="space-y-2">
@@ -120,7 +113,7 @@ export default function OpsOverviewPage() {
         </div>
         <p className="leading-relaxed">
           PostgreSQL alone allocates inventory. Domain state mutations and outbox intents commit in a single transaction. 
-          No client-side stock allocation is performed in the Operations Workbench. Restocking requires authoritative platform owner command confirmation before mutation controls are enabled.
+          No client-side stock allocation is performed in the Operations Workbench. The inventory and diagnostics views are read-only.
         </p>
       </div>
     </div>

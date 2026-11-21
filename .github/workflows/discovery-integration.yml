@@ -4,7 +4,11 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [feat/discovery-search-and-indexing]
+    branches: [main, feat/discovery-search-and-indexing]
+
+env:
+  CKJS_LINKING: dynamic
+  GNUMAKEFLAGS: "-l4"
 
 jobs:
   discovery-offline:

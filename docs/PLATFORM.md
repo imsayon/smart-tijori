@@ -47,7 +47,7 @@ result commit together.
 From the repository root with pinned Node/pnpm and Docker Compose:
 
 ```sh
-pnpm install --frozen-lockfile
+CKJS_LINKING=dynamic pnpm install --frozen-lockfile
 docker compose -f infra/platform-test.compose.yml up --wait
 docker compose -f infra/platform-test.compose.yml exec -T kafka /opt/kafka/bin/kafka-topics.sh \
   --bootstrap-server 127.0.0.1:19093 --create \

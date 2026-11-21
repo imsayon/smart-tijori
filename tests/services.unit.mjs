@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { Client } from "pg";
+import { features } from "@confluentinc/kafka-javascript";
 import { createCommerceProjectionWriter } from "../server/discovery/commerce-projection-writer.ts";
 import {
   createKafka,
@@ -11,6 +12,10 @@ import {
   createPostgresPool,
   ServiceConfigurationError,
 } from "../server/connections.ts";
+
+test("the native Kafka client supports TLS", () => {
+  assert.ok(features.includes("ssl"));
+});
 
 test("service configuration is validated only when a client is requested", () => {
   for (const create of [createPostgresPool, createKafka, createOpenSearchClient])

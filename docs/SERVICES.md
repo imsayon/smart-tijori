@@ -20,7 +20,7 @@ proof and the inputs required for a live worker.
    An organization invitation does not by itself grant project service access;
    obtain Developer access to `smart-tijori`. OpenSearch access is managed by its
    owner in her separate project. Current invitations/permissions belong in Linear.
-2. Install the pinned Node/pnpm versions and run `pnpm install --frozen-lockfile`.
+2. Install the pinned Node/pnpm versions and run `CKJS_LINKING=dynamic pnpm install --frozen-lockfile`.
    pnpm permits the native install script only for the exact pinned Kafka client.
 3. If absent, copy `.env.example` to `client/.env.local`. Fill the PostgreSQL URI,
    its CA path, Kafka brokers and mTLS paths, plus the OpenSearch HTTPS origin and
@@ -114,7 +114,7 @@ application data-plane credential and is not required by these client factories.
   while Aiven's guide currently demonstrates `node-rdkafka`. The
   [Confluent client documentation](https://docs.confluent.io/kafka-clients/javascript/current/overview.html)
   describes native runtime requirements. On Linux, the pinned client falls back
-  to compiling from source on Node 26.13.1. The build needs Python 3, make, a
+  to compiling from source on Node 26.13.1. Dynamic linking avoids GNU ar MRI parsing of scoped pnpm paths. The build needs Python 3, make, a
   C/C++ compiler, and Perl with its core modules to build OpenSSL. After switching
   Node major versions, start with a fresh `node_modules` to replace the previous
   native binary.

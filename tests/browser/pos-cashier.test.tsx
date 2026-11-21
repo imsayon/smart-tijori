@@ -11,7 +11,7 @@ describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
   });
 
   it('renders scanner input with auto-focus and clear simulated fixture labeling', () => {
-    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" />);
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
 
     const input = screen.getByPlaceholderText(/Scan item barcode or enter SKU/i);
     expect(input).toBeInTheDocument();
@@ -47,7 +47,7 @@ describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
     });
     global.fetch = mockFetch;
 
-    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" />);
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
 
     const input = screen.getByPlaceholderText(/Scan item barcode or enter SKU/i);
 
@@ -91,7 +91,7 @@ describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
     });
     global.fetch = mockFetch;
 
-    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" />);
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
 
     const input = screen.getByPlaceholderText(/Scan item barcode or enter SKU/i);
     await user.type(input, 'ST:tea-250{enter}');
@@ -119,7 +119,7 @@ describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
     });
     global.fetch = mockFetch;
 
-    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" />);
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
 
     const input = screen.getByPlaceholderText(/Scan item barcode or enter SKU/i);
     await user.type(input, 'ST:unknown-999{enter}');
@@ -128,5 +128,24 @@ describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
       expect(screen.getByText('NOT_FOUND')).toBeInTheDocument();
       expect(screen.getByText(/Barcode is not registered for this store/i)).toBeInTheDocument();
     });
+  });
+
+  it('reuses the live operation key when a sale response is lost', async () => {
+    const user = userEvent.setup();
+    const mockFetch = vi.fn().mockRejectedValueOnce(new Error('lost response')).mockResolvedValueOnce({
+      ok: false, status: 409,
+      json: async () => ({ error: { code: 'STOCK_LOCKED_ONLINE', message: 'Reserved' } }),
+    });
+    global.fetch = mockFetch;
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" />);
+    const input = screen.getByPlaceholderText(/Scan item barcode or enter SKU/i);
+    await user.type(input, 'ST:tea-250{enter}');
+    await screen.findByText(/Sale outcome is unknown/i);
+    await user.type(input, '{enter}');
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    const first = mockFetch.mock.calls[0][1].headers;
+    const second = mockFetch.mock.calls[1][1].headers;
+    expect(second.Authorization).toBeUndefined();
+    expect(second['Idempotency-Key']).toBe(first['Idempotency-Key']);
   });
 });

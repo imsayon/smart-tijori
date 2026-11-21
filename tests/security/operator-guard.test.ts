@@ -84,3 +84,18 @@ describe('Operator Guard Security Tests', () => {
     expect(() => verifyOperatorSession(req)).toThrowError(HttpError);
   });
 });
+
+it('authorizes only the configured live operator and store', () => {
+  const token = 'test-operator-token-with-at-least-32-characters';
+  vi.stubEnv('SMARTTIJORI_DEMO_MODE', 'false');
+  vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('ST_OPS_OPERATOR_TOKEN', token);
+  vi.stubEnv('ST_OPS_STORE_ID', 'mys-01');
+  try {
+    const req = new Request('http://localhost/api/pos/sale', { headers: { Authorization: `Bearer ${token}` } });
+    expect(verifyOperatorSession(req)).toMatchObject({ operatorId: 'cashier', storeId: 'mys-01' });
+    expect(() => verifyOperatorSession(new Request(req, { headers: { Authorization: `Bearer ${token}x` } }))).toThrowError(HttpError);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});

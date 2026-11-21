@@ -2,10 +2,32 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { OPERATOR_ROLE } from '@server/http/auth/operator-guard';
 import { OpsShell } from '@/components/ops/layout/ops-shell';
 import OpsOverviewPage from '@/app/ops/page';
 import OpsInventoryPage from '@/app/ops/inventory/page';
 import OpsDiagnosticsPage from '@/app/ops/diagnostics/page';
+
+const actor = { operatorId: 'cashier', role: OPERATOR_ROLE, storeId: 'blr-01' };
+vi.mock('@/app/ops/operator', () => ({
+  readWorkbenchOperator: async () => ({ actor, fixture: false }),
+}));
+vi.mock('@server/db/runtime', () => ({ getCommerceDatabase: () => ({}) }));
+vi.mock('@server/commerce/facts', () => ({
+  createCommerceFacts: () => ({
+    readOpsFacts: async (storeId: string) => ({
+      storeId, checkedAt: '2026-11-21T08:00:00.000Z',
+      stock: [{ productId: 'tea-250', stockOnHand: 5, held: 1, available: 4, inventoryVersion: 7 }],
+      recentMovements: [],
+    }),
+  }),
+}));
+vi.mock('@server/events/diagnostics', () => ({
+  createPipelineReader: () => async (storeId: string) => ({
+    storeId, checkedAt: '2026-11-21T08:00:00.000Z', pendingCount: 0,
+    recentEvents: [{ eventId: 'one', type: 'inventory.changed', occurredAt: '2026-11-21T07:59:00.000Z', publishedAt: '2026-11-21T08:00:00.000Z' }],
+  }),
+}));
 
 // Mock next/navigation
 const mockPathname = vi.fn();
@@ -22,7 +44,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
 
   it('renders workbench brand, server-verified session pill, and runtime mode indicator', () => {
     render(
-      <OpsShell>
+      <OpsShell operator={actor} fixture>
         <div>Content</div>
       </OpsShell>
     );
@@ -37,7 +59,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
 
   it('renders all four navigation items with expected links', () => {
     render(
-      <OpsShell>
+      <OpsShell operator={actor} fixture>
         <div>Content</div>
       </OpsShell>
     );
@@ -63,7 +85,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     mockPathname.mockReturnValue('/ops/pos');
 
     render(
-      <OpsShell>
+      <OpsShell operator={actor} fixture>
         <div>Content</div>
       </OpsShell>
     );
@@ -85,21 +107,16 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     expect(screen.getByText(/Architectural Single-Stock Invariant/i)).toBeInTheDocument();
   });
 
-  it('renders Coming Soon state on Inventory page without mock data', () => {
-    render(<OpsInventoryPage />);
-
+  it('renders authoritative held and available quantities', async () => {
+    render(await OpsInventoryPage());
     expect(screen.getByText('Store Inventory Monitor')).toBeInTheDocument();
-    expect(screen.getByText(/⏳ Coming Soon \(Phase 3\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/server\/commerce\/facts\.ts \(readOpsFacts\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Awaiting platform owner command confirmation/i)).toBeInTheDocument();
+    expect(screen.getByRole('row', { name: /tea-250 5 1 4 7/ })).toBeInTheDocument();
   });
 
-  it('renders Coming Soon state on Diagnostics page without duplicate consumers', () => {
-    render(<OpsDiagnosticsPage />);
-
+  it('renders pipeline status from the existing reader', async () => {
+    render(await OpsDiagnosticsPage());
     expect(screen.getByText('Pipeline & Worker Diagnostics')).toBeInTheDocument();
-    expect(screen.getByText(/⏳ Coming Soon \(Phase 4\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/server\/events\/diagnostics\.ts \(createPipelineReader\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/quarantineCount \(poison pill isolation\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pending events/i)).toBeInTheDocument();
+    expect(screen.getByText(/inventory.changed · Acknowledged/i)).toBeInTheDocument();
   });
 });
