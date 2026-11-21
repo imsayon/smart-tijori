@@ -1,4 +1,4 @@
-import type { Cart, Hold, Order, StockInterest, ProductOffer, Store } from '@/contracts';
+import type { Cart, Hold, Order, StockInterest, ProductOffer, Store, PosSaleInput, PosSaleOutcome } from '@/contracts';
 
 export type CreateHoldResult =
   | { ok: true; hold: Hold }
@@ -18,7 +18,7 @@ export interface CommerceCommands {
    * Creates an atomic stock reservation hold for the shopper's cart.
    *
    * INTEGRATION CONTRACT REQUIREMENT (FOR SAYON'S POSTGRESQL IMPLEMENTATION):
-   * 1. Duration: Must enforce exactly 60 seconds hold expiry (`now() + interval '60 seconds'`).
+   * 1. Duration: Must enforce exactly 59 seconds hold expiry (`now() + interval '59 seconds'`).
    * 2. Timestamps: Return server-generated `serverNow` and `expiresAt` in ISO-8601 format.
    * 3. Idempotency: Duplicate calls with the same (sessionId, operationKey, cartFingerprint)
    *    must return the cached hold result without creating duplicate allocations.
@@ -56,4 +56,13 @@ export interface CommerceCommands {
       city?: string;
     },
   ): Promise<ProductOffer[]>;
+
+  /**
+   * Authorizes a participating POS barcode sale against authoritative stock.
+   * [COORDINATED CONTRACT WITH SAYON]
+   *
+   * Production rule: Must execute inside a PostgreSQL allocation transaction.
+   * Never debited by client or route handler.
+   */
+  authorizePosSale(input: PosSaleInput): Promise<PosSaleOutcome>;
 }

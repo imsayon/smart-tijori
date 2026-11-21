@@ -1,4 +1,4 @@
-import type { Cart, Hold, Order, StockInterest, ProductOffer, Store } from '@/contracts';
+import type { Cart, Hold, Order, StockInterest, ProductOffer, Store, PosSaleInput, PosSaleOutcome } from '@/contracts';
 import type { CommerceCommands, CreateHoldResult } from './commerce-commands';
 
 /** A single recorded call to a CommerceCommands method. */
@@ -202,6 +202,26 @@ export class RecordingAdapter implements CommerceCommands {
       return this.delegate.getProductOffers(storeId, params);
     return (
       (this.fixture('getProductOffers') as ProductOffer[] | undefined) ?? []
+    );
+  }
+
+  async authorizePosSale(input: PosSaleInput): Promise<PosSaleOutcome> {
+    this.record('authorizePosSale', [input]);
+    if (this.delegate) return this.delegate.authorizePosSale(input);
+    return (
+      (this.fixture('authorizePosSale') as PosSaleOutcome | undefined) ?? {
+        ok: true,
+        saleId: 'sale-stub-01',
+        storeId: input.storeId,
+        productId: 'stub-product',
+        productName: 'Stub Product',
+        quantity: input.quantity,
+        unitPricePaise: 10000,
+        totalPaise: 10000 * input.quantity,
+        allocatedAt: new Date().toISOString(),
+        inventoryVersion: 1,
+        source: 'FIXTURE_SIMULATED',
+      }
     );
   }
 }

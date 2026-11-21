@@ -10,6 +10,8 @@ export const HTTP_STATUS_MAP: Record<ErrorCode, number> = {
   HOLD_NOT_ACTIVE: 409,
   IDEMPOTENCY_CONFLICT: 409,
   DEPENDENCY_UNAVAILABLE: 503,
+  STOCK_LOCKED_ONLINE: 409,
+  BARCODE_UNKNOWN: 404,
 };
 
 export class HttpError extends Error {

@@ -129,12 +129,49 @@ export type ErrorCode =
   | 'IDEMPOTENCY_CONFLICT'
   | 'FORBIDDEN'
   | 'NOT_FOUND'
-  | 'DEPENDENCY_UNAVAILABLE';
+  | 'DEPENDENCY_UNAVAILABLE'
+  | 'STOCK_LOCKED_ONLINE'
+  | 'BARCODE_UNKNOWN';
 
 export interface ApiError {
   code: ErrorCode;
   message: string;
 }
+
+// === POS Barcode Sale Gate Contracts (Coordinated with Sayon) ===
+export interface PosSaleInput {
+  storeId: string;
+  barcode: string;
+  quantity: number;
+  operatorId: string;   // Resolved server-side from operator session
+  operationKey: string; // Idempotency key
+}
+
+export type PosSaleOutcome =
+  | {
+      ok: true;
+      saleId: string;
+      storeId: string;
+      productId: string;
+      productName: string;
+      quantity: number;
+      unitPricePaise: number;
+      totalPaise: number;
+      allocatedAt: string; // ISO 8601
+      inventoryVersion: number;
+      source: 'POSTGRESQL_TRANSACTION' | 'FIXTURE_SIMULATED';
+    }
+  | {
+      ok: false;
+      code: 'STOCK_LOCKED_ONLINE' | 'STOCK_UNAVAILABLE' | 'BARCODE_UNKNOWN' | 'IDEMPOTENCY_CONFLICT';
+      message: string;
+      details?: {
+        productId?: string;
+        availableStock?: number;
+        activeHoldExpiresAt?: string;
+      };
+      source: 'POSTGRESQL_TRANSACTION' | 'FIXTURE_SIMULATED';
+    };
 
 // === Stock Interest ===
 export interface StockInterest {

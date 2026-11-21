@@ -143,7 +143,7 @@ export function CheckoutView() {
     } catch (err) {
       if (err instanceof ApiClientError && err.code === 'HOLD_EXPIRED') {
         setState('HOLD_EXPIRED');
-        setErrorMessage('Your 60-second checkout hold has expired. Please revalidate and reserve again.');
+        setErrorMessage('Your 59-second checkout hold has expired. Please revalidate and reserve again.');
       } else if (err instanceof ApiClientError) {
         setErrorMessage(err.message);
         setState('HOLD_ACTIVE');
@@ -217,7 +217,7 @@ export function CheckoutView() {
           </div>
           <h2 className="text-2xl font-black text-[#181614] mb-2 tracking-tight">Securing CartLock Hold</h2>
           <p className="text-xs text-[#78716C] max-w-sm mx-auto leading-relaxed">
-            Contacting store inventory authority to lock your items for 60 seconds with single-stock truth…
+            Contacting store inventory authority to lock your items for 59 seconds with single-stock truth…
           </p>
         </div>
       )}
@@ -245,7 +245,7 @@ export function CheckoutView() {
             </Alert>
           ) : (
             <p className="text-sm text-[#57534E] mb-6 max-w-md mx-auto leading-relaxed">
-              Your 60-second stock hold has expired to ensure fairness for other shoppers. You can re-reserve with one click.
+              Your 59-second stock hold has expired to ensure fairness for other shoppers. You can re-reserve with one click.
             </p>
           )}
           <div className="flex flex-col sm:flex-row justify-center gap-3">

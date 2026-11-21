@@ -36,14 +36,26 @@ export function verifyOperatorSession(request: Request): OperatorActor {
   // Token format: ops_<operatorId>_<storeId> (e.g., ops_staff01_blr-01) or demo token
   // In demo / test mode: accept valid ops tokens
   if (token.startsWith('ops_') || token === 'demo-operator-token') {
+    if (token === 'demo-operator-token') {
+      return {
+        operatorId: 'ops-demo-user',
+        role: OPERATOR_ROLE,
+        storeId: 'blr-01',
+      };
+    }
+
     const parts = token.split('_');
-    const operatorId = parts[1] || 'ops-demo-user';
-    const storeId = parts[2] || 'blr-01';
+    const operatorId = parts[1]?.trim();
+    const storeId = parts[2]?.trim();
+
+    if (!operatorId) {
+      throw new HttpError('FORBIDDEN', 'Invalid operator credential format', 403);
+    }
 
     return {
       operatorId,
       role: OPERATOR_ROLE,
-      storeId,
+      storeId: storeId || undefined,
     };
   }
 

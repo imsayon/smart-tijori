@@ -250,4 +250,68 @@ describe('Orders HTTP Handler Tests', () => {
     const data = await res.json();
     expect(data.error.code).toBe('HOLD_EXPIRED');
   });
+
+  describe('59-Second Expiry Boundary Tests (expiresAt - 1ms, exactly expiresAt, after expiresAt)', () => {
+    it('allows order confirmation at expiresAt - 1ms when all conditions pass', async () => {
+      const boundaryAdapter = new FixtureCommerceAdapter();
+      await boundaryAdapter.updateCart(testSession, 'blr-01', [
+        { productId: 'blr-basmati-1kg', quantity: 1 },
+      ]);
+      const cart = await boundaryAdapter.getCart(testSession);
+      const holdRes = await boundaryAdapter.createHold(testSession, cart.id, 'key-boundary-active');
+      const hold = (holdRes as { ok: true; hold: { id: string; expiresAt: string } }).hold;
+
+      // Mock Date or pass serverNow: in confirmOrder, now = new Date() is compared against new Date(hold.expiresAt)
+      // We set expiresAt to Date.now() + 1ms (simulating current time is expiresAt - 1ms)
+      const stored = (boundaryAdapter as unknown as { holds: Map<string, { expiresAt: string }> }).holds.get(hold.id);
+      if (stored) {
+        stored.expiresAt = new Date(Date.now() + 100).toISOString(); // 100ms in future (> now)
+      }
+
+      const order = await boundaryAdapter.confirmOrder(testSession, hold.id, 'op-key-boundary-active');
+      expect(order.status).toBe('CONFIRMED');
+      expect(order.reservationId).toBe(hold.id);
+    });
+
+    it('rejects order confirmation at exactly expiresAt with 409 HOLD_EXPIRED', async () => {
+      const boundaryAdapter = new FixtureCommerceAdapter();
+      await boundaryAdapter.updateCart(testSession, 'blr-01', [
+        { productId: 'blr-basmati-1kg', quantity: 1 },
+      ]);
+      const cart = await boundaryAdapter.getCart(testSession);
+      const holdRes = await boundaryAdapter.createHold(testSession, cart.id, 'key-boundary-exact');
+      const hold = (holdRes as { ok: true; hold: { id: string; expiresAt: string } }).hold;
+
+      // Set expiresAt to the exact current timestamp (or already reached <= now)
+      const stored = (boundaryAdapter as unknown as { holds: Map<string, { expiresAt: string }> }).holds.get(hold.id);
+      if (stored) {
+        // Exact current timestamp
+        stored.expiresAt = new Date().toISOString();
+      }
+
+      await expect(
+        boundaryAdapter.confirmOrder(testSession, hold.id, 'op-key-boundary-exact')
+      ).rejects.toThrowError(/expired/i);
+    });
+
+    it('rejects order confirmation after expiresAt with 409 HOLD_EXPIRED', async () => {
+      const boundaryAdapter = new FixtureCommerceAdapter();
+      await boundaryAdapter.updateCart(testSession, 'blr-01', [
+        { productId: 'blr-basmati-1kg', quantity: 1 },
+      ]);
+      const cart = await boundaryAdapter.getCart(testSession);
+      const holdRes = await boundaryAdapter.createHold(testSession, cart.id, 'key-boundary-past');
+      const hold = (holdRes as { ok: true; hold: { id: string; expiresAt: string } }).hold;
+
+      const stored = (boundaryAdapter as unknown as { holds: Map<string, { expiresAt: string }> }).holds.get(hold.id);
+      if (stored) {
+        // 500ms in the past
+        stored.expiresAt = new Date(Date.now() - 500).toISOString();
+      }
+
+      await expect(
+        boundaryAdapter.confirmOrder(testSession, hold.id, 'op-key-boundary-past')
+      ).rejects.toThrowError(/expired/i);
+    });
+  });
 });

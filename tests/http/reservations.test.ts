@@ -34,7 +34,7 @@ describe('Reservations HTTP Handler Tests (CartLock)', () => {
     expect(data.error.message).toContain('Idempotency-Key');
   });
 
-  it('POST /api/reservations creates 60-second active hold snapshot', async () => {
+  it('POST /api/reservations creates 59-second active hold snapshot', async () => {
     await adapter.updateCart(testSession, 'blr-01', [
       { productId: 'blr-basmati-1kg', quantity: 2 },
     ]);
@@ -63,12 +63,12 @@ describe('Reservations HTTP Handler Tests (CartLock)', () => {
     expect(hold.serverNow).toBeDefined();
     expect(hold.expiresAt).toBeDefined();
 
-    // Verify expiry is exactly 60 seconds after server creation time
+    // Verify expiry is exactly 59 seconds after server creation time
     const durationMs = new Date(hold.expiresAt).getTime() - new Date(hold.serverNow).getTime();
-    expect(durationMs).toBe(60 * 1000);
+    expect(durationMs).toBe(59 * 1000);
   });
 
-  it('Hold lifecycle: at 59 seconds it is still active, at 60 seconds it is expired', async () => {
+  it('Hold lifecycle: at 58.999 seconds it is active, at exactly 59.000 seconds it is expired, after it is expired', async () => {
     const adapterTiming = new FixtureCommerceAdapter();
 
     await adapterTiming.updateCart(testSession, 'blr-01', [
@@ -81,15 +81,19 @@ describe('Reservations HTTP Handler Tests (CartLock)', () => {
 
     const createdTime = new Date(hold.serverNow).getTime();
     const expiryTime = new Date(hold.expiresAt).getTime();
-    expect(expiryTime - createdTime).toBe(60 * 1000);
+    expect(expiryTime - createdTime).toBe(59 * 1000);
 
-    // Simulate 59 seconds passed: still active
-    const simulated59s = new Date(createdTime + 59 * 1000);
-    expect(simulated59s.getTime() < expiryTime).toBe(true);
+    // Boundary 1: before expiresAt (expiresAt - 1ms, i.e. 58,999ms) -> active
+    const simulatedBeforeExpiry = new Date(expiryTime - 1);
+    expect(simulatedBeforeExpiry.getTime() < expiryTime).toBe(true);
 
-    // Simulate 60 seconds passed: expired
-    const simulated60s = new Date(createdTime + 60 * 1000);
-    expect(simulated60s.getTime() >= expiryTime).toBe(true);
+    // Boundary 2: exactly at expiresAt (expiresAt + 0ms, i.e. 59,000ms) -> expired (server time >= expiresAt)
+    const simulatedExactExpiry = new Date(expiryTime);
+    expect(simulatedExactExpiry.getTime() >= expiryTime).toBe(true);
+
+    // Boundary 3: after expiresAt (expiresAt + 1ms) -> expired
+    const simulatedAfterExpiry = new Date(expiryTime + 1);
+    expect(simulatedAfterExpiry.getTime() >= expiryTime).toBe(true);
   });
 
   it('POST /api/reservations returns 409 STOCK_UNAVAILABLE when stock runs out', async () => {
@@ -145,7 +149,7 @@ describe('Reservations HTTP Handler Tests (CartLock)', () => {
     expect(updated.status).toBe('RELEASED');
   });
 
-  it('Re-reserving after expiry creates a fresh hold with new ID and resets 60-second timer', async () => {
+  it('Re-reserving after expiry creates a fresh hold with new ID and resets 59-second timer', async () => {
     await adapter.updateCart(testSession, 'blr-01', [
       { productId: 'blr-basmati-1kg', quantity: 2 },
     ]);
@@ -199,7 +203,7 @@ describe('Reservations HTTP Handler Tests (CartLock)', () => {
     expect(secondHold.totalPaise).toBe(firstHold.totalPaise);
     const freshDurationMs =
       new Date(secondHold.expiresAt).getTime() - new Date(secondHold.serverNow).getTime();
-    expect(freshDurationMs).toBe(60 * 1000);
+    expect(freshDurationMs).toBe(59 * 1000);
   });
 
   it('Lost response retry with SAME Idempotency-Key returns cached hold without creating duplicate', async () => {

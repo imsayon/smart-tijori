@@ -9,9 +9,12 @@ import type {
   ProductOffer,
   StockInterest,
   Store,
+  PosSaleInput,
+  PosSaleOutcome,
 } from '@/contracts';
 import type { CommerceCommands, CreateHoldResult } from './commerce-commands';
 import { STORES, searchOffers } from '@/dev/shopper-fixtures';
+import { resolveBarcodeToProductId } from '@/lib/pos/barcode-mapper';
 import { HttpError } from '../errors/http-errors';
 
 interface IdempotencyEntry<T> {
@@ -23,7 +26,7 @@ interface IdempotencyEntry<T> {
   createdAt: number;
 }
 
-export const HOLD_DURATION_SECONDS = 60; // 60 seconds hold
+export const HOLD_DURATION_SECONDS = 59; // 59 seconds hold
 
 export class FixtureCommerceAdapter implements CommerceCommands {
   private carts = new Map<string, Cart>(); // sessionId -> Cart
@@ -481,5 +484,126 @@ export class FixtureCommerceAdapter implements CommerceCommands {
     };
     this.interests.push(interest);
     return interest;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Participating POS Barcode Sale Gate (Fixture Simulation)
+  // ---------------------------------------------------------------------------
+  async authorizePosSale(input: PosSaleInput): Promise<PosSaleOutcome> {
+    const fingerprint = `${input.storeId}:${input.barcode}:${input.quantity}`;
+    const idempotency = this.resolveIdempotency<PosSaleOutcome>(
+      input.operatorId,
+      'authorizePosSale',
+      input.operationKey,
+      fingerprint
+    );
+    if (idempotency.cached && idempotency.response) {
+      return idempotency.response;
+    }
+
+    // 1. Resolve barcode to product ID
+    const productId = resolveBarcodeToProductId(input.barcode);
+    if (!productId) {
+      const outcome: PosSaleOutcome = {
+        ok: false,
+        code: 'BARCODE_UNKNOWN',
+        message: `Barcode '${input.barcode}' does not map to any active product SKU in the store catalog.`,
+        source: 'FIXTURE_SIMULATED',
+      };
+      this.saveIdempotency(input.operatorId, 'authorizePosSale', input.operationKey, fingerprint, outcome);
+      return outcome;
+    }
+
+    // 2. Fetch product facts for the store
+    const offers = searchOffers(input.storeId);
+    const offer = offers.find((o) => o.productId === productId);
+    if (!offer) {
+      const outcome: PosSaleOutcome = {
+        ok: false,
+        code: 'BARCODE_UNKNOWN',
+        message: `Product for barcode '${input.barcode}' is not carried at store '${input.storeId}'.`,
+        source: 'FIXTURE_SIMULATED',
+      };
+      this.saveIdempotency(input.operatorId, 'authorizePosSale', input.operationKey, fingerprint, outcome);
+      return outcome;
+    }
+
+    const currentTotalAvailable = this.getEffectiveAvailable(offer);
+
+    // 3. Check for active online 59-second CartLock holds on this product in this store
+    const now = Date.now();
+    let heldQuantity = 0;
+    let activeHoldExpiresAt: string | undefined;
+
+    for (const hold of this.holds.values()) {
+      if (hold.storeId === input.storeId && hold.status === 'ACTIVE') {
+        const isPastDeadline = new Date(hold.expiresAt).getTime() <= now;
+        if (!isPastDeadline) {
+          const matchingLine = hold.lines.find((l) => l.productId === productId);
+          if (matchingLine) {
+            heldQuantity += matchingLine.quantity;
+            activeHoldExpiresAt = hold.expiresAt;
+          }
+        }
+      }
+    }
+
+    // Unallocated stock available for in-store walk-in POS purchase
+    const unallocatedForPos = Math.max(0, currentTotalAvailable - heldQuantity);
+
+    // 4. If requested quantity exceeds unallocated POS stock:
+    if (unallocatedForPos < input.quantity) {
+      // If book stock exists but is locked by an active online hold:
+      if (currentTotalAvailable >= input.quantity && heldQuantity > 0) {
+        const outcome: PosSaleOutcome = {
+          ok: false,
+          code: 'STOCK_LOCKED_ONLINE',
+          message: `Stock for '${offer.name}' is currently locked in an active 59-second online checkout reservation. Please retry after expiration or select another item.`,
+          details: {
+            productId,
+            availableStock: unallocatedForPos,
+            activeHoldExpiresAt,
+          },
+          source: 'FIXTURE_SIMULATED',
+        };
+        this.saveIdempotency(input.operatorId, 'authorizePosSale', input.operationKey, fingerprint, outcome);
+        return outcome;
+      }
+
+      // Genuinely insufficient book stock
+      const outcome: PosSaleOutcome = {
+        ok: false,
+        code: 'STOCK_UNAVAILABLE',
+        message: `Insufficient stock on hand for '${offer.name}'. Available: ${unallocatedForPos}, Requested: ${input.quantity}.`,
+        details: {
+          productId,
+          availableStock: unallocatedForPos,
+        },
+        source: 'FIXTURE_SIMULATED',
+      };
+      this.saveIdempotency(input.operatorId, 'authorizePosSale', input.operationKey, fingerprint, outcome);
+      return outcome;
+    }
+
+    // 5. Authorize sale & atomically decrement available stock (Fixture simulation)
+    const newAvailable = currentTotalAvailable - input.quantity;
+    this.setStockOverride(input.storeId, productId, newAvailable);
+
+    const outcome: PosSaleOutcome = {
+      ok: true,
+      saleId: `sale-${uuidv4().slice(0, 8)}`,
+      storeId: input.storeId,
+      productId,
+      productName: offer.name,
+      quantity: input.quantity,
+      unitPricePaise: offer.pricePaise,
+      totalPaise: offer.pricePaise * input.quantity,
+      allocatedAt: new Date().toISOString(),
+      inventoryVersion: (offer.inventoryVersion || 1) + 1,
+      source: 'FIXTURE_SIMULATED',
+    };
+
+    this.saveIdempotency(input.operatorId, 'authorizePosSale', input.operationKey, fingerprint, outcome);
+    return outcome;
   }
 }

@@ -34,6 +34,14 @@ export const productFilterSchema = z.object({
   storeId: z.string().max(64).optional(),
 });
 
+export const posSaleRequestSchema = z.object({
+  storeId: z.string().min(1, 'storeId is required').max(64),
+  barcode: z.string().min(1, 'barcode is required').max(64),
+  quantity: z.number().int().min(1, 'quantity must be at least 1').max(50, 'Max 50 per barcode scan'),
+  // Note: operatorId from client body is intentionally ignored and replaced with verified session operatorId
+  operatorId: z.string().optional(),
+});
+
 export const recoveryRequestSchema = z.object({
   storeId: z.string().min(1, 'storeId is required').max(64),
   unavailableProductId: z.string().min(1, 'unavailableProductId is required').max(128),

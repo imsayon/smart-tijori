@@ -60,7 +60,7 @@ export function CartView() {
 
       {/* CartLock stock guarantee rule */}
       <Alert type="info" className="mb-6">
-        <span className="font-bold">CartLock Notice:</span> Items in your cart do not reserve stock. Stock is allocated and locked for 60 seconds once you enter checkout.
+        <span className="font-bold">CartLock Notice:</span> Items in your cart do not reserve stock. Stock is allocated and locked for 59 seconds once you enter checkout.
       </Alert>
 
       {/* Line Items */}
@@ -100,7 +100,7 @@ export function CartView() {
         </div>
 
         <p className="text-[11px] text-[#78716C] border-t border-[#E3DDD2] pt-3 mt-1 leading-relaxed">
-          🔒 Entering checkout initiates an atomic 60-second CartLock reservation at your chosen branch counter.
+          🔒 Entering checkout initiates an atomic 59-second CartLock reservation at your chosen branch counter.
         </p>
       </div>
     </div>
