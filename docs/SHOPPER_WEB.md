@@ -1,3 +1,11 @@
+## Standalone shopper demo (explicitly simulated)
+
+Run `pnpm dev:shopping` to start the Next.js shopper application with `SMARTTIJORI_DEMO_MODE=true`. Catalog, cart, 59-second reservation, simulated order and rules-only recovery route through the in-memory `FixtureCommerceAdapter`. This is **not** PostgreSQL allocation, integrated POS barcode enforcement, or AI inference. No payments or guaranteed restock notifications are performed.
+
+`pnpm dev` does **not** activate fixture mode. Without an integrated authoritative commerce adapter and recovery implementation, live operations intentionally return errors rather than simulated success. The production `/api/products` path remains OpenSearch-based and requires authoritative facts. For independent tests use `pnpm test:shopping` and for the original service startup check use `pnpm test:services`.
+
+---
+
 > **Migration note (21 Nov 2026):** This web delivery report originally described the standalone `src/` checkout. The integration branch now places shopper app/components/contracts/fixtures under `client/` and HTTP adapters under `server/http/`. The root package scripts and environment follow the existing SmartTijori repository. Demo fixtures are not live stock allocation. Treat old `src/` paths and the original five-minute wording below as historical descriptions.
 
 # SmartTijori — Srujan Web Application Module
