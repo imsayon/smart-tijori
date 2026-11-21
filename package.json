@@ -13,6 +13,13 @@
     "start": "next start client",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen client && tsc --noEmit",
+    "setup:opensearch": "tsx infra/setup-index.ts",
+    "seed:opensearch": "tsx infra/seed-opensearch.ts",
+    "test:contracts": "tsx --test tests/contracts-and-fixtures.test.ts",
+    "test:opensearch": "tsx --test tests/opensearch-projection.test.ts",
+    "test:search": "tsx --test tests/discovery-search.test.ts",
+    "test:api": "tsx --test tests/products-api.test.ts",
+    "demo:search": "tsx infra/demo-search.ts",
     "test": "node --test tests/*.test.mjs",
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
     "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
@@ -54,6 +61,7 @@
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vitest": "^5.1.1",
-    "@types/pg": "8.23.1"
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.15"
   }
 }
