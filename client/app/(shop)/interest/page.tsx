@@ -39,7 +39,7 @@ function InterestContent() {
           Save Stock Interest
         </h1>
         <p className="text-xs text-stone-500 mb-6 leading-relaxed">
-          When high-demand items run out, registering interest informs our store replenishment and notifies your session once units are stocked.
+          Recording stock interest can help store operators understand demand. It does not promise restocking or a notification.
         </p>
 
         {isSaved ? (
