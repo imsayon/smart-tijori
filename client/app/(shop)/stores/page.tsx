@@ -44,7 +44,7 @@ export default function StoresPage() {
           isSelected={selectedStoreId === store.id} onSelect={() => selectStore(store)} />)}
         {!matches.length && <p className="atelier-store-empty">No stores found. Try another search or city.</p>}
       </div>
-      <p className="atelier-store-note">Locations may contain clearly labelled demo outlets. Their inventories are illustrative, not claims of real-world availability.</p>
+      <p className="atelier-store-note">Certain outlets are illustrative profiles, not verified retail partners. Availability is based on the selected store record only.</p>
     </div>
   );
 }
