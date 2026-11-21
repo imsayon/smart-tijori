@@ -6,11 +6,33 @@ import {
   DependencyUnavailableError,
   type SearchOptions,
 } from "../server/discovery/search-service";
-import { FixtureProductFactsReader } from "../server/discovery/fixtures/catalog-fixture";
+import { setupProductIndex } from "../server/discovery/index-definition";
+import { writeProjection } from "../server/discovery/projection-writer";
+import { buildFixtureOffers, FixtureProductFactsReader } from "../server/discovery/fixtures/catalog-fixture";
+import { getOpenSearchClient } from "../server/discovery/opensearch-client";
 import type { ProductFactsReader } from "../server/contracts/facts";
 
+const TEST_INDEX = "smart_tijori_test_discovery";
+
+test.before(async () => {
+  const client = getOpenSearchClient();
+  await setupProductIndex(client, TEST_INDEX);
+  const offers = buildFixtureOffers();
+  await writeProjection(offers, { index: TEST_INDEX, refresh: true });
+});
+
+test.after(async () => {
+  const client = getOpenSearchClient();
+  try {
+    await client.indices.delete({ index: TEST_INDEX });
+  } catch {
+    // ignore
+  }
+});
+
 const factsReader = new FixtureProductFactsReader();
-const searchProducts = (options: SearchOptions) => search({ factsReader, ...options });
+const searchProducts = (options: SearchOptions) =>
+  search({ factsReader, index: options.index ?? TEST_INDEX, ...options });
 
 test("exact product search returns relevant product", async () => {
   const result = await searchProducts({ q: "Tata Tea Premium", storeId: "mys-01" });

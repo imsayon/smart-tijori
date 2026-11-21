@@ -6,11 +6,11 @@ orders and rules-based alternatives. Payments are simulated. [Open the demo](htt
 ## Walkthrough
 
 1. Pick Bengaluru or Mysuru, add a product to your cart and proceed to checkout.
-   Checkout reserves the items for 59 seconds. Confirm to see the simulated receipt.
+   Checkout reserves the items for five minutes. Confirm to see the simulated receipt.
 2. To show a conflict, open the Bengaluru catalog in two separate browser
    profiles. In each profile, add one unit of an item that shows one available,
    such as Clear Day Front Load Liquid in the initial seed.
-3. Open checkout in the first profile, then in the second within 59 seconds.
+3. Open checkout in the first profile, then in the second within five minutes.
    Keep the first hold active. The second profile shows the conflict and suggests
    eligible in-stock products from the same branch. Approve a replacement to check
    out again. The first hold expires on its original deadline.

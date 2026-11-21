@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { resetOpenSearchClient } from '@/server/discovery/opensearch-client';
 import { handlePostRecovery } from '@/server/http/routes/recovery-handler';
 import { setCommerceCommands } from '@/server/http/adapters';
 import { RecordingAdapter } from '@/server/http/adapters/recording-adapter';
@@ -73,27 +74,33 @@ describe('Recovery HTTP Handler Tests (POST /api/recovery)', () => {
   };
 
   it('handles valid recovery request and records adapter call with trusted session', async () => {
-    const candidate1 = createCandidate('cand-01', 'Eco Detergent 1L', 20000, 1000, 15);
-    recordingAdapter.setFixture('getProductOffers', [unavailableOffer, candidate1]);
+    const prevKey = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    try {
+      const candidate1 = createCandidate('cand-01', 'Eco Detergent 1L', 20000, 1000, 15);
+      recordingAdapter.setFixture('getProductOffers', [unavailableOffer, candidate1]);
 
-    const req = makeRequest({
-      storeId: 'blr-01',
-      unavailableProductId: 'prod-unavailable',
-      text: 'Need front-load detergent',
-    });
+      const req = makeRequest({
+        storeId: 'blr-01',
+        unavailableProductId: 'prod-unavailable',
+        text: 'Need front-load detergent',
+      });
 
-    const res = await handlePostRecovery(req);
-    expect(res.status).toBe(200);
+      const res = await handlePostRecovery(req);
+      expect(res.status).toBe(200);
 
-    const result: RecoveryResult = await res.json();
-    expect(result.mode).toBe('rules'); // No model invocation in this standalone adapter.
-    expect(result.candidates).toHaveLength(1);
-    expect(result.candidates[0].offer.productId).toBe('cand-01');
+      const result: RecoveryResult = await res.json();
+      expect(result.mode).toBe('rules'); // No model invocation in this standalone adapter.
+      expect(result.candidates).toHaveLength(1);
+      expect(result.candidates[0].offer.productId).toBe('cand-01');
 
-    // Verify adapter call was recorded with storeId
-    const calls = recordingAdapter.callsFor('getProductOffers');
-    expect(calls).toHaveLength(1);
-    expect(calls[0].args[0]).toBe('blr-01');
+      // Verify adapter call was recorded with storeId
+      const calls = recordingAdapter.callsFor('getProductOffers');
+      expect(calls).toHaveLength(1);
+      expect(calls[0].args[0]).toBe('blr-01');
+    } finally {
+      if (prevKey !== undefined) process.env.GEMINI_API_KEY = prevKey;
+    }
   });
 
   it('bounds alternatives to a maximum of three candidates', async () => {
@@ -364,5 +371,164 @@ describe('Recovery HTTP Handler Tests (POST /api/recovery)', () => {
     expect(setCookie).toContain(`${SESSION_COOKIE_NAME}=`);
     expect(setCookie).toContain('HttpOnly');
     expect(setCookie).toContain('SameSite=Lax');
+  });
+
+  it('returns 404 NOT_FOUND when unavailableProductId does not exist in store facts', async () => {
+    recordingAdapter.setFixture('getProductOffers', [unavailableOffer]);
+
+    const req = makeRequest({
+      storeId: 'blr-01',
+      unavailableProductId: 'non-existent-product-id',
+    });
+
+    const res = await handlePostRecovery(req);
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error.code).toBe('NOT_FOUND');
+    expect(body.error.message).toContain("Unavailable product 'non-existent-product-id' was not found for store 'blr-01'");
+  });
+
+  it('allows zero-stock product as valid unavailable product and succeeds recovery', async () => {
+    // unavailableOffer has available: 0
+    expect(unavailableOffer.available).toBe(0);
+    const candidate = createCandidate('cand-match', 'Matching Detergent', 22000, 1000, 5);
+    recordingAdapter.setFixture('getProductOffers', [unavailableOffer, candidate]);
+
+    const req = makeRequest({
+      storeId: 'blr-01',
+      unavailableProductId: 'prod-unavailable',
+    });
+
+    const res = await handlePostRecovery(req);
+    expect(res.status).toBe(200);
+    const result: RecoveryResult = await res.json();
+    expect(result.candidates.length).toBeGreaterThan(0);
+    expect(result.candidates[0].offer.productId).toBe('cand-match');
+  });
+
+  it('classifies PostgreSQL read failure as dependency failure rather than 404', async () => {
+    const failingAdapter = new RecordingAdapter({
+      ...recordingAdapter,
+      async getProductOffers() {
+        throw new Error('Connection refused to PostgreSQL host');
+      },
+    } as unknown as typeof recordingAdapter);
+
+    setCommerceCommands(failingAdapter);
+
+    const req = makeRequest({
+      storeId: 'blr-01',
+      unavailableProductId: 'prod-unavailable',
+    });
+
+    const res = await handlePostRecovery(req);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error.code).toBe('DEPENDENCY_UNAVAILABLE');
+    expect(body.error.code).not.toBe('NOT_FOUND');
+  });
+
+  it('in production mode, missing OpenSearch configuration fails with 503 DEPENDENCY_UNAVAILABLE and does not use in-memory transport', async () => {
+    const env = process.env as Record<string, string | undefined>;
+    const originalNodeEnv = env.NODE_ENV;
+    const originalDemoMode = env.SMARTTIJORI_DEMO_MODE;
+    const originalOpensearchUrl = env.OPENSEARCH_URL;
+    const originalOpensearchNode = env.OPENSEARCH_NODE;
+
+    try {
+      // Simulate production with no OpenSearch credentials
+      env.NODE_ENV = 'production';
+      delete env.SMARTTIJORI_DEMO_MODE;
+      delete env.OPENSEARCH_URL;
+      delete env.OPENSEARCH_NODE;
+      resetOpenSearchClient();
+
+      recordingAdapter.setFixture('getProductOffers', [unavailableOffer]);
+
+      const req = makeRequest({
+        storeId: 'blr-01',
+        unavailableProductId: 'prod-unavailable',
+      });
+
+      const res = await handlePostRecovery(req);
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.error.code).toBe('DEPENDENCY_UNAVAILABLE');
+      expect(body.error.message).toBe('Recovery service temporarily unavailable');
+    } finally {
+      env.NODE_ENV = originalNodeEnv;
+      if (originalDemoMode !== undefined) env.SMARTTIJORI_DEMO_MODE = originalDemoMode;
+      if (originalOpensearchUrl !== undefined) env.OPENSEARCH_URL = originalOpensearchUrl;
+      if (originalOpensearchNode !== undefined) env.OPENSEARCH_NODE = originalOpensearchNode;
+      resetOpenSearchClient();
+    }
+  });
+
+  it('in explicit demo mode, demo transport is allowed even when NODE_ENV is production and OpenSearch is unset', async () => {
+    const env = process.env as Record<string, string | undefined>;
+    const originalNodeEnv = env.NODE_ENV;
+    const originalDemoMode = env.SMARTTIJORI_DEMO_MODE;
+    const originalOpensearchUrl = env.OPENSEARCH_URL;
+    const originalOpensearchNode = env.OPENSEARCH_NODE;
+
+    try {
+      env.NODE_ENV = 'production';
+      env.SMARTTIJORI_DEMO_MODE = 'true';
+      delete env.OPENSEARCH_URL;
+      delete env.OPENSEARCH_NODE;
+
+      const candidate = createCandidate('cand-demo', 'Demo Detergent', 21000, 1000, 5);
+      recordingAdapter.setFixture('getProductOffers', [unavailableOffer, candidate]);
+
+      const req = makeRequest({
+        storeId: 'blr-01',
+        unavailableProductId: 'prod-unavailable',
+      });
+
+      const res = await handlePostRecovery(req);
+      expect(res.status).toBe(200);
+      const result: RecoveryResult = await res.json();
+      expect(result.candidates).toHaveLength(1);
+      expect(result.candidates[0].offer.productId).toBe('cand-demo');
+    } finally {
+      env.NODE_ENV = originalNodeEnv;
+      if (originalDemoMode !== undefined) env.SMARTTIJORI_DEMO_MODE = originalDemoMode;
+      else delete env.SMARTTIJORI_DEMO_MODE;
+      if (originalOpensearchUrl !== undefined) env.OPENSEARCH_URL = originalOpensearchUrl;
+      if (originalOpensearchNode !== undefined) env.OPENSEARCH_NODE = originalOpensearchNode;
+    }
+  });
+
+  it('reconciles maxPriceMinor and minPackUnits in explicitConstraints without dropping them', async () => {
+    const cheapCandidate = createCandidate('cand-cheap', 'Cheap Detergent', 15000, 1000, 5);
+    const expensiveCandidate = createCandidate('cand-exp', 'Exp Detergent', 25000, 1000, 5);
+    recordingAdapter.setFixture('getProductOffers', [
+      unavailableOffer,
+      cheapCandidate,
+      expensiveCandidate,
+    ]);
+
+    // Send maxPriceMinor (₹180) and minPackUnits (1000 ml)
+    const req = makeRequest({
+      storeId: 'blr-01',
+      unavailableProductId: 'prod-unavailable',
+      explicitConstraints: {
+        maxPriceMinor: 18000,
+        minPackUnits: { quantity: 1000, unit: 'ml' },
+      },
+    });
+
+    const res = await handlePostRecovery(req);
+    expect(res.status).toBe(200);
+    const result: RecoveryResult = await res.json();
+
+    // Verify constraints are not dropped and are properly mapped
+    expect(result.constraints.maxPricePaise).toBe(18000);
+    expect(result.constraints.maxPriceMinor).toBe(18000);
+    expect(result.constraints.minPack).toEqual({ quantity: 1000, unit: 'ml' });
+    expect(result.constraints.minPackUnits).toEqual({ quantity: 1000, unit: 'ml' });
+
+    // Verify cheap candidate was included and expensive candidate was excluded
+    expect(result.candidates.map((c) => c.offer.productId)).toEqual(['cand-cheap']);
   });
 });

@@ -17,7 +17,25 @@ export function AlternativeCard({
   onApprove,
   isApproving,
 }: AlternativeCardProps) {
-  const { offer, reasons } = candidate;
+  const offer = candidate.offer ?? (candidate as unknown as { product?: ProductOffer }).product;
+  const reasons = candidate.reasons ?? [];
+
+  if (!offer) {
+    return null;
+  }
+
+  // Authoritative stock availability resolution
+  const availableStockNumber =
+    (offer as unknown as { availableStock?: number; availableUnits?: number }).availableStock ??
+    (offer as unknown as { availableUnits?: number }).availableUnits;
+  const stockDisplay =
+    typeof availableStockNumber === 'number' && availableStockNumber > 0
+      ? `${availableStockNumber} in stock`
+      : typeof offer.available === 'number' && offer.available > 0
+      ? `${offer.available} in stock`
+      : offer.available
+      ? 'In stock'
+      : 'Out of stock';
 
   return (
     <div className="bg-white rounded-2xl border-2 border-emerald-700/30 hover:border-emerald-700 p-5 shadow-xs flex flex-col justify-between transition-all">
@@ -28,6 +46,13 @@ export function AlternativeCard({
           </span>
           <span className="text-xs text-stone-500 font-mono">
             {offer.pack.quantity} {offer.pack.unit}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            {stockDisplay}
           </span>
         </div>
 

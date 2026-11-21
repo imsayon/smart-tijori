@@ -58,7 +58,7 @@ export function CartView() {
 
       {/* CartLock stock guarantee rule */}
       <Alert type="info" className="mb-6">
-        Checkout holds your items for 59 seconds.
+        Checkout holds your items for 5 minutes.
       </Alert>
 
       {/* Line Items */}

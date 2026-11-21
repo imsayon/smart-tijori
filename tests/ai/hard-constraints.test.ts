@@ -145,4 +145,49 @@ describe("Hard Constraints Evaluation", () => {
     expect(evalResult.eligible).toBe(false);
     expect(evalResult.failureReasons.some((r) => r.includes("does not match requested store"))).toBe(true);
   });
+
+  it("regression: enforces product purpose compatibility and normalizes hyphens, spaces, underscores", () => {
+    const dalOffer = createSampleOffer({
+      productId: "dal-500",
+      name: "Toor Dal",
+      purpose: "toor-dal",
+      pricePaise: 9500,
+      pack: { quantity: 500, unit: "g" },
+      available: true,
+    });
+
+    const saltOffer = createSampleOffer({
+      productId: "salt-1kg",
+      name: "Iodized Table Salt",
+      purpose: "table-salt",
+      pricePaise: 2900,
+      pack: { quantity: 1000, unit: "g" },
+      available: true,
+    });
+
+    const toorDalIntent: ShopperIntent = {
+      purpose: "Toor Dal",
+      maxPricePaise: 15000,
+      minPack: { quantity: 500, unit: "g" },
+    };
+
+    // dal-500 is eligible for a Toor Dal request
+    const dalEval = evaluateHardConstraints(dalOffer, toorDalIntent, "blr-01");
+    expect(dalEval.eligible).toBe(true);
+    expect(dalEval.failureReasons).toHaveLength(0);
+    expect(dalEval.verifiedReasons.some((r) => r.includes("Matches requested purpose"))).toBe(true);
+
+    // salt-1kg is rejected for a Toor Dal request despite being cheaper and in stock
+    const saltEval = evaluateHardConstraints(saltOffer, toorDalIntent, "blr-01");
+    expect(saltEval.eligible).toBe(false);
+    expect(saltEval.failureReasons.some((r) => r.includes("incompatible with requested purpose"))).toBe(true);
+
+    // Equivalent purpose strings with hyphens, underscores, and case differences match
+    const hyphenIntent: ShopperIntent = { purpose: "toor-dal" };
+    const underscoreIntent: ShopperIntent = { purpose: "toor_dal" };
+    const titleIntent: ShopperIntent = { purpose: "TOOR DAL" };
+    expect(evaluateHardConstraints(dalOffer, hyphenIntent).eligible).toBe(true);
+    expect(evaluateHardConstraints(dalOffer, underscoreIntent).eligible).toBe(true);
+    expect(evaluateHardConstraints(dalOffer, titleIntent).eligible).toBe(true);
+  });
 });

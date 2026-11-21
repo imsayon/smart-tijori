@@ -19,13 +19,14 @@ export function loadEnvironment(): void {
 
   const proc = process as unknown as { loadEnvFile?: (path: string) => void };
   if (typeof proc.loadEnvFile === "function") {
+    const currentDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
     const candidates = [
       path.resolve(process.cwd(), "client/.env.local"),
       path.resolve(process.cwd(), ".env.local"),
       path.resolve(process.cwd(), ".env"),
-      path.resolve(__dirname, "../../client/.env.local"),
-      path.resolve(__dirname, "../../.env.local"),
-      path.resolve(__dirname, "../../.env"),
+      path.resolve(currentDir, "../../client/.env.local"),
+      path.resolve(currentDir, "../../.env.local"),
+      path.resolve(currentDir, "../../.env"),
     ];
 
     for (const candidate of candidates) {
@@ -40,13 +41,17 @@ export function loadEnvironment(): void {
   }
 }
 
+// Eagerly load environment once on module load so that environment overrides in tests are respected
+loadEnvironment();
+
 export function getOpenSearchConfig(): OpenSearchConfig {
   loadEnvironment();
 
   const url = process.env.OPENSEARCH_URL || process.env.OPENSEARCH_NODE;
   const username = process.env.OPENSEARCH_USERNAME;
   const password = process.env.OPENSEARCH_PASSWORD;
-  const index = process.env.OPENSEARCH_INDEX || "smart_tijori_products";
+  const rawIndex = process.env.OPENSEARCH_INDEX?.trim();
+  const index = rawIndex && rawIndex.length > 0 ? rawIndex : "smart_tijori_products";
   const caCertPath = process.env.OPENSEARCH_CA_CERT_PATH;
 
   if (!url) {
@@ -123,7 +128,12 @@ export function createOpenSearchClient(customConfig?: Partial<OpenSearchConfig>)
   });
 }
 
+export function resetOpenSearchClient(): void {
+  cachedClient = null;
+}
+
 export function getOpenSearchClient(): Client {
+  getOpenSearchConfig();
   if (!cachedClient) {
     cachedClient = createOpenSearchClient();
   }

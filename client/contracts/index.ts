@@ -90,7 +90,9 @@ export interface Order {
 export interface RecoveryConstraints {
   purpose: string;
   maxPricePaise?: number;
+  maxPriceMinor?: number;
   minPack?: PackInfo;
+  minPackUnits?: PackInfo;
   requiredAttributes?: Record<string, string>;
   preferences?: string[];
 }

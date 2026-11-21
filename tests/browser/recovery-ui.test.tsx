@@ -234,4 +234,164 @@ describe('Shopper Conflict Recovery UI Tests', () => {
 
     expect(onApproved).toHaveBeenCalled();
   });
+
+  it('submits natural-language prompt to api.getRecovery only on explicit submit, not on each keystroke', async () => {
+    const user = userEvent.setup();
+    const getRecoverySpy = vi.spyOn(api, 'getRecovery').mockResolvedValue(sampleAiRecoveryResult);
+
+    render(
+      <ConflictRecoveryPanel
+        storeId="blr-01"
+        unavailableProductIds={['prod-unavailable-tea']}
+        onReplacementApproved={vi.fn()}
+        onKeepCartWithoutUnavailable={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText('This item just became unavailable')).toBeInTheDocument();
+    // Initial mount called getRecovery once
+    expect(getRecoverySpy).toHaveBeenCalledTimes(1);
+
+    const input = screen.getByPlaceholderText(/Describe what you're looking for/i);
+    await user.type(input, 'organic green tea');
+
+    // Keystrokes must NOT trigger network requests
+    expect(getRecoverySpy).toHaveBeenCalledTimes(1);
+
+    // Click explicit submit button
+    const searchButton = screen.getByRole('button', { name: /Find alternatives/i });
+    await user.click(searchButton);
+
+    // Explicit submission triggers the second request with text
+    expect(getRecoverySpy).toHaveBeenCalledTimes(2);
+    expect(getRecoverySpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        storeId: 'blr-01',
+        unavailableProductId: 'prod-unavailable-tea',
+        text: 'organic green tea',
+      })
+    );
+  });
+
+  it('displays accurate verified stock badges and avoids inventing numbers for boolean availability', async () => {
+    const candidateNumeric = {
+      ...mockAlternative,
+      productId: 'prod-numeric-stock',
+      name: 'Numeric Stock Tea',
+      available: 15,
+    };
+    const candidateBoolean = {
+      ...mockAlternative,
+      productId: 'prod-bool-stock',
+      name: 'Boolean Stock Tea',
+      available: true as unknown as number,
+      availableStock: undefined,
+    };
+
+    const result: RecoveryResult = {
+      mode: 'rules',
+      constraints: { purpose: 'tea' },
+      candidates: [
+        { offer: candidateNumeric, reasons: ['Factual reason 1'] },
+        { offer: candidateBoolean, reasons: ['Factual reason 2'] },
+      ],
+      checkedAt: new Date().toISOString(),
+    };
+
+    vi.spyOn(api, 'getRecovery').mockResolvedValue(result);
+
+    render(
+      <ConflictRecoveryPanel
+        storeId="blr-01"
+        unavailableProductIds={['prod-unavailable-tea']}
+        onReplacementApproved={vi.fn()}
+        onKeepCartWithoutUnavailable={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText('Numeric Stock Tea')).toBeInTheDocument();
+    // Numeric stock: 15 in stock
+    expect(screen.getByText('15 in stock')).toBeInTheDocument();
+
+    // Boolean stock: In stock (never invented numbers)
+    expect(screen.getByText('In stock')).toBeInTheDocument();
+  });
+
+  it('renders recoverable error state with retry when recovery request fails', async () => {
+    const user = userEvent.setup();
+    const getRecoverySpy = vi.spyOn(api, 'getRecovery').mockRejectedValueOnce(new Error('Network error'));
+
+    render(
+      <ConflictRecoveryPanel
+        storeId="blr-01"
+        unavailableProductIds={['prod-unavailable-tea']}
+        onReplacementApproved={vi.fn()}
+        onKeepCartWithoutUnavailable={vi.fn()}
+      />
+    );
+
+    expect(await screen.findByText(/Could not load alternatives/i)).toBeInTheDocument();
+    const retryBtn = screen.getByRole('button', { name: /Try again/i });
+    expect(retryBtn).toBeInTheDocument();
+
+    getRecoverySpy.mockResolvedValueOnce(sampleAiRecoveryResult);
+    await user.click(retryBtn);
+
+    expect(await screen.findByText('Tata Tea Premium 1kg')).toBeInTheDocument();
+  });
+
+  it('renders constraints and updates alternatives when maxPriceMinor and minPackUnits aliases are provided', async () => {
+    const user = userEvent.setup();
+    const resultWithAliases: RecoveryResult = {
+      mode: 'rules',
+      constraints: {
+        purpose: 'tea',
+        maxPricePaise: 40000,
+        maxPriceMinor: 40000,
+        minPack: { quantity: 1, unit: 'kg' },
+        minPackUnits: { quantity: 1, unit: 'kg' },
+      },
+      candidates: [
+        {
+          offer: mockAlternative,
+          reasons: ['Within budget', 'In stock at branch (10 available)'],
+        },
+      ],
+      checkedAt: new Date().toISOString(),
+    };
+
+    const getRecoverySpy = vi.spyOn(api, 'getRecovery').mockResolvedValue(resultWithAliases);
+
+    render(
+      <ConflictRecoveryPanel
+        storeId="blr-01"
+        unavailableProductIds={['prod-unavailable-tea']}
+        onReplacementApproved={vi.fn()}
+        onKeepCartWithoutUnavailable={vi.fn()}
+      />
+    );
+
+    // Budget: ₹400 and Min Pack: 1 kg rendered properly
+    expect(await screen.findByText(/₹400/)).toBeInTheDocument();
+    expect(screen.getAllByText(/1 kg/).length).toBeGreaterThanOrEqual(1);
+
+    // Constraint editor should initialize with 400
+    const budgetInput = screen.getByLabelText(/Max Budget/i) as HTMLInputElement;
+    expect(budgetInput.value).toBe('400');
+
+    // Update budget to 500
+    await user.clear(budgetInput);
+    await user.type(budgetInput, '500');
+    const updateBtn = screen.getByRole('button', { name: /Update alternatives/i });
+    await user.click(updateBtn);
+
+    expect(getRecoverySpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        explicitConstraints: expect.objectContaining({
+          maxPricePaise: 50000,
+          maxPriceMinor: 50000,
+        }),
+      })
+    );
+  });
 });

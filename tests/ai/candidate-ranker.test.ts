@@ -50,6 +50,44 @@ describe("Candidate Ranker - Deterministic Scoring and Capping", () => {
     expect(ranked).toHaveLength(3);
   });
 
+  it("never returns more than 3 candidates even when caller requests 10", () => {
+    const list = [
+      createCandidateWithEval("p-1", 10000),
+      createCandidateWithEval("p-2", 12000),
+      createCandidateWithEval("p-3", 15000),
+      createCandidateWithEval("p-4", 18000),
+      createCandidateWithEval("p-5", 20000),
+    ];
+
+    const ranked = rankEligibleCandidates(list, { purpose: "tea" }, 10);
+    expect(ranked).toHaveLength(3);
+  });
+
+  it("allows caller to request fewer than 3 candidates", () => {
+    const list = [
+      createCandidateWithEval("p-1", 10000),
+      createCandidateWithEval("p-2", 12000),
+      createCandidateWithEval("p-3", 15000),
+      createCandidateWithEval("p-4", 18000),
+    ];
+
+    const ranked = rankEligibleCandidates(list, { purpose: "tea" }, 2);
+    expect(ranked).toHaveLength(2);
+  });
+
+  it("handles non-positive limits safely", () => {
+    const list = [
+      createCandidateWithEval("p-1", 10000),
+      createCandidateWithEval("p-2", 12000),
+    ];
+
+    const rankedZero = rankEligibleCandidates(list, { purpose: "tea" }, 0);
+    expect(rankedZero).toHaveLength(0);
+
+    const rankedNegative = rankEligibleCandidates(list, { purpose: "tea" }, -5);
+    expect(rankedNegative).toHaveLength(0);
+  });
+
   it("prioritizes candidates matching soft preferences", () => {
     const candidateRegular = createCandidateWithEval("p-regular", 20000, {
       name: "Regular Tea",
@@ -111,6 +149,31 @@ describe("Candidate Ranker - Deterministic Scoring and Capping", () => {
     expect(reasons).toContain("Within stated budget (₹250.00)");
     expect(reasons).toContain("Available in stock at Bengaluru (blr-01)");
     expect(reasons.some((r) => r.includes("Matches preference: eco friendly"))).toBe(true);
+  });
+
+  it("regression: ensures purpose match outranks cheaper unrelated products and matches hyphenated purposes", () => {
+    const toorDal = createCandidateWithEval(
+      "dal-500",
+      9500, // ₹95
+      { name: "Toor Dal", purpose: "toor-dal" },
+      ["Available in stock", "Matches requested purpose 'Toor Dal'"]
+    );
+
+    const salt = createCandidateWithEval(
+      "salt-1kg",
+      2900, // ₹29 (cheaper!)
+      { name: "Iodized Table Salt", purpose: "table-salt" },
+      ["Available in stock"]
+    );
+
+    const intent: ShopperIntent = {
+      purpose: "Toor Dal",
+      maxPricePaise: 15000,
+    };
+
+    const ranked = rankEligibleCandidates([salt, toorDal], intent);
+    expect(ranked[0].offer.productId).toBe("dal-500");
+    expect(ranked[0].score).toBeGreaterThan(ranked[1].score);
   });
 });
 

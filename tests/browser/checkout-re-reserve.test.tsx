@@ -89,7 +89,7 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
       storeId: mockCart.storeId,
       status: 'ACTIVE',
       serverNow: new Date(now).toISOString(),
-      expiresAt: new Date(now + 59 * 1000).toISOString(),
+      expiresAt: new Date(now + 300 * 1000).toISOString(),
       lines: mockCart.lines,
       totalPaise: mockCart.totalPaise,
     };
@@ -198,7 +198,7 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
         storeId: mockCart.storeId,
         status: 'ACTIVE',
         serverNow: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 59 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() + 300 * 1000).toISOString(),
         lines: mockCart.lines,
         totalPaise: mockCart.totalPaise,
       });
@@ -282,7 +282,7 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
       storeId: mockCart.storeId,
       status: 'ACTIVE',
       serverNow: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 59 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 300 * 1000).toISOString(),
       lines: mockCart.lines,
       totalPaise: mockCart.totalPaise,
     });

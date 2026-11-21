@@ -61,6 +61,19 @@ export function handleServerError(err: unknown): NextResponse {
     return jsonError(err.code, err.message, err.status, err.details);
   }
 
+  // Map genuine infrastructure/dependency failures to HTTP 503
+  if (
+    (err instanceof Error && err.name === 'DependencyUnavailableError') ||
+    (typeof err === 'object' && err !== null && 'code' in err && (err as { code: unknown }).code === 'DEPENDENCY_UNAVAILABLE' && (err as { status?: number }).status === 503)
+  ) {
+    console.error('[Dependency Unavailable]', { kind: err instanceof Error ? err.name : typeof err });
+    return jsonError(
+      'DEPENDENCY_UNAVAILABLE',
+      'Recovery service temporarily unavailable',
+      503
+    );
+  }
+
   // Never leak raw database queries, credentials, or internal stack traces to the client
   // Do not log the raw Error: driver messages may contain credentials or SQL text.
   console.error('[Internal Server Error]', { kind: err instanceof Error ? err.name : typeof err });

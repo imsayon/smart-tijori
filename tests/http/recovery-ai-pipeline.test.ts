@@ -7,6 +7,7 @@ import type { ProductOffer, RecoveryResult } from '@/contracts';
 import * as geminiAdapterModule from '../../ai/gemini-adapter';
 import { GeminiModelAdapter } from '../../ai/gemini-adapter';
 import * as retrievalBridgeModule from '../../ai/retrieval-bridge';
+import { DependencyUnavailableError } from '../../server/discovery/search-service';
 
 describe('Recovery AI Pipeline HTTP Tests (POST /api/recovery)', () => {
   let recordingAdapter: RecordingAdapter;
@@ -245,6 +246,29 @@ describe('Recovery AI Pipeline HTTP Tests (POST /api/recovery)', () => {
     const body = await res.json();
     expect(body.error.code).toBe('DEPENDENCY_UNAVAILABLE');
     expect(body.error.message).toBe('An unexpected service error occurred. Please try again.');
+  });
+
+  it('maps genuine DependencyUnavailableError to HTTP 503', async () => {
+    const failingAdapter = new RecordingAdapter({
+      ...recordingAdapter,
+      async getProductOffers() {
+        throw new DependencyUnavailableError('OpenSearch cluster node unreachable');
+      },
+    } as unknown as typeof recordingAdapter);
+
+    setCommerceCommands(failingAdapter);
+
+    const req = makeRequest({
+      storeId: 'blr-01',
+      unavailableProductId: 'prod-tea-gold-unavailable',
+    });
+
+    const res = await handlePostRecovery(req);
+    expect(res.status).toBe(503);
+
+    const body = await res.json();
+    expect(body.error.code).toBe('DEPENDENCY_UNAVAILABLE');
+    expect(body.error.message).toBe('Recovery service temporarily unavailable');
   });
 
   it('proves recovery handler delegates retrieval, verification and ranking to the retrieval bridge in both AI and rules modes', async () => {

@@ -43,11 +43,21 @@ export const recoveryRequestSchema = z.object({
     .object({
       purpose: z.string().optional(),
       maxPricePaise: z.number().int().min(0).optional(),
+      maxPriceMinor: z.number().int().min(0).optional(),
       minPack: z
         .object({
           quantity: z.number().min(0),
-          unit: z.enum(['g', 'ml', 'count']),
+          unit: z.enum(['g', 'ml', 'count', 'kg', 'l']),
         })
+        .optional(),
+      minPackUnits: z
+        .union([
+          z.object({
+            quantity: z.number().min(0),
+            unit: z.enum(['g', 'ml', 'count', 'kg', 'l']),
+          }),
+          z.number().min(0),
+        ])
         .optional(),
       requiredAttributes: z.record(z.string(), z.string()).optional(),
       preferences: z.array(z.string()).optional(),

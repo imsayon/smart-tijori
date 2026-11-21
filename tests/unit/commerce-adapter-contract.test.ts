@@ -85,7 +85,7 @@ export function runCommerceAdapterContractTests(
       expect(hold?.status).toBe('RELEASED');
     });
 
-    it('createHold: enforces 59-second expiry and single active hold per session', async () => {
+    it('createHold: enforces five-minute expiry and single active hold per session', async () => {
       await adapter.updateCart(sessionA, 'blr-01', [
         { productId: 'blr-basmati-1kg', quantity: 1 },
       ]);
@@ -96,7 +96,7 @@ export function runCommerceAdapterContractTests(
       const h1 = (res1 as { ok: true; hold: { id: string; expiresAt: string; serverNow: string } }).hold;
 
       const durationMs = new Date(h1.expiresAt).getTime() - new Date(h1.serverNow).getTime();
-      expect(durationMs).toBe(59 * 1000); // 59 seconds hold
+      expect(durationMs).toBe(300 * 1000); // 5 minutes hold
 
       // Creating a second hold releases the first
       const res2 = await adapter.createHold(sessionA, cart.id, 'key-h2');

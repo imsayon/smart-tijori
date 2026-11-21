@@ -36,11 +36,16 @@ describe("GeminiModelAdapter - Bounded Model Extraction", () => {
     const mockFetch: typeof fetch = async (input, init) => {
       const url = String(input);
       expect(url).toContain("models/gemini-2.5-flash-lite:generateContent");
-      expect(url).toContain("key=test-api-key");
+      expect(url).not.toContain("key=");
+      expect(url).not.toContain("test-api-key");
+
+      const headers = init?.headers as Record<string, string>;
+      expect(headers?.["x-goog-api-key"]).toBe("test-api-key");
 
       const requestBody = JSON.parse(String(init?.body));
       expect(requestBody.contents[0].parts[0].text).toBe("Need 5kg whole wheat atta under 300 rupees");
       expect(requestBody.generationConfig.responseMimeType).toBe("application/json");
+      expect(requestBody.systemInstruction?.parts?.[0]?.text).toContain("shopper intent extraction engine");
 
       return createMockGeminiResponse({
         purpose: "whole-wheat-atta",
@@ -245,5 +250,61 @@ describe("GeminiModelAdapter - Bounded Model Extraction", () => {
     } finally {
       if (prevKey) process.env.GEMINI_API_KEY = prevKey;
     }
+  });
+
+  it("provider failures do not expose credentials in error messages or logs", async () => {
+    const secretKey = "super-secret-gemini-key-12345";
+    const mockFetch: typeof fetch = async () => {
+      return new Response("Internal Server Error", {
+        status: 500,
+        statusText: "Server Error",
+      });
+    };
+
+    const adapter = new GeminiModelAdapter({
+      apiKey: secretKey,
+      fetchFn: mockFetch,
+    });
+
+    try {
+      await adapter.extractIntent("tea");
+      expect.fail("Should have thrown");
+    } catch (err: unknown) {
+      expect(err).toBeInstanceOf(GeminiProviderError);
+      const message = (err as Error).message;
+      expect(message).not.toContain(secretKey);
+    }
+  });
+
+  it("includes system instruction with extraction rules and constraints", async () => {
+    let capturedBody: {
+      systemInstruction?: {
+        parts?: Array<{ text?: string }>;
+      };
+    } | undefined;
+    const mockFetch: typeof fetch = async (_input, init) => {
+      capturedBody = JSON.parse(String(init?.body));
+      return createMockGeminiResponse({ purpose: "tea" });
+    };
+
+    const adapter = new GeminiModelAdapter({
+      apiKey: "test-api-key",
+      fetchFn: mockFetch,
+    });
+
+    await adapter.extractIntent("tea");
+
+    expect(capturedBody).toBeDefined();
+    if (!capturedBody?.systemInstruction?.parts?.[0]?.text) {
+      throw new Error("Expected systemInstruction with parts in request body");
+    }
+    const instruction = capturedBody.systemInstruction.parts[0].text;
+    expect(instruction).toContain("shopper intent extraction engine");
+    expect(instruction).toContain("not a conversational shopping assistant");
+    expect(instruction).toContain("maxPricePaise");
+    expect(instruction).toContain("100 paise");
+    expect(instruction).toContain("minPack");
+    expect(instruction).toContain("error");
+    expect(instruction).toContain("message");
   });
 });

@@ -271,9 +271,24 @@ export function buildOpenSearchQuery(options: SearchOptions): Record<string, unk
 export async function searchProducts(options: SearchOptions = {}): Promise<SearchResult> {
   validateSearchOptions(options);
 
-  const client = options.client || getOpenSearchClient();
-  const index = options.index || getOpenSearchConfig().index;
-  const factsReader = options.factsReader ?? await createDefaultProductFactsReader();
+  let client: Client;
+  let index: string;
+  let factsReader: ProductFactsReader;
+
+  try {
+    client = options.client || getOpenSearchClient();
+    const rawOptIndex = options.index?.trim();
+    const explicitIndex = rawOptIndex && rawOptIndex.length > 0 ? rawOptIndex : undefined;
+    index = explicitIndex || getOpenSearchConfig().index;
+    factsReader = options.factsReader ?? (await createDefaultProductFactsReader());
+  } catch (initErr: unknown) {
+    if (initErr instanceof DependencyUnavailableError) {
+      throw initErr;
+    }
+    const msg = initErr instanceof Error ? initErr.message : String(initErr);
+    throw new DependencyUnavailableError(`Discovery dependencies unavailable: ${msg}`);
+  }
+
   const limit = Math.min(Math.max(options.limit ?? 24, 1), 24);
 
   const query = buildOpenSearchQuery(options);

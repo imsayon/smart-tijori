@@ -36,31 +36,37 @@ describe('Interest and Recovery HTTP Handlers Tests', () => {
   });
 
   it('POST /api/recovery returns at most 3 factual alternatives in the same store', async () => {
-    const req = new Request('http://localhost:3000/api/recovery', {
-      method: 'POST',
-      headers: {
-        cookie: `${SESSION_COOKIE_NAME}=${testSession}`,
-        origin: 'http://localhost:3000',
-        host: 'localhost:3000',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        storeId: 'blr-01',
-        unavailableProductId: 'blr-detergent-liquid-1l',
-        text: 'Need laundry detergent under ₹300',
-      }),
-    });
+    const prevKey = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    try {
+      const req = new Request('http://localhost:3000/api/recovery', {
+        method: 'POST',
+        headers: {
+          cookie: `${SESSION_COOKIE_NAME}=${testSession}`,
+          origin: 'http://localhost:3000',
+          host: 'localhost:3000',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          storeId: 'blr-01',
+          unavailableProductId: 'blr-detergent-liquid-1l',
+          text: 'Need laundry detergent under ₹300',
+        }),
+      });
 
-    const res = await handlePostRecovery(req);
-    expect(res.status).toBe(200);
+      const res = await handlePostRecovery(req);
+      expect(res.status).toBe(200);
 
-    const result = await res.json();
-    expect(result.mode).toBe('rules'); // No model was invoked by the standalone adapter.
-    expect(result.candidates.length).toBeLessThanOrEqual(3);
-    for (const cand of result.candidates) {
-      expect(cand.offer.productId).not.toBe('blr-detergent-liquid-1l');
-      expect(cand.offer.storeId).toBe('blr-01');
-      expect(cand.reasons.length).toBeGreaterThan(0);
+      const result = await res.json();
+      expect(result.mode).toBe('rules'); // No model was invoked by the standalone adapter.
+      expect(result.candidates.length).toBeLessThanOrEqual(3);
+      for (const cand of result.candidates) {
+        expect(cand.offer.productId).not.toBe('blr-detergent-liquid-1l');
+        expect(cand.offer.storeId).toBe('blr-01');
+        expect(cand.reasons.length).toBeGreaterThan(0);
+      }
+    } finally {
+      if (prevKey !== undefined) process.env.GEMINI_API_KEY = prevKey;
     }
   });
 });

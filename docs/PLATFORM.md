@@ -12,7 +12,7 @@ An unexpected database failure throws and needs normal server error handling.
 
 Prices and totals are integer paise. Carts accept at most 24 distinct products
 and up to 99 units per line. Restock accepts 1 to 1,000 units. Timestamps are UTC
-ISO strings. Holds last exactly 59 seconds. A keyed retry returns the first
+ISO strings. Holds last exactly five minutes (300 seconds). A keyed retry returns the first
 committed outcome, including its original timestamps. Fetch the current hold
 for a fresh state and clock. Use a new key for a new attempt after a business
 rejection. An order has simulated payment, and saving interest records demand.

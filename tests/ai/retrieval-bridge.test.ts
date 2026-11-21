@@ -414,4 +414,31 @@ describe("Intent-to-Retrieval Bridge", () => {
     expect(result.candidates.length).toBeGreaterThan(0);
     expect(result.candidates[0].offer.productId).toBe("prod-tea-1");
   });
+
+  it("treats empty or whitespace-only OPENSEARCH_INDEX as unset and applies default index", async () => {
+    const prevIndex = process.env.OPENSEARCH_INDEX;
+    let searchedIndex: string | undefined;
+    const trackingClient = {
+      search: async (params: { index?: string }) => {
+        searchedIndex = params.index;
+        return { body: { hits: { hits: [] } } };
+      },
+    } as unknown as Client;
+
+    try {
+      process.env.OPENSEARCH_INDEX = "   ";
+      await retrieveCandidatesForIntent(
+        { purpose: "tea" },
+        {
+          storeId: "blr-01",
+          client: trackingClient,
+          factsReader,
+        }
+      );
+      expect(searchedIndex).toBe("smart_tijori_products");
+    } finally {
+      if (prevIndex !== undefined) process.env.OPENSEARCH_INDEX = prevIndex;
+      else delete process.env.OPENSEARCH_INDEX;
+    }
+  });
 });

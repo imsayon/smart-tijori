@@ -63,7 +63,15 @@ describe('opt-in shopper demo routes', () => {
     delete process.env.SMARTTIJORI_DEMO_MODE;
     vi.stubEnv('ST_CATALOG_SOURCE', undefined);
     const response = await postRecovery(
-      new Request('http://localhost:3000/api/recovery', { method: 'POST' }),
+      new Request('http://localhost:3000/api/recovery', {
+        method: 'POST',
+        headers: {
+          origin: 'http://localhost:3000',
+          host: 'localhost:3000',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ storeId: 'blr-01', unavailableProductId: 'blr-detergent-liquid-1l' }),
+      }),
     );
     expect(response.status).toBe(503);
     const result = await response.json();
