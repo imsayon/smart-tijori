@@ -55,8 +55,9 @@ try {
 
   const expired = await holdFor('late-shopper', 'order_late');
   await db.transact(client => client.query(
-    `UPDATE reservations SET created_at = statement_timestamp() - interval '2 minutes',
-      expires_at = statement_timestamp() - interval '61 seconds' WHERE id = $1`,
+    `WITH past AS (SELECT date_trunc('milliseconds', clock_timestamp()) - interval '1 minute' AS deadline)
+      UPDATE reservations SET created_at = past.deadline - make_interval(secs => duration_seconds),
+        expires_at = past.deadline FROM past WHERE id = $1`,
     [expired.id],
   ));
   await recordCapturedPayment(db, { id: 'pay_late', providerOrderId: 'order_late', amountPaise: expired.totalPaise, currency: 'INR' });
