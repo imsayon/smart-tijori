@@ -57,7 +57,7 @@ describe('Operations Overview', () => {
 
   it('links the dashboard to counter, inventory, and activity', () => {
     render(<OpsOverview />);
-    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/pos');
+    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/cashier');
     expect(screen.getByRole('link', { name: /^Inventory/i })).toHaveAttribute('href', '/ops/inventory');
     expect(screen.getByRole('link', { name: /View activity/i })).toHaveAttribute('href', '/ops/diagnostics');
   });
