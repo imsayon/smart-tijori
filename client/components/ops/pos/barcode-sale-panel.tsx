@@ -160,6 +160,7 @@ export function BarcodeSalePanel({
           catch { setRecoveryBlocked(true); }
           const confirmed = data.sale as PosConfirmedSale;
           setRecentSales((prev) => [confirmed, ...prev.slice(0, 9)]);
+          window.dispatchEvent(new Event('smarttijori:stock-updated'));
           setBarcodeInput('');
           setQuantity(1);
         }
@@ -189,16 +190,16 @@ export function BarcodeSalePanel({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">🏪</span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight">Participating POS Checkout Gate</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight">Checkout counter</h1>
           </div>
           <p className="text-xs text-[#E8F3EE]/80">
-            Connected Cashier Terminal · Branch <span className="font-mono font-bold text-[#F59E0B]">{storeId}</span> (Server-Verified) · Operator <span className="font-mono font-bold">{operatorId}</span>
+            Your store · Branch <span className="font-mono font-bold text-[#F59E0B]">{storeId}</span> (Server-Verified) · Operator <span className="font-mono font-bold">{operatorId}</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
           {/* Label runtime adapter transparently */}
           <span className="text-xs bg-amber-500/20 text-amber-300 font-mono font-bold px-3 py-1.5 rounded-full border border-amber-500/40">
-            {fixture ? '⚡ [SIMULATED FIXTURE GATE]' : 'PostgreSQL checkout gate'}
+            {fixture ? '⚡ [SIMULATED FIXTURE GATE]' : 'Live stock protection'}
           </span>
         </div>
       </div>
@@ -213,7 +214,7 @@ export function BarcodeSalePanel({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="pos-barcode-input" className="text-xs font-black uppercase tracking-wider text-[#57534E]">
-                  Barcode Scanner Stream / SKU Input
+                  Scan product barcode or enter item code
                 </label>
                 <span className="text-[11px] text-[#78716C]">
                   Auto-submits on Enter (Hardware Scanner Compatible)
