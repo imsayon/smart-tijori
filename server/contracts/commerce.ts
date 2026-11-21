@@ -63,9 +63,20 @@ export interface Order {
   paymentMode: "SIMULATED";
 }
 
+export interface PosSaleInput {
+  storeId: string;
+  barcode: string;
+  quantity: number;
+  key: string;
+}
+
 export interface PosSale {
   saleId: string;
+  storeId: string;
   status: "CONFIRMED";
+  source: "postgresql";
+  soldAt: string;
+  lines: (Line & { inventoryVersion: number })[];
   totalPaise: number;
 }
 
@@ -94,6 +105,7 @@ export type CommerceErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "STOCK_UNAVAILABLE"
+  | "STOCK_LOCKED_ONLINE"
   | "HOLD_EXPIRED"
   | "HOLD_NOT_ACTIVE"
   | "ORDER_ALREADY_PLACED"
@@ -102,6 +114,8 @@ export type CommerceErrorCode =
 
 export type Outcome<T> = { ok: true; value: T }
   | { ok: false; error: { code: CommerceErrorCode; message: string; productIds?: string[] } };
+
+export type PosSaleOutcome = Outcome<PosSale>;
 
 export interface CommerceCommands {
   listStores(): Promise<Outcome<Store[]>>;
@@ -113,7 +127,8 @@ export interface CommerceCommands {
   placeOrder(actor: Actor, input: { reservationId: string; key: string }): Promise<Outcome<Order>>;
   getOrder(actor: Actor, id: string): Promise<Outcome<Order>>;
   saveInterest(actor: Actor, input: { storeId: string; productId: string }): Promise<Outcome<{ saved: true }>>;
-  recordPosSale(actor: Actor, input: { storeId: string; lines: readonly LineInput[]; key: string }): Promise<Outcome<PosSale>>;
+  authorizePosSale(actor: Actor, input: PosSaleInput): Promise<PosSaleOutcome>;
+  recordPosSale(actor: Actor, input: { storeId: string; lines: readonly LineInput[]; key: string }): Promise<PosSaleOutcome>;
   restock(actor: Actor, input: { storeId: string; productId: string; quantity: number; key: string }): Promise<Outcome<ProductOffer>>;
 }
 

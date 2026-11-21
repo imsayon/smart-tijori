@@ -31,7 +31,7 @@
     "test:http": "vitest run tests/http",
     "test:security": "vitest run tests/security",
     "test:browser": "vitest run tests/browser",
-    "test:shopping": "vitest run"
+    "test:shopping": "vitest run tests/unit tests/http tests/security tests/browser"
   },
   "dependencies": {
     "cookie": "^2.0.2",

@@ -17,9 +17,6 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
             <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
               <span className="text-lime-400">Smart</span>Tijori
             </span>
-            <span className="hidden md:inline-block text-xs uppercase tracking-widest text-emerald-200/80 font-medium border-l border-emerald-700/60 pl-3">
-              One stock truth
-            </span>
           </Link>
 
           {/* Branch selector trigger */}
@@ -29,7 +26,7 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
             className="flex items-center gap-2 text-xs sm:text-sm bg-[#275546] hover:bg-[#326956] text-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-600/40 transition-colors focus:outline-hidden focus:ring-2 focus:ring-lime-400"
             aria-label="Current store. Click to change store."
           >
-            <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-lime-400" />
             <span className="font-semibold text-white">
               {selectedStore ? selectedStore.name : 'Select Store'}
             </span>
@@ -48,7 +45,7 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
             href="/search"
             className="text-sm text-emerald-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-emerald-800/40 transition-colors"
           >
-            🔍 Search
+            Search
           </Link>
 
           {/* Cart Icon */}
@@ -57,7 +54,7 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
             className="relative flex items-center gap-2 bg-lime-400 hover:bg-lime-300 text-[#173F35] font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-white"
             aria-label={`Cart with ${cartItemCount} items`}
           >
-            <span>🛒 Cart</span>
+            <span>Cart</span>
             {cartItemCount > 0 && (
               <span className="bg-[#173F35] text-white text-xs px-2 py-0.5 rounded-full font-extrabold min-w-[20px] text-center">
                 {cartItemCount}

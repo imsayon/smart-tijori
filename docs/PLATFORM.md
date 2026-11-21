@@ -12,10 +12,35 @@ An unexpected database failure throws and needs normal server error handling.
 
 Prices and totals are integer paise. Carts accept at most 24 distinct products
 and up to 99 units per line. Restock accepts 1 to 1,000 units. Timestamps are UTC
-ISO strings. Holds last exactly five minutes. A keyed retry returns the first
+ISO strings. Holds last exactly 59 seconds. A keyed retry returns the first
 committed outcome, including its original timestamps. Fetch the current hold
 for a fresh state and clock. Use a new key for a new attempt after a business
 rejection. An order has simulated payment, and saving interest records demand.
+
+## POS barcode handoff
+
+`authorizePosSale(actor, { storeId, barcode, quantity, key })` finalizes a
+single SKU sale. The HTTP adapter verifies the operator session and branch
+authorization. Commerce rechecks the server-resolved actor's branch
+allowlist before lookup or replay. The current operator guard accepts
+synthetic tokens only in demo and test mode. Live POS requires verified
+operator credentials. Barcode lookup uses the active mapping offered at
+that branch and accepts scanner terminators as surrounding whitespace.
+Seeded demonstration codes use `ST:<product-id>`.
+
+Use HTTP 409 for `STOCK_LOCKED_ONLINE` when releasing online holds would
+cover the requested quantity. Use `STOCK_UNAVAILABLE` for insufficient
+book stock and 404 for an unknown or inactive barcode. The idempotency
+key is scoped to operator and command. Its payload includes branch,
+normalized barcode and quantity. Replay returns the committed receipt
+or business rejection. Changed payload returns `IDEMPOTENCY_CONFLICT`.
+After a business rejection, use a new key for a new attempt.
+
+Sales use the PostgreSQL unit price and database time sampled after
+inventory locks. The receipt includes line quantities and inventory
+versions after the sale, totals in paise, and `source: "postgresql"`.
+The receipt, stock debit, movement, version, outbox event and idempotency
+result commit together.
 
 ## Run the local platform proof
 
@@ -51,6 +76,19 @@ the private TLS values from [service setup](SERVICES.md).
 `pnpm db:migrate` applies the ordered SQL migrations under a schema advisory
 lock. Use `pnpm db:migrate --seed` for explicit synthetic data in a disposable
 schema. Seed reruns preserve existing inventory counts.
+
+For the approved Aiven verification namespace, run:
+
+```sh
+ST_DB_SCHEMA=st_platform_verify_v1 pnpm db:migrate --seed
+ST_DB_SCHEMA=st_platform_verify_v1 KAFKA_TOPIC=commerce.events.platform-verify.v1 \
+  KAFKA_GROUP_ID=st-projector-platform-verify-v1 \
+  node --conditions=react-server --env-file=client/.env.local tests/platform.aiven.mjs
+```
+
+This uses fresh synthetic branch IDs and leaves the evidence in the verification
+schema. Use `ST_CATALOG_SOURCE=postgres` to serve the seeded shopper catalog
+from PostgreSQL while the OpenSearch integration is pending.
 
 Create the agreed Kafka topic explicitly. Bind the worker by setting
 `ST_PROJECTION_WRITER_MODULE` to the discovery adapter file and running

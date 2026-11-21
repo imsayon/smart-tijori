@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { verifyOperatorSession } from '@/server/http/auth/operator-guard';
 import { HttpError } from '@/server/http/errors/http-errors';
 
@@ -45,6 +45,19 @@ describe('Operator Guard Security Tests', () => {
     expect(actor.operatorId).toBe('staff01');
     expect(actor.storeId).toBe('blr-01');
     expect(actor.role).toBe('store_operator');
+  });
+
+  it('rejects fixture operator tokens in live mode', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SMARTTIJORI_DEMO_MODE', 'false');
+    try {
+      const req = new Request('http://localhost:3000/api/ops/sales', {
+        headers: { authorization: 'Bearer ops_staff01_blr-01' },
+      });
+      expect(() => verifyOperatorSession(req)).toThrowError(HttpError);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('accepts valid operator cookie', () => {

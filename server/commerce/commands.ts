@@ -4,13 +4,14 @@ import type { PoolClient } from "pg";
 import {
   MAX_LINES, MAX_QUANTITY, MAX_RESTOCK,
   type Actor, type Cart, type CommerceCommands, type CommerceErrorCode, type Hold,
-  type Line, type LineInput, type Order, type Outcome, type Store,
+  type Line, type LineInput, type Order, type Outcome, type PosSale, type Store,
 } from "../contracts/commerce.ts";
 import type { Database } from "../db/database.ts";
 import { advanceVersions, databaseTime, inventoryFacts, lockInventory, moveStock, offer } from "./inventory.ts";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+const BARCODE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
 const OPERATION_KEY = /^[!-~]{1,128}$/;
 
 class Rejected extends Error {
@@ -198,6 +199,34 @@ async function finishHold(client: PoolClient, row: HoldRow, lines: Line[], now: 
   await advanceVersions(client, row.storeId, productIds(lines), now);
 }
 
+async function finalizePosSale(
+  client: PoolClient, operatorId: string, storeId: string, lines: readonly LineInput[],
+): Promise<PosSale> {
+  const ids = productIds(lines);
+  await lockInventory(client, storeId, ids);
+  const now = await databaseTime(client);
+  const facts = await inventoryFacts(client, storeId, ids, now);
+  const reserved = lines.filter(({ productId, quantity }) => {
+    const fact = facts.find((row) => row.productId === productId);
+    return fact && quantity > fact.available && quantity <= fact.stockOnHand;
+  });
+  if (reserved.length) {
+    throw new Rejected("STOCK_LOCKED_ONLINE", "Reserved for online checkout.", productIds(reserved));
+  }
+
+  const priced = pricedLines(lines, facts, true);
+  const saleId = randomUUID();
+  const totalPaise = total(priced);
+  await moveStock(client, storeId, "POS", saleId, lines, now);
+  const versions = new Map(facts.map(row => [row.productId, row.inventoryVersion + 1]));
+  const receipt = priced.map(line => ({ ...line, inventoryVersion: versions.get(line.productId)! }));
+  await client.query(`
+    INSERT INTO pos_sales (id, store_id, operator_id, sold_at, total_paise, lines)
+    VALUES ($1,$2,$3,$4,$5,$6)`, [saleId, storeId, operatorId, now, totalPaise, JSON.stringify(receipt)]);
+  return { saleId, storeId, status: "CONFIRMED", source: "postgresql", soldAt: now.toISOString(),
+    lines: receipt, totalPaise };
+}
+
 export function createCommerceCommands(db: Database): CommerceCommands {
   return {
     listStores: () => command(db, async (client) =>
@@ -247,7 +276,7 @@ export function createCommerceCommands(db: Database): CommerceCommands {
         if (hold) await finishHold(client, hold, heldLines, now);
         const { rows: [created] } = await client.query<HoldRow>(`
           INSERT INTO reservations (cart_id, store_id, status, created_at, expires_at, total_paise)
-          VALUES ($1, $2, 'ACTIVE', $3::timestamptz, $3::timestamptz + interval '5 minutes', $4)
+          VALUES ($1, $2, 'ACTIVE', $3::timestamptz, $3::timestamptz + interval '59 seconds', $4)
           RETURNING id, cart_id AS "cartId", store_id AS "storeId", status,
             expires_at AS "expiresAt", total_paise AS "totalPaise"`, [cart.id, cart.storeId, now, total(priced)]);
         await client.query(`
@@ -293,6 +322,7 @@ export function createCommerceCommands(db: Database): CommerceCommands {
           INSERT INTO order_lines (order_id, product_id, quantity, name, unit_price_paise)
           SELECT $1, product_id, quantity, name, unit_price_paise FROM reservation_lines WHERE reservation_id = $2`, [id, hold.id]);
         await moveStock(client, hold.storeId, "ORDER", id, lines, now);
+        await client.query("DELETE FROM cart_lines WHERE cart_id = $1", [hold.cartId]);
         await client.query(`
           INSERT INTO outbox (type, store_id, occurred_at, payload)
           VALUES ('order.placed', $1, $2, jsonb_build_object('storeId', $1::text, 'orderId', $3::text, 'productIds', $4::text[]))`,
@@ -325,18 +355,29 @@ export function createCommerceCommands(db: Database): CommerceCommands {
         [actor.id, input.storeId, input.productId]);
       return { saved: true };
     }),
+    authorizePosSale: (actor, input) => command(db, async (client) => {
+      const { storeId, quantity, key } = input;
+      requireActor(actor, "operator", storeId);
+      requireId(storeId);
+      const barcode = typeof input.barcode === "string" ? input.barcode.trim() : "";
+      requireId(barcode, BARCODE);
+      requireQuantity(quantity, MAX_QUANTITY);
+      return idempotent(client, actor, "pos-barcode", key, { storeId, barcode, quantity }, async () => {
+        const { rows: [match] } = await client.query<{ product_id: string }>(`
+          SELECT b.product_id FROM product_barcodes b
+          JOIN inventory i ON i.product_id = b.product_id
+          WHERE b.barcode = $1 AND b.active AND i.store_id = $2 FOR SHARE OF b`, [barcode, storeId]);
+        if (!match) throw new Rejected("NOT_FOUND", "Barcode is not registered for this store.");
+        return finalizePosSale(client, actor.id, storeId, [{ productId: match.product_id, quantity }]);
+      });
+    }),
     recordPosSale: (actor, input) => command(db, async (client) => {
       requireActor(actor, "operator", input.storeId);
       requireId(input.storeId);
       const lines = normalizeLines(input.lines);
-      return idempotent(client, actor, "pos", input.key, { storeId: input.storeId, lines }, async () => {
-        await lockInventory(client, input.storeId, productIds(lines));
-        const now = await databaseTime(client);
-        const priced = pricedLines(lines, await inventoryFacts(client, input.storeId, productIds(lines), now), true);
-        const saleId = randomUUID();
-        await moveStock(client, input.storeId, "POS", saleId, lines, now);
-        return { saleId, status: "CONFIRMED" as const, totalPaise: total(priced) };
-      });
+      const { storeId } = input;
+      return idempotent(client, actor, "pos", input.key, { storeId, lines },
+        () => finalizePosSale(client, actor.id, storeId, lines));
     }),
     restock: (actor, input) => command(db, async (client) => {
       requireActor(actor, "operator", input.storeId);

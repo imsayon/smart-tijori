@@ -35,7 +35,8 @@ export function verifyOperatorSession(request: Request): OperatorActor {
 
   // Token format: ops_<operatorId>_<storeId> (e.g., ops_staff01_blr-01) or demo token
   // In demo / test mode: accept valid ops tokens
-  if (token.startsWith('ops_') || token === 'demo-operator-token') {
+  const fixtureMode = process.env.NODE_ENV === 'test' || process.env.SMARTTIJORI_DEMO_MODE === 'true';
+  if (fixtureMode && (token.startsWith('ops_') || token === 'demo-operator-token')) {
     const parts = token.split('_');
     const operatorId = parts[1] || 'ops-demo-user';
     const storeId = parts[2] || 'blr-01';

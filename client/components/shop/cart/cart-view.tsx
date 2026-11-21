@@ -58,7 +58,7 @@ export function CartView() {
 
       {/* CartLock stock guarantee rule */}
       <Alert type="info" className="mb-6">
-        <span className="font-semibold">CartLock Notice:</span> Items in your cart do not reserve stock. Stock is allocated and locked for 60 seconds once you enter checkout.
+        Checkout holds your items for 59 seconds.
       </Alert>
 
       {/* Line Items */}
@@ -82,7 +82,6 @@ export function CartView() {
         <div className="flex items-center justify-between py-4 border-b border-[#275546]/10">
           <div>
             <span className="text-base sm:text-lg font-bold text-stone-900">Total Order Amount</span>
-            <span className="text-xs text-stone-500 block">Server-authoritative calculation</span>
           </div>
           <span className="text-2xl sm:text-3xl font-black text-[#173F35]">
             {formatPaise(cart.totalPaise)}
@@ -90,9 +89,6 @@ export function CartView() {
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-stone-600">
-            🔒 Checkout triggers an all-or-nothing 60-second inventory hold.
-          </div>
           <Link
             href="/checkout"
             className="w-full sm:w-auto text-center bg-lime-400 hover:bg-lime-300 text-[#173F35] font-black text-base px-8 py-3.5 rounded-xl shadow-sm transition-transform active:scale-95 focus:ring-2 focus:ring-[#173F35]"

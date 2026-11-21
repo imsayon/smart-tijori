@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getCommerceCommands } from '../adapters';
-import { resolveSession, buildSessionCookieHeader } from '../sessions/session-manager';
 import { handleServerError, HttpError } from '../errors/http-errors';
 import { productFilterSchema } from '../validation/schemas';
 
 export async function handleGetProducts(request: Request): Promise<NextResponse> {
   try {
-    const session = resolveSession(request.headers.get('cookie'));
     const url = new URL(request.url);
 
     const queryParams: Record<string, string> = {};
@@ -33,11 +31,7 @@ export async function handleGetProducts(request: Request): Promise<NextResponse>
     // Max 24 per contract
     const boundedItems = items.slice(0, 24);
 
-    const response = NextResponse.json({ items: boundedItems });
-    if (session.isNew) {
-      response.headers.set('Set-Cookie', buildSessionCookieHeader(session.sessionId));
-    }
-    return response;
+    return NextResponse.json({ items: boundedItems });
   } catch (err) {
     return handleServerError(err);
   }

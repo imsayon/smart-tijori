@@ -75,7 +75,7 @@ async function counts() {
 async function setDeadline(id, interval) {
   return (await rows(`
     WITH clock AS (SELECT date_trunc('milliseconds', clock_timestamp()) + $2::interval AS deadline)
-    UPDATE reservations SET created_at = deadline - interval '5 minutes', expires_at = deadline
+    UPDATE reservations SET created_at = deadline - interval '59 seconds', expires_at = deadline
     FROM clock WHERE id = $1 RETURNING expires_at`, [id, interval]))[0].expires_at;
 }
 
@@ -104,7 +104,7 @@ test("seed, owned carts and holds, nonrenewal, rollback and idempotent interest"
 
   await cartFor(alice, lines(["tea-500"]), "mys-01");
   const hold = ok(await commands.reserve(alice, { cartId: cart.id, key: "good" }));
-  assert.equal(Date.parse(hold.expiresAt) - Date.parse(hold.serverNow), 300_000);
+  assert.equal(Date.parse(hold.expiresAt) - Date.parse(hold.serverNow), 59_000);
   assert.deepEqual(ok(await commands.reserve(alice, { cartId: cart.id, key: "good" })), hold);
   assert.equal(ok(await commands.reserve(alice, { cartId: cart.id, key: "also-good" })).expiresAt, hold.expiresAt);
   conflict(await commands.reserve(alice, { cartId: randomUUID(), key: "good" }), "IDEMPOTENCY_CONFLICT");
@@ -132,10 +132,10 @@ test("100 concurrent synthetic allocation commands yield only one winner", async
   const before = await counts();
   const results = await Promise.all(shoppers.flatMap((actor, i) => [
     commands.reserve(actor, { cartId: carts[i].id, key: "race" }),
-    commands.recordPosSale(operator, { storeId, lines: productLines, key: `race-${i}` }),
+    commands.authorizePosSale(operator, { storeId, barcode: "ST:tea-250", quantity: 1, key: `race-${i}` }),
   ]));
   assert.equal(results.filter((result) => result.ok).length, 1);
-  results.filter((result) => !result.ok).forEach((result) => conflict(result, "STOCK_UNAVAILABLE"));
+  results.filter((result) => !result.ok).forEach((result) => assert.ok(["STOCK_LOCKED_ONLINE", "STOCK_UNAVAILABLE"].includes(result.error.code)));
   const [stock] = (await facts.readOpsFacts(storeId)).stock.filter((row) => row.productId === "tea-250");
   assert.equal(stock.available, 0);
   assert.equal(stock.stockOnHand - stock.held, 0);
@@ -191,7 +191,7 @@ test("atomic order, stock movements, versions and outbox survive rollback and lo
 test("authorized POS and restock use stable locks and retry keys", async () => {
   const protectedActor = shopper("protected");
   await reserveFor(protectedActor, lines(["detergent-front-1l"]));
-  conflict(await commands.recordPosSale(operator, { storeId, key: "protected", lines: lines(["detergent-front-1l"], ["tea-500"]) }), "STOCK_UNAVAILABLE");
+  conflict(await commands.recordPosSale(operator, { storeId, key: "protected", lines: lines(["detergent-front-1l"], ["tea-500"]) }), "STOCK_LOCKED_ONLINE");
   assert.equal((await facts.readProductFacts(storeId, ["tea-500"]))[0].available, 8);
   conflict(await commands.restock(protectedActor, { storeId, productId: "tea-500", quantity: 1, key: "restock" }), "FORBIDDEN");
   conflict(await commands.restock(operator, { storeId: "mys-01", productId: "tea-500", quantity: 1, key: "restock" }), "FORBIDDEN");
@@ -212,6 +212,40 @@ test("authorized POS and restock use stable locks and retry keys", async () => {
   conflict(await commands.restock(operator, { ...restock, quantity: 3 }), "IDEMPOTENCY_CONFLICT");
 });
 
+test("barcode checkout snapshots price and version, enforces branch access, and replays the receipt", async () => {
+  const input = { storeId, barcode: "ST:coffee-100", quantity: 1, key: "barcode-sale" };
+  conflict(await commands.authorizePosSale(shopper("guest"), input), "FORBIDDEN");
+  conflict(await commands.authorizePosSale(operator, { ...input, storeId: "mys-01" }), "FORBIDDEN");
+  conflict(await commands.authorizePosSale(operator, { ...input, barcode: "00001001", key: "unknown" }), "NOT_FOUND");
+  await query("UPDATE product_barcodes SET active=false WHERE barcode=$1", [input.barcode]);
+  conflict(await commands.authorizePosSale(operator, { ...input, key: "inactive" }), "NOT_FOUND");
+  await query("UPDATE product_barcodes SET active=true WHERE barcode=$1", [input.barcode]);
+  const [offer] = await facts.readProductFacts(storeId, ["coffee-100"]);
+  const result = await commands.authorizePosSale(operator, input);
+  const sale = ok(result);
+  assert.equal(sale.source, "postgresql");
+  assert.equal(sale.totalPaise, offer.pricePaise);
+  assert.deepEqual(sale.lines, [{
+    productId: offer.productId, quantity: 1, name: offer.name,
+    unitPricePaise: offer.pricePaise, inventoryVersion: offer.inventoryVersion + 1,
+  }]);
+  await query("UPDATE products SET price_paise=price_paise+100 WHERE id='coffee-100'");
+  assert.deepEqual(await commands.authorizePosSale(operator, { ...input, barcode: input.barcode + "\n" }), result);
+  conflict(await commands.authorizePosSale(operator, { ...input, quantity: 2 }), "IDEMPOTENCY_CONFLICT");
+  const [receipt] = await rows(`
+    SELECT p.sold_at, p.lines, p.operator_id, m.quantity_delta, o.payload
+    FROM pos_sales p
+    JOIN stock_movements m ON m.reference_id=p.id
+    JOIN outbox o ON o.store_id=p.store_id AND o.payload->>'productId'=m.product_id
+      AND (o.payload->>'inventoryVersion')::int=$2
+    WHERE p.id=$1`, [sale.saleId, sale.lines[0].inventoryVersion]);
+  assert.equal(receipt.sold_at.toISOString(), sale.soldAt);
+  assert.equal(receipt.operator_id, operator.id);
+  assert.deepEqual(receipt.lines, sale.lines);
+  assert.equal(receipt.quantity_delta, -1);
+  assert.equal(receipt.payload.inventoryVersion, sale.lines[0].inventoryVersion);
+});
+
 test("database deadline wins while waiting for a lock, with and without expiry cleanup", async () => {
   const actor = shopper("expiry-confirm");
   const hold = await reserveFor(actor, lines(["salt-1kg", 8]));
@@ -228,7 +262,7 @@ test("database deadline wins while waiting for a lock, with and without expiry c
   conflict(await confirmation, "HOLD_EXPIRED");
   assert.equal((await rows("SELECT status FROM reservations WHERE id = $1", [hold.id]))[0].status, "ACTIVE");
   assert.equal((await facts.readProductFacts(storeId, ["salt-1kg"]))[0].available, 8);
-  ok(await commands.recordPosSale(operator, { storeId, lines: lines(["salt-1kg", 8]), key: "after-deadline" }));
+  ok(await commands.authorizePosSale(operator, { storeId, barcode: "ST:salt-1kg", quantity: 8, key: "after-deadline" }));
   const [sweep, edit] = await Promise.all([
     expireDueHolds(db, 24),
     commands.putCart(actor, { storeId, lines: lines(["dal-1kg"]) }),

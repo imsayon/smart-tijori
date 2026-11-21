@@ -45,3 +45,8 @@ WHERE stores.id IN ('blr-01', 'mys-01')
     'dal-1kg', 'oil-1l', 'oil-2l', 'salt-1kg'
   )
 ON CONFLICT DO NOTHING;
+
+INSERT INTO product_barcodes (barcode, product_id)
+SELECT 'ST:' || id, id FROM products
+WHERE EXISTS (SELECT 1 FROM inventory WHERE product_id = products.id AND store_id = 'blr-01')
+ON CONFLICT DO NOTHING;

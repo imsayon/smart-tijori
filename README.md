@@ -1,8 +1,6 @@
 # SmartTijori
 
-One TypeScript/Next.js application and one Node worker. The app serves a startup
-page. The commerce platform provides shared contracts, PostgreSQL commands and
-facts, an outbox relay, and a Kafka consumer with an injected projection writer.
+SmartTijori has a Next.js storefront, a PostgreSQL commerce platform, and a Node worker for the Kafka outbox.
 
 ## Setup and commands
 

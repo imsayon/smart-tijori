@@ -46,10 +46,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     async function init() {
       try {
         setIsLoading(true);
-        const [storesRes, cartRes] = await Promise.all([
-          api.getStores(),
-          api.getCart(),
-        ]);
+        const cartRes = await api.getCart();
+        const storesRes = await api.getStores();
 
         if (!mounted) return;
         setAvailableStores(storesRes.stores);

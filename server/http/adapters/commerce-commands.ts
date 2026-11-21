@@ -22,7 +22,7 @@ export interface CommerceCommands {
    * 2. Timestamps: Return server-generated `serverNow` and `expiresAt` in ISO-8601 format.
    * 3. Idempotency: Duplicate calls with the same (sessionId, operationKey, cartFingerprint)
    *    must return the cached hold result without creating duplicate allocations.
-   * 4. Single Active Hold: Creating a new hold releases any previous active hold for the session.
+   * 4. Single Active Hold: A repeat checkout for an unchanged cart keeps its active deadline. Editing the cart releases the hold.
    * 5. All-or-Nothing: If any line has insufficient book stock, return `{ ok: false, code: 'STOCK_UNAVAILABLE' }`.
    */
   createHold(
