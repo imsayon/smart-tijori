@@ -21,7 +21,7 @@ function ProductDetailContent() {
     async function loadOffer() {
       try {
         setIsLoading(true);
-        const res = await api.getProducts({ storeId: selectedStoreId });
+        const res = await api.getProducts({ storeId: selectedStoreId, includeUnavailable: true });
         const match = res.items.find((p) => p.productId === productId);
         if (active) {
           setOffer(match ?? null);
