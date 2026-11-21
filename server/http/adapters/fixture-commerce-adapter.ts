@@ -26,6 +26,12 @@ interface IdempotencyEntry<T> {
 export const HOLD_DURATION_SECONDS = 59; // 59-second non-renewing hold
 
 export class FixtureCommerceAdapter implements CommerceCommands {
+
+  authorizePosSale: CommerceCommands['authorizePosSale'] = async () => ({
+    ok: false,
+    error: { code: 'DEPENDENCY_UNAVAILABLE', message: 'POS authorization requires the PostgreSQL adapter.' },
+  });
+
   private carts = new Map<string, Cart>(); // sessionId -> Cart
   private holds = new Map<string, Hold>(); // holdId -> Hold
   private orders = new Map<string, Order>(); // orderId -> Order

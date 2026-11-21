@@ -1,3 +1,4 @@
+import type { CommerceCommands as PlatformCommands } from "../../contracts/commerce";
 import type { Cart, Hold, Order, StockInterest, ProductOffer, Store } from '@/contracts';
 
 export type CreateHoldResult =
@@ -5,6 +6,8 @@ export type CreateHoldResult =
   | { ok: false; code: 'STOCK_UNAVAILABLE'; unavailableProducts: string[] };
 
 export interface CommerceCommands {
+  authorizePosSale: PlatformCommands["authorizePosSale"];
+
   listStores(): Promise<Store[]>;
 
   getCart(sessionId: string): Promise<Cart>;
