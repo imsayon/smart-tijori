@@ -1,5 +1,6 @@
 import { AtelierHero } from '@/components/shop/atelier/atelier-hero';
 import { CartLockStory } from '@/components/shop/atelier/cartlock-story';
+import { CartLockEdition, ShopFlowArtwork } from '@/components/shop/atelier/retail-explainers';
 import { BranchBanner } from '@/components/shop/navigation/branch-banner';
 import { Catalog } from '@/components/shop/catalog/catalog';
 import { AtelierTitle, Icon } from '@/components/ui/atelier';
@@ -18,7 +19,9 @@ export default function HomePage() {
         description="Every product and availability state below comes from the branch you selected." />
       <Catalog />
     </section>
+    <CartLockEdition />
     <CartLockStory />
+    <ShopFlowArtwork />
     <section id="guarantee" className="atelier-home-section">
       <AtelierTitle context="04 / The Tijori Protocol" lead="Commerce built on" accent="certainty."
         description="From store shelf to checkout, each unit is tracked in one authoritative ledger." />
