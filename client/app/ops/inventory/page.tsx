@@ -1,16 +1,15 @@
-import React from 'react';
-import type { Metadata } from 'next';
 import { InventoryView } from '@/components/ops/inventory/inventory-view';
+import { createCommerceFacts } from '@server/commerce/facts';
+import { getCommerceDatabase } from '@server/db/runtime';
+import { readWorkbenchOperator } from '../operator';
 
-export const metadata: Metadata = {
-  title: 'Store Inventory Monitoring | Operations Workbench',
-  description: 'Real-time per-SKU inventory visibility, stock-on-hand, online holds, and stock movement ledger.',
-};
+export const metadata = { title: 'Inventory | SmartTijori' };
 
-/**
- * Operations Inventory Monitor page mounted at /ops/inventory.
- * Renders the read-only InventoryView component conforming to OpsFacts.
- */
-export default function OpsInventoryPage() {
-  return <InventoryView />;
+export default async function Page() {
+  const { actor, fixture } = await readWorkbenchOperator();
+  if (!actor?.storeId) return null;
+  if (fixture) return <p>Inventory requires a PostgreSQL connection.</p>;
+  const db = getCommerceDatabase();
+  const facts = await createCommerceFacts(db).readOpsFacts(actor.storeId);
+  return <InventoryView storeId={actor.storeId} initialFacts={facts} />;
 }

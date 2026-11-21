@@ -1,7 +1,7 @@
 # Shopper prototype
 
-The hosted prototype uses Aiven PostgreSQL for its catalog, cart, reservations,
-orders and rules-based alternatives. Payments are simulated. [Open the demo](https://smart-tijori.onrender.com).
+The hosted prototype uses Aiven PostgreSQL for current prices and stock, carts,
+reservations, orders and rules-based alternatives. Payments are simulated. [Open the demo](https://smart-tijori.onrender.com).
 
 ## Walkthrough
 
@@ -17,8 +17,9 @@ orders and rules-based alternatives. Payments are simulated. [Open the demo](htt
 
 The catalog and alternatives show current stock when read. Checkout confirms
 whether the requested quantity is still available. Saving restock interest records
-demand. The protected cashier route, scanner UI and OpenSearch composition are
-tracked separately.
+demand. The operations workbench at `/ops` uses a branch-scoped cashier credential.
+Open the POS terminal to submit a scanned code or paste a registered SKU. Inventory
+and pipeline views show the current database facts for the signed-in branch.
 
 ## Local fixture mode
 
@@ -29,11 +30,19 @@ authoritative PostgreSQL and Kafka checks.
 
 ## Hosted configuration and checks
 
-The Render web service builds the repository root with the pinned Node and pnpm
-versions. The start command runs the Next app in `client/` on Render's port.
+The Render web service builds with the pinned Node and pnpm versions and
+`CKJS_LINKING=dynamic`. The start command loads its private environment and
+runs `infra/run-render.mjs` to launch Next.js and the projection worker. Both
+processes follow the Free web instance's lifecycle, including idle suspension.
+`ST_OPS_OPERATOR_TOKEN` and `ST_OPS_STORE_ID` configure operator sign-in.
 The runtime uses private PostgreSQL connection settings and a trusted CA.
-`ST_CATALOG_SOURCE=postgres` explicitly selects the PostgreSQL catalog and
-rules-based recovery. Leave `SMARTTIJORI_DEMO_MODE` disabled for that deployment.
+`ST_CATALOG_SOURCE=opensearch` enables typo-tolerant catalog search. Set private
+`OPENSEARCH_*` credentials with read access to the selected index. Populate the
+index from the same PostgreSQL schema using the [catalog sync](PLATFORM.md#configure-an-agreed-live-namespace).
+Branch and category narrow the indexed candidates. The server then checks the
+current PostgreSQL price and stock. Rules-based recovery still uses PostgreSQL.
+`ST_CATALOG_SOURCE=postgres` selects literal catalog search. Leave
+`SMARTTIJORI_DEMO_MODE` disabled on Render.
 
 ```sh
 pnpm typecheck

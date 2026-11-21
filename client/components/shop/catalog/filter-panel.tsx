@@ -9,7 +9,11 @@ interface FilterPanelProps {
   onSelectCategory: (cat: CategoryFilter) => void;
   inStockOnly: boolean;
   onToggleInStock: (val: boolean) => void;
-  totalCount: number;
+  minPrice: string;
+  maxPrice: string;
+  onMinPriceChange: (value: string) => void;
+  onMaxPriceChange: (value: string) => void;
+  totalCount?: number;
 }
 
 export function FilterPanel({
@@ -17,6 +21,10 @@ export function FilterPanel({
   onSelectCategory,
   inStockOnly,
   onToggleInStock,
+  minPrice,
+  maxPrice,
+  onMinPriceChange,
+  onMaxPriceChange,
   totalCount,
 }: FilterPanelProps) {
   const categories: Array<{ id: CategoryFilter; label: string; icon: string }> = [
@@ -27,7 +35,7 @@ export function FilterPanel({
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-3 mb-6 border-b border-stone-200">
+    <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 py-3 mb-6 border-b border-stone-200">
       {/* Category Pills */}
       <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Product categories">
         {categories.map((c) => (
@@ -49,6 +57,25 @@ export function FilterPanel({
         ))}
       </div>
 
+      <div className="flex flex-wrap items-end gap-2">
+        {([
+          ['Min price (₹)', minPrice, onMinPriceChange],
+          ['Max price (₹)', maxPrice, onMaxPriceChange],
+        ] as const).map(([label, value, onChange]) => (
+          <label key={label} className="text-xs font-medium text-stone-600">
+            {label}
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={value}
+              onChange={(event) => onChange(event.currentTarget.value)}
+              className="mt-1 block w-24 rounded-lg border border-stone-200 bg-white px-2 py-2 text-stone-900"
+            />
+          </label>
+        ))}
+      </div>
+
       {/* In-Stock filter & item count */}
       <div className="flex items-center gap-4 text-xs sm:text-sm text-stone-600 self-end sm:self-auto">
         <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -60,8 +87,9 @@ export function FilterPanel({
           />
           <span className="font-medium">In-stock only</span>
         </label>
-        <span className="text-stone-400">|</span>
-        <span className="font-semibold text-stone-700">{totalCount} products</span>
+        {totalCount !== undefined && (
+          <span className="font-semibold text-stone-700">{totalCount} products</span>
+        )}
       </div>
     </div>
   );

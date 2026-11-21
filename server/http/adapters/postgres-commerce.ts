@@ -1,6 +1,5 @@
 import "server-only";
-import { createPostgresPool } from "../../db/pool";
-import { createDatabase } from "../../db/database";
+import { getCommerceDatabase } from "../../db/runtime";
 import { createCommerceCommands } from "../../commerce/commands";
 import { databaseTime, inventoryFacts } from "../../commerce/inventory";
 import type { Outcome } from "../../contracts/commerce";
@@ -15,7 +14,7 @@ function value<T>(result: Outcome<T>): T {
 }
 
 export function postgresCommerce(): CommerceCommands {
-  const db = createDatabase(createPostgresPool(), process.env.ST_DB_SCHEMA ?? "");
+  const db = getCommerceDatabase();
   const commands = createCommerceCommands(db);
   return {
     authorizePosSale: commands.authorizePosSale,

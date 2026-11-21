@@ -29,7 +29,9 @@ export async function handleGetProducts(request: Request): Promise<NextResponse>
     });
 
     // Max 24 per contract
-    const boundedItems = items.slice(0, 24);
+    const offers = url.searchParams.get('includeUnavailable') === 'false'
+      ? items.filter((offer) => offer.available > 0) : items;
+    const boundedItems = offers.slice(0, 24);
 
     return NextResponse.json({ items: boundedItems });
   } catch (err) {

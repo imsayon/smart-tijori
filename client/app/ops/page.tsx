@@ -1,16 +1,23 @@
-import React from 'react';
-import type { Metadata } from 'next';
 import { OpsOverview } from '@/components/ops/overview/ops-overview';
+import { createCommerceFacts } from '@server/commerce/facts';
+import { createPipelineReader } from '@server/events/diagnostics';
+import { getCommerceDatabase } from '@server/db/runtime';
+import { readWorkbenchOperator } from './operator';
 
-export const metadata: Metadata = {
-  title: 'Operations Overview | SmartTijori Workbench',
-  description: 'Operations control overview, terminal status, inventory monitoring, and pipeline diagnostics.',
-};
+export const metadata = { title: 'Operations Overview | SmartTijori' };
 
-/**
- * Operations Overview landing page mounted at /ops.
- * Renders the OpsOverview component bringing together inventory and pipeline facts.
- */
-export default function OpsOverviewPage() {
-  return <OpsOverview />;
+export default async function OpsOverviewPage() {
+  const { actor, fixture } = await readWorkbenchOperator();
+  if (!actor?.storeId) return null;
+  if (fixture) return <p>Live branch facts require a PostgreSQL connection.</p>;
+  const db = getCommerceDatabase();
+  const [inventory, pipeline] = await Promise.allSettled([
+    createCommerceFacts(db).readOpsFacts(actor.storeId),
+    createPipelineReader(db)(actor.storeId),
+  ]);
+  return (
+    <OpsOverview storeId={actor.storeId}
+      initialInventoryFacts={inventory.status === 'fulfilled' ? inventory.value : null}
+      initialPipelineFacts={pipeline.status === 'fulfilled' ? pipeline.value : null} />
+  );
 }

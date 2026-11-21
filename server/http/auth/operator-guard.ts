@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { HttpError } from '../errors/http-errors';
 import { parseCookies } from '../sessions/session-manager';
 
@@ -33,20 +34,24 @@ export function verifyOperatorSession(request: Request): OperatorActor {
     throw new HttpError('FORBIDDEN', 'Operator authentication required', 401);
   }
 
-  // Token format: ops_<operatorId>_<storeId> (e.g., ops_staff01_blr-01) or demo token
-  // In demo / test mode: accept valid ops tokens
-  const fixtureMode = process.env.NODE_ENV === 'test' || process.env.SMARTTIJORI_DEMO_MODE === 'true';
-  if (fixtureMode && (token.startsWith('ops_') || token === 'demo-operator-token')) {
-    const parts = token.split('_');
-    const operatorId = parts[1] || 'ops-demo-user';
-    const storeId = parts[2] || 'blr-01';
-
-    return {
-      operatorId,
-      role: OPERATOR_ROLE,
-      storeId,
-    };
-  }
-
+  const actor = readOperatorToken(token);
+  if (actor) return actor;
   throw new HttpError('FORBIDDEN', 'Invalid or expired operator credentials', 403);
+}
+
+export function readOperatorToken(token?: string): OperatorActor | null {
+  if (!token) return null;
+  if (process.env.NODE_ENV === 'test' || process.env.SMARTTIJORI_DEMO_MODE === 'true') {
+    if (!token.startsWith('ops_') && token !== 'demo-operator-token') return null;
+    const parts = token.split('_');
+    return { operatorId: parts[1] || 'ops-demo-user', role: OPERATOR_ROLE, storeId: parts[2] || 'blr-01' };
+  }
+  const expected = process.env.ST_OPS_OPERATOR_TOKEN;
+  const storeId = process.env.ST_OPS_STORE_ID;
+  if (!expected || expected.length < 32 || !storeId) return null;
+  const supplied = Buffer.from(token);
+  const configured = Buffer.from(expected);
+  return supplied.length === configured.length && timingSafeEqual(supplied, configured)
+    ? { operatorId: 'cashier', role: OPERATOR_ROLE, storeId }
+    : null;
 }

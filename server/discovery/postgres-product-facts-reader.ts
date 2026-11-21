@@ -3,8 +3,7 @@ import { createCommerceFacts } from "../commerce/facts.ts";
 import type { ProductOffer } from "../contracts/catalog";
 import type { CommerceFacts, ProductOffer as CommerceOffer } from "../contracts/commerce";
 import type { ProductFactsReader } from "../contracts/facts";
-import { createDatabase } from "../db/database.ts";
-import { createPostgresPool } from "../db/pool.ts";
+import { getCommerceDatabase } from "../db/runtime.ts";
 
 export function toDiscoveryOffer(offer: CommerceOffer): ProductOffer {
   const { attributes, available, imageUrl, ...facts } = offer;
@@ -25,7 +24,7 @@ let reader: ProductFactsReader | undefined;
 
 export function getPostgresProductFactsReader(): ProductFactsReader {
   if (!reader) {
-    const db = createDatabase(createPostgresPool(), process.env.ST_DB_SCHEMA ?? "");
+    const db = getCommerceDatabase();
     reader = createPostgresProductFactsReader(createCommerceFacts(db));
   }
   return reader;

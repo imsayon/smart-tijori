@@ -64,6 +64,7 @@ export const api = {
   async getProducts(params?: {
     q?: string;
     category?: string;
+    includeUnavailable?: boolean;
     minPricePaise?: number;
     maxPricePaise?: number;
     city?: string;

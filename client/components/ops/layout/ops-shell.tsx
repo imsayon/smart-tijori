@@ -4,6 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
+import type { OperatorActor } from '@server/http/auth/operator-guard';
+import { OperatorAccess } from './operator-access';
 
 interface NavItem {
   name: string;
@@ -21,18 +23,11 @@ const NAV_ITEMS: NavItem[] = [
 
 interface OpsShellProps {
   children: React.ReactNode;
+  operator: OperatorActor | null;
+  fixture: boolean;
 }
 
-/**
- * Shared Operations Workbench Shell & Navigation.
- *
- * Scope & Security:
- * - Session identity is strictly server-verified (storeId: 'blr-01', role: 'store_operator').
- * - Navigation links route between Overview, POS Cashier, Inventory, and Diagnostics.
- * - Active route is highlighted responsively on desktop and mobile viewports.
- * - Fixture/Demo mode is clearly disclosed to prevent mistaking test runs for production.
- */
-export function OpsShell({ children }: OpsShellProps) {
+export function OpsShell({ children, operator, fixture }: OpsShellProps) {
   const pathname = usePathname();
 
   const isItemActive = (href: string) => {
@@ -65,16 +60,17 @@ export function OpsShell({ children }: OpsShellProps) {
 
             {/* Operator Session Pill & Adapter Disclosure */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#163D31] text-[#E8F3EE] border border-[#276350]">
+              {operator && <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#163D31] text-[#E8F3EE] border border-[#276350]">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>blr-01</span>
+                <span>{operator.storeId}</span>
                 <span className="text-emerald-400/60">·</span>
-                <span className="text-emerald-200">cashier (operator)</span>
-              </div>
+                <span className="text-emerald-200">{operator.operatorId} (operator)</span>
+              </div>}
 
-              <span className="text-[11px] bg-amber-500/20 text-amber-300 font-mono font-bold px-2.5 py-1 rounded-full border border-amber-500/40">
-                ⚡ DEMO MODE
-              </span>
+              {operator && <span className="text-[11px] bg-amber-500/20 text-amber-300 font-mono font-bold px-2.5 py-1 rounded-full border border-amber-500/40">
+                {fixture ? '⚡ DEMO MODE' : 'Live operations'}
+              </span>}
+              {operator && !fixture && <OperatorAccess signedIn />}
 
               <Link
                 href="/"

@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  CKJS_LINKING: dynamic
+  GNUMAKEFLAGS: "-l4"
+
 jobs:
   web-checks:
     name: Build, Lint & Automated Tests

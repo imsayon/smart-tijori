@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createCommerceFacts } from '../../commerce/facts';
 import { createPipelineReader } from '../../events/diagnostics';
-import { createDatabase, type Database } from '../../db/database';
-import { createPostgresPool } from '../../db/pool';
+import type { Database } from '../../db/database';
+import { getCommerceDatabase } from '../../db/runtime';
 import { verifyOperatorSession, type OperatorActor } from '../auth/operator-guard';
 import { handleServerError, HttpError } from '../errors/http-errors';
 
@@ -10,10 +10,10 @@ let opsDatabase: Database | undefined;
 
 export function getOpsDatabase(): Database {
   if (opsDatabase) return opsDatabase;
-  const schema = process.env.ST_DB_SCHEMA || 'st_platform_verify_v1';
-  const pool = createPostgresPool();
-  opsDatabase = createDatabase(pool, schema);
-  return opsDatabase;
+  if (process.env.SMARTTIJORI_DEMO_MODE === 'true') {
+    throw new HttpError('DEPENDENCY_UNAVAILABLE', 'Live branch facts are unavailable in fixture mode.');
+  }
+  return getCommerceDatabase();
 }
 
 export function setOpsDatabase(db: Database | null): void {

@@ -9,7 +9,7 @@ Use the Node version in `.nvmrc` and pnpm 12.21.0.
 
 ```sh
 nvm use
-pnpm install --frozen-lockfile
+CKJS_LINKING=dynamic pnpm install --frozen-lockfile
 pnpm dev:shopping
 ```
 
