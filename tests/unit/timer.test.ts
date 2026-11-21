@@ -56,4 +56,17 @@ describe('Hold Timer Calculation Unit Tests', () => {
     expect(result.formattedTime).toBe('00:59');
     expect(result.isExpired).toBe(false);
   });
+
+  it('accurately compensates when client clock is behind server clock', () => {
+    // Local client clock is running 25 seconds behind at receive time
+    const serverNow = '2026-11-20T10:00:00.000Z';
+    const expiresAt = '2026-11-20T10:00:59.000Z';
+    const clientReceiveTime = new Date('2026-11-20T09:59:35.000Z').getTime();
+
+    const result = calculateHoldRemaining(expiresAt, serverNow, clientReceiveTime, clientReceiveTime);
+    expect(result.skewMs).toBe(-25000);
+    expect(result.remainingSeconds).toBe(59);
+    expect(result.formattedTime).toBe('00:59');
+    expect(result.isExpired).toBe(false);
+  });
 });

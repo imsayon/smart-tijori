@@ -6,7 +6,7 @@ import { formatPaise } from '@/lib/utils/currency';
 
 interface AlternativeCardProps {
   candidate: RecoveryCandidate;
-  unavailableOffer?: ProductOffer | null;
+  unavailableOffer?: ProductOffer | { pricePaise: number } | null;
   onApprove: (offer: ProductOffer) => void;
   isApproving?: boolean;
 }
@@ -37,11 +37,13 @@ export function AlternativeCard({
           <span className="text-xl font-black text-[#173F35]">
             {formatPaise(offer.pricePaise)}
           </span>
-          {unavailableOffer && (
-            <span className="text-xs text-stone-500">
-              (vs {formatPaise(unavailableOffer.pricePaise)})
-            </span>
-          )}
+          {unavailableOffer &&
+            typeof unavailableOffer.pricePaise === 'number' &&
+            Number.isFinite(unavailableOffer.pricePaise) && (
+              <span className="text-xs text-stone-500">
+                (vs {formatPaise(unavailableOffer.pricePaise)})
+              </span>
+            )}
         </div>
 
         {/* Factual Reasons List */}

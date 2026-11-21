@@ -14,6 +14,23 @@ export function HoldTimer({ expiresAt, serverNow, onExpire, className = '' }: Ho
 
   const currentHoldKey = `${expiresAt}::${serverNow}`;
 
+  // Track the client arrival timestamp for the current hold to compensate for clock skew.
+  // When hold identity or timing information changes, reset baseline to current client time.
+  const [holdBaseline, setHoldBaseline] = useState(() => ({
+    key: currentHoldKey,
+    receivedAt: Date.now(),
+  }));
+
+  if (holdBaseline.key !== currentHoldKey) {
+    setHoldBaseline({
+      key: currentHoldKey,
+      receivedAt: now,
+    });
+  }
+
+  const effectiveReceivedAt =
+    holdBaseline.key === currentHoldKey ? holdBaseline.receivedAt : now;
+
   useEffect(() => {
     const updateNow = () => setNow(Date.now());
     const interval = setInterval(updateNow, 1000);
@@ -35,8 +52,13 @@ export function HoldTimer({ expiresAt, serverNow, onExpire, className = '' }: Ho
     };
   }, []);
 
-  // Purely derived from current props and ticker — eliminates all state sync issues
-  const timerState = calculateHoldRemaining(expiresAt, serverNow, now);
+  // Derived from current props, ticker, and client arrival baseline for exact skew compensation
+  const timerState = calculateHoldRemaining(
+    expiresAt,
+    serverNow,
+    now,
+    effectiveReceivedAt
+  );
 
   // Notify parent exactly once per hold lifecycle when expired
   useEffect(() => {

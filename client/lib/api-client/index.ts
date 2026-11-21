@@ -7,6 +7,8 @@ import type {
   RecoveryResult,
   RecoveryConstraints,
   ApiError,
+  OpsFacts,
+  PipelineFacts,
 } from '@/contracts';
 
 export class ApiClientError extends Error {
@@ -38,7 +40,7 @@ async function request<T>(
     credentials: 'same-origin',
   });
 
-  const isJson = res.headers.get('content-type')?.includes('application/json');
+  const isJson = res.headers?.get?.('content-type')?.includes('application/json');
   const data = isJson ? await res.json() : null;
 
   if (!res.ok) {
@@ -144,5 +146,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(params),
     });
+  },
+
+  async getOpsInventory(): Promise<OpsFacts> {
+    return request<OpsFacts>('/api/ops/inventory');
+  },
+
+  async getOpsDiagnostics(): Promise<PipelineFacts> {
+    return request<PipelineFacts>('/api/ops/diagnostics');
   },
 };

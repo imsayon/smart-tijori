@@ -25,7 +25,7 @@ function revision(cart: Cart) {
 }
 
 export function CheckoutView() {
-  const { cart, refreshCart } = useStore();
+  const { cart, refreshCart, isLoading = false } = useStore();
   const [state, setState] = useState<CheckoutState>('CREATING_HOLD');
   const [hold, setHold] = useState<Hold | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
@@ -96,7 +96,7 @@ export function CheckoutView() {
       holdKeyRef.current = holdKey;
 
       try {
-        setState('CREATING_HOLD');
+        setState((prev) => (prev === 'HOLD_EXPIRED' ? prev : 'CREATING_HOLD'));
         setErrorMessage(null);
 
         const activeHold = await api.createReservation(reservationCart.id, holdKey);
@@ -202,6 +202,16 @@ export function CheckoutView() {
       return <SimulatedPaymentReceipt order={order} />;
     }
 
+    if (isLoading) {
+      return (
+        <div className="max-w-xl mx-auto py-16 text-center">
+          <div className="text-4xl animate-pulse mb-3">🛒</div>
+          <h2 className="text-xl font-bold text-stone-800 mb-2">Loading your cart…</h2>
+          <p className="text-xs text-stone-500">Retrieving items from your local branch.</p>
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-xl mx-auto py-16 text-center">
         <h2 className="text-xl font-bold text-stone-800 mb-2">No active cart for checkout</h2>
@@ -219,7 +229,12 @@ export function CheckoutView() {
   return (
     <div className="max-w-3xl mx-auto">
       {state === 'CREATING_HOLD' && (
-        <div className="bg-white rounded-3xl border border-stone-200 p-12 text-center shadow-xs">
+        <div
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          className="bg-white rounded-3xl border border-stone-200 p-12 text-center shadow-xs"
+        >
           <div className="text-4xl animate-bounce mb-3">🔒</div>
           <h2 className="text-xl font-black text-stone-900 mb-2">Securing CartLock Hold</h2>
           <p className="text-xs text-stone-500 max-w-sm mx-auto">
@@ -238,7 +253,11 @@ export function CheckoutView() {
       )}
 
       {state === 'HOLD_EXPIRED' && (
-        <div className="bg-white rounded-3xl border border-red-200 p-8 shadow-sm text-center">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="bg-white rounded-3xl border border-red-200 p-8 shadow-sm text-center"
+        >
           <div className="text-4xl mb-3">⏰</div>
           <h2 className="text-2xl font-black text-stone-900 mb-2">
             {errorMessage ? 'Checkout Reservation Issue' : 'Reservation Expired'}

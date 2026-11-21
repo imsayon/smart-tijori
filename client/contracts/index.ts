@@ -108,16 +108,51 @@ export interface RecoveryResult {
 }
 
 // === Operations (read-only for Srujan) ===
-export interface OpsState {
+export interface OpsStockItem {
+  productId: string;
+  stockOnHand: number;
+  held: number;
+  available: number;
+  inventoryVersion: number;
+}
+
+export interface StockMovement {
+  productId: string;
+  kind: 'ORDER' | 'POS' | 'RESTOCK';
+  referenceId: string;
+  quantityDelta: number;
+  occurredAt: string;
+}
+
+export interface OpsFacts {
   storeId: string;
-  stock: Array<{
-    productId: string;
-    stockOnHand: number;
-    held: number;
-    available: number;
-    inventoryVersion: number;
-  }>;
   checkedAt: string;
+  stock: OpsStockItem[];
+  recentMovements: StockMovement[];
+}
+
+export type OpsState = OpsFacts;
+
+// === Pipeline Diagnostics (read-only for Srujan) ===
+export interface RecentPipelineEvent {
+  eventId: string;
+  type: 'inventory.changed' | 'order.placed';
+  occurredAt: string;
+  publishedAt: string | null;
+}
+
+export interface PipelineFacts {
+  storeId: string;
+  checkedAt: string;
+  pendingCount: number;
+  oldestPendingAt: string | null;
+  lastBrokerAckAt: string | null;
+  lastProjectionAcceptedAt: string | null;
+  lastError: { code: string; at: string } | null;
+  projectionRetryCount: number;
+  quarantineCount: number;
+  unattributedQuarantineCount: number;
+  recentEvents: RecentPipelineEvent[];
 }
 
 // === Errors ===

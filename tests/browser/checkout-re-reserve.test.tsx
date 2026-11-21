@@ -76,7 +76,7 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
       sessionId: mockCart.sessionId,
       storeId: mockCart.storeId,
       status: 'ACTIVE',
-      serverNow: new Date(now - 61 * 1000).toISOString(),
+      serverNow: new Date(now).toISOString(),
       expiresAt: new Date(now - 1000).toISOString(),
       lines: mockCart.lines,
       totalPaise: mockCart.totalPaise,
@@ -150,7 +150,7 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
       sessionId: mockCart.sessionId,
       storeId: mockCart.storeId,
       status: 'ACTIVE',
-      serverNow: new Date(now - 61 * 1000).toISOString(),
+      serverNow: new Date(now).toISOString(),
       expiresAt: new Date(now - 1000).toISOString(),
       lines: mockCart.lines,
       totalPaise: mockCart.totalPaise,
@@ -242,7 +242,7 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
       sessionId: mockCart.sessionId,
       storeId: mockCart.storeId,
       status: 'ACTIVE',
-      serverNow: new Date(now - 61 * 1000).toISOString(),
+      serverNow: new Date(now).toISOString(),
       expiresAt: new Date(now - 1000).toISOString(),
       lines: mockCart.lines,
       totalPaise: mockCart.totalPaise,
@@ -275,6 +275,17 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
     // Must still only be called once more (total 2 times, not 3)
     expect(createReservationMock).toHaveBeenCalledTimes(2);
 
+    // Expired reservation context remains visible without jarring UI replacement
+    expect(screen.getByText('Reservation Expired')).toBeInTheDocument();
+
+    // Re-reserve action shows inline loading label and is disabled against duplicate clicks
+    const loadingButton = screen.getByRole('button', { name: /Securing Hold…/i });
+    expect(loadingButton).toBeInTheDocument();
+    expect(loadingButton).toBeDisabled();
+
+    // Generic initial hold creation screen is NOT shown
+    expect(screen.queryByText('Securing CartLock Hold')).not.toBeInTheDocument();
+
     resolveSecondPromise!({
       id: 'hold-2',
       cartId: mockCart.id,
@@ -285,6 +296,11 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
       expiresAt: new Date(Date.now() + 59 * 1000).toISOString(),
       lines: mockCart.lines,
       totalPaise: mockCart.totalPaise,
+    });
+
+    // Successfully transitions to the new active hold once completed
+    await waitFor(() => {
+      expect(screen.getByText('hold-2')).toBeInTheDocument();
     });
   });
 });
