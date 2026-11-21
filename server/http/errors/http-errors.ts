@@ -60,7 +60,8 @@ export function handleServerError(err: unknown): NextResponse {
   }
 
   // Never leak raw database queries, credentials, or internal stack traces to the client
-  console.error('[Internal Server Error]', err);
+  // Do not log the raw Error: driver messages may contain credentials or SQL text.
+  console.error('[Internal Server Error]', { kind: err instanceof Error ? err.name : typeof err });
   return jsonError(
     'DEPENDENCY_UNAVAILABLE',
     'An unexpected service error occurred. Please try again.',
