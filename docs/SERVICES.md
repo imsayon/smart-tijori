@@ -113,9 +113,11 @@ application data-plane credential and is not required by these client factories.
   connectivity. The architecture selects the maintained Confluent JavaScript client,
   while Aiven's guide currently demonstrates `node-rdkafka`. The
   [Confluent client documentation](https://docs.confluent.io/kafka-clients/javascript/current/overview.html)
-  describes native runtime requirements. The pinned client loaded and authenticated
-  on this Linux/Node 24 machine; each teammate and the eventual worker host must
-  verify their own OS/native binary and network compatibility.
+  describes native runtime requirements. On Linux, the pinned client falls back
+  to compiling from source on Node 26.13.1. The build needs Python 3, make, a
+  C/C++ compiler, and Perl with its core modules to build OpenSSL. After switching
+  Node major versions, start with a fresh `node_modules` to replace the previous
+  native binary.
 - OpenSearch: [Aiven's connection guide](https://aiven.io/docs/products/opensearch/howto/connect-with-nodejs)
   supplies an authenticated service URI. Split endpoint and credentials for this
   app, use HTTPS, retain certificate verification and load a custom CA only if

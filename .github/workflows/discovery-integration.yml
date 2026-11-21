@@ -17,7 +17,7 @@ jobs:
           version: 12.21.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.22.3
+          node-version-file: .nvmrc
           cache: pnpm
       - name: Install pinned dependencies
         run: pnpm install --frozen-lockfile
