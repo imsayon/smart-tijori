@@ -20,6 +20,18 @@ for (const [storeId, city] of [["blr-01", "Bengaluru"], ["mys-01", "Mysuru"]]) {
   });
 }
 
+test("GET /api/products matches misspellings with branch, category and price filters", async () => {
+  const res = await getProducts("q=Frnt%20Lod&storeId=mys-01&category=household&maxPricePaise=24900");
+  assert.equal(res.status, 200);
+  const { items } = await res.json();
+  assert.ok(items.some((item: { productId: string }) => item.productId === "detergent-front-1l"));
+  for (const item of items) {
+    assert.equal(item.storeId, "mys-01");
+    assert.equal(item.category, "household");
+    assert.ok(item.pricePaise <= 24900);
+  }
+});
+
 test("GET /api/products applies inclusive price bounds to current prices", async () => {
   const res = await getProducts("storeId=mys-01&minPricePaise=7500&maxPricePaise=7500");
   assert.equal(res.status, 200);
