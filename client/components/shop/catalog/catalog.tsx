@@ -52,8 +52,9 @@ export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
       }
     }
 
-    loadProducts();
+    const timer = window.setTimeout(loadProducts, 180);
     return () => {
+      window.clearTimeout(timer);
       active = false;
     };
   }, [selectedStoreId, searchQuery, category, retry, inStockOnly, minPricePaise, maxPricePaise, priceError]);

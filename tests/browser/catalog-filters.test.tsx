@@ -26,4 +26,5 @@ it('combines the search text with category, price and stock filters', async () =
     maxPricePaise: 24950,
     includeUnavailable: false,
   }));
+  expect(api.getProducts).toHaveBeenCalledTimes(1);
 });
