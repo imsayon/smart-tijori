@@ -2,3 +2,13 @@ engineStrict: true
 saveExact: true
 allowBuilds:
   '@confluentinc/kafka-javascript@1.11.0': true
+  esbuild@0.28.2: true
+
+# Match vetted transitive Babel versions from the shared service baseline.
+overrides:
+  '@babel/generator': 7.29.14
+  '@babel/helper-string-parser': 7.29.14
+  '@babel/helpers': 7.29.14
+  '@babel/parser': 7.29.14
+  '@babel/traverse': 7.29.14
+  '@babel/types': 7.29.14

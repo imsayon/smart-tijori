@@ -1,0 +1,33 @@
+name: Discovery integration checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/discovery-search-and-indexing]
+
+jobs:
+  discovery-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.21.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.22.3
+          cache: pnpm
+      - name: Install pinned dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Static TypeScript checks
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Build
+        run: pnpm build
+      - name: Existing service unit tests
+        run: pnpm test:services
+      - name: Discovery DTO and fixture tests
+        run: pnpm test:contracts
