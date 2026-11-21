@@ -42,15 +42,5 @@
     "eslint-config-next": "16.4.6",
     "tsx": "4.23.15",
     "typescript": "6.0.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "@babel/generator": "7.29.14",
-      "@babel/helper-string-parser": "7.29.14",
-      "@babel/helpers": "7.29.14",
-      "@babel/parser": "7.29.14",
-      "@babel/traverse": "7.29.14",
-      "@babel/types": "7.29.14"
-    }
   }
 }
