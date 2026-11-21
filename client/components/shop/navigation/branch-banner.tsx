@@ -30,8 +30,11 @@ export function BranchBanner({ onOpenStoreSelector }: { onOpenStoreSelector?: ()
             </span>
           </div>
           {selectedStore.address && (
-            <p className="text-xs text-stone-600 mt-1">
-              📍 {selectedStore.address} · Authoritative local neighborhood inventory
+            <p className="text-xs text-stone-600 mt-1">📍 {selectedStore.address}</p>
+          )}
+          {selectedStore.id.startsWith('dm-') && (
+            <p className="text-xs text-[#83623c] mt-1">
+              Illustrative retail profile · Stock is not confirmed with this merchant.
             </p>
           )}
         </div>
