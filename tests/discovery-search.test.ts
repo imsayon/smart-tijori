@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  searchProducts,
+  searchProducts as search,
   ValidationError,
   DependencyUnavailableError,
+  type SearchOptions,
 } from "../server/discovery/search-service";
 import { FixtureProductFactsReader } from "../server/discovery/fixtures/catalog-fixture";
 import type { ProductFactsReader } from "../server/contracts/facts";
+
+const factsReader = new FixtureProductFactsReader();
+const searchProducts = (options: SearchOptions) => search({ factsReader, ...options });
 
 test("exact product search returns relevant product", async () => {
   const result = await searchProducts({ q: "Tata Tea Premium", storeId: "mys-01" });

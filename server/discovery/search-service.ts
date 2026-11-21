@@ -84,7 +84,7 @@ export function validateSearchOptions(options: SearchOptions): void {
   if (options.minPricePaise !== undefined) {
     if (
       typeof options.minPricePaise !== "number" ||
-      isNaN(options.minPricePaise) ||
+      !Number.isFinite(options.minPricePaise) ||
       options.minPricePaise < 0
     ) {
       throw new ValidationError("minPricePaise must be a non-negative number");
@@ -94,7 +94,7 @@ export function validateSearchOptions(options: SearchOptions): void {
   if (options.maxPricePaise !== undefined) {
     if (
       typeof options.maxPricePaise !== "number" ||
-      isNaN(options.maxPricePaise) ||
+      !Number.isFinite(options.maxPricePaise) ||
       options.maxPricePaise < 0
     ) {
       throw new ValidationError("maxPricePaise must be a non-negative number");
@@ -233,23 +233,16 @@ export function buildOpenSearchQuery(options: SearchOptions): Record<string, unk
     });
   }
 
-  if (options.category) {
+  if (options.category?.trim()) {
     filter.push({ term: { category: options.category.trim() } });
   }
 
-  if (options.city) {
+  if (options.city?.trim()) {
     filter.push({ term: { city: options.city.trim() } });
   }
 
-  if (options.storeId) {
+  if (options.storeId?.trim()) {
     filter.push({ term: { storeId: options.storeId.trim() } });
-  }
-
-  if (options.minPricePaise !== undefined || options.maxPricePaise !== undefined) {
-    const range: Record<string, number> = {};
-    if (options.minPricePaise !== undefined) range.gte = options.minPricePaise;
-    if (options.maxPricePaise !== undefined) range.lte = options.maxPricePaise;
-    filter.push({ range: { pricePaise: range } });
   }
 
   const query: Record<string, unknown> = {};
@@ -272,7 +265,7 @@ export function buildOpenSearchQuery(options: SearchOptions): Record<string, unk
  * 2. Executes OpenSearch query.
  * 3. Extracts candidate product and store IDs in relevance order.
  * 4. Hydrates candidates using the injected ProductFactsReader.
- * 5. Excludes missing and unavailable products.
+ * 5. Applies filters to current offers.
  * 6. Caps results at maximum 24.
  */
 export async function searchProducts(options: SearchOptions = {}): Promise<SearchResult> {
@@ -291,7 +284,8 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
       index,
       body: {
         query,
-        size: limit * 2, // Fetch buffer to allow for availability filtering during hydration
+        // shortcut: examine the top 48 candidates; add paging if the catalog needs deeper results.
+        size: 48,
       },
     });
   } catch (error: unknown) {
@@ -349,6 +343,9 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
   // Assemble hydrated offers in the exact OpenSearch relevance order
   const hydratedOffers: ProductOffer[] = [];
   const seenKeys = new Set<string>();
+  const category = options.category?.trim();
+  const city = options.city?.trim();
+  const requestedStore = options.storeId?.trim();
 
   for (const { storeId, productId } of candidateKeys) {
     const key = `${storeId}:${productId}`;
@@ -356,13 +353,14 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
     seenKeys.add(key);
 
     const factOffer = factsMap.get(key);
-    // 1. Exclude missing products
     if (!factOffer) continue;
-
-    // 2. Exclude unavailable products unless explicitly requested
-    if (!options.includeUnavailable && !factOffer.available) {
-      continue;
-    }
+    if (requestedStore && factOffer.storeId !== requestedStore) continue;
+    if (city && factOffer.city !== city) continue;
+    if (category && factOffer.category !== category) continue;
+    if (!options.includeUnavailable && !factOffer.available) continue;
+    // Indexed prices can be stale in either direction, so only filter current prices.
+    if (factOffer.pricePaise < (options.minPricePaise ?? 0)) continue;
+    if (factOffer.pricePaise > (options.maxPricePaise ?? Infinity)) continue;
 
     hydratedOffers.push(factOffer);
 
