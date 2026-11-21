@@ -23,7 +23,7 @@
     "test": "node --test tests/*.test.mjs",
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
     "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
-    "dev:shopping": "next dev client",
+    "dev:shopping": "SMARTTIJORI_DEMO_MODE=true next dev client",
     "test:unit": "vitest run tests/unit",
     "test:http": "vitest run tests/http",
     "test:security": "vitest run tests/security",
