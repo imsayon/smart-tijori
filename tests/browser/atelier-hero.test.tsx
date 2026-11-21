@@ -14,6 +14,7 @@ vi.mock('next/image', () => ({
 beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', class {
     observe() {}
+    unobserve() {}
     disconnect() {}
   });
   vi.stubGlobal('matchMedia', () => ({
