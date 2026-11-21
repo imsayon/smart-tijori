@@ -131,7 +131,7 @@ export async function handlePostRecovery(request: Request): Promise<NextResponse
     const topCandidates = eligibleCandidates.slice(0, 3); // Max 3 candidates
 
     const result: RecoveryResult = {
-      mode: text ? 'ai' : 'rules',
+      mode: 'rules', // No model is called by this standalone deterministic adapter.
       constraints,
       candidates: topCandidates,
       checkedAt: new Date().toISOString(),
