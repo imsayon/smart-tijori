@@ -46,10 +46,37 @@ export function BarcodeSalePanel({
   const [recentSales, setRecentSales] = useState<PosConfirmedSale[]>([]);
   const [lastConflict, setLastConflict] = useState<PosConflictState | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [recoveryBlocked, setRecoveryBlocked] = useState(false);
+  const pendingStorageKey = `smart-tijori:pos:pending:${fixture ? 'fixture' : 'live'}:${storeId}:${operatorId}`;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const inFlight = useRef(false);
   const attempt = useRef<{ barcode: string; quantity: number; key: string } | null>(null);
+
+  // Restore an unresolved transaction before accepting a new scan. Storage is
+  // scoped to this browser tab, verified operator and branch; no auth secret is stored.
+  useEffect(() => {
+    try {
+      const saved = window.sessionStorage.getItem(pendingStorageKey);
+      if (!saved) return;
+      const parsed: unknown = JSON.parse(saved);
+      if (!parsed || typeof parsed !== 'object' ||
+          !('barcode' in parsed) || typeof parsed.barcode !== 'string' || !parsed.barcode ||
+          !('quantity' in parsed) || !Number.isInteger(parsed.quantity) ||
+          (parsed.quantity as number) < 1 ||
+          !('key' in parsed) || typeof parsed.key !== 'string' || !parsed.key) {
+        throw new Error('Invalid unresolved transaction record');
+      }
+      const previous = parsed as { barcode: string; quantity: number; key: string };
+      attempt.current = previous;
+      setBarcodeInput(previous.barcode);
+      setQuantity(previous.quantity);
+      setErrorMessage('An earlier sale may have committed. Retry this barcode and quantity to recover its receipt.');
+    } catch {
+      setRecoveryBlocked(true);
+      setErrorMessage('Sale recovery storage is unavailable or invalid. Stop checkout and reconcile the previous transaction.');
+    }
+  }, [pendingStorageKey]);
 
   // Auto-focus input on mount for continuous scanner streams
   useEffect(() => {
@@ -59,7 +86,7 @@ export function BarcodeSalePanel({
   const handleAuthorizeSale = useCallback(
     async (codeToScan: string) => {
       const cleanCode = codeToScan.trim();
-      if (!cleanCode || inFlight.current) return;
+      if (!cleanCode || inFlight.current || recoveryBlocked) return;
       const barcode = resolveBarcodeToSend(cleanCode);
       const previous = attempt.current;
       if (previous && (previous.barcode !== barcode || previous.quantity !== quantity)) {
@@ -67,7 +94,17 @@ export function BarcodeSalePanel({
         return;
       }
       const operationKey = previous?.key ?? crypto.randomUUID();
-      attempt.current = { barcode, quantity, key: operationKey };
+      const pending = { barcode, quantity, key: operationKey };
+      // Persist before sending: a committed sale can lose its HTTP response or
+      // outlive this React component during navigation or refresh.
+      try {
+        window.sessionStorage.setItem(pendingStorageKey, JSON.stringify(pending));
+      } catch {
+        setRecoveryBlocked(true);
+        setErrorMessage('Cannot persist sale recovery state. Checkout stopped to prevent a duplicate sale.');
+        return;
+      }
+      attempt.current = pending;
       inFlight.current = true;
       setIsSubmitting(true);
       setErrorMessage(null);
@@ -91,7 +128,11 @@ export function BarcodeSalePanel({
         const data = await response.json();
 
         if (!response.ok) {
-          if (response.status < 500) attempt.current = null;
+          if (response.status < 500) {
+            attempt.current = null;
+            try { window.sessionStorage.removeItem(pendingStorageKey); }
+            catch { setRecoveryBlocked(true); }
+          }
           const errCode = data.error?.code || 'VALIDATION_ERROR';
           const errMsg = data.error?.message || 'Sale authorization rejected';
           setLastConflict({
@@ -105,6 +146,8 @@ export function BarcodeSalePanel({
 
         if (data.sale) {
           attempt.current = null;
+          try { window.sessionStorage.removeItem(pendingStorageKey); }
+          catch { setRecoveryBlocked(true); }
           const confirmed = data.sale as PosConfirmedSale;
           setRecentSales((prev) => [confirmed, ...prev.slice(0, 9)]);
           setBarcodeInput('');
@@ -118,12 +161,12 @@ export function BarcodeSalePanel({
         setTimeout(() => inputRef.current?.focus(), 50);
       }
     },
-    [storeId, operatorId, fixture, quantity]
+    [storeId, operatorId, fixture, quantity, pendingStorageKey, recoveryBlocked]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!barcodeInput.trim() || isSubmitting) return;
+    if (!barcodeInput.trim() || isSubmitting || recoveryBlocked) return;
     void handleAuthorizeSale(barcodeInput);
   };
 
@@ -210,7 +253,7 @@ export function BarcodeSalePanel({
 
                 <button
                   type="submit"
-                  disabled={!barcodeInput.trim() || isSubmitting}
+                  disabled={!barcodeInput.trim() || isSubmitting || recoveryBlocked}
                   className="bg-[#276350] hover:bg-[#1E4D3E] disabled:bg-[#A8A29E] text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 disabled:pointer-events-none"
                 >
                   {isSubmitting ? 'Verifying...' : 'Authorize'}
