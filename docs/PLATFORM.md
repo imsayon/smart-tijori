@@ -90,15 +90,11 @@ This uses fresh synthetic branch IDs and leaves the evidence in the verification
 schema. Use `ST_CATALOG_SOURCE=postgres` to serve the seeded shopper catalog
 from PostgreSQL while the OpenSearch integration is pending.
 
-Create the agreed Kafka topic explicitly. Bind the worker by setting
-`ST_PROJECTION_WRITER_MODULE` to the discovery adapter file and running
-`pnpm worker`. The module exports `createProjectionWriter()`, which supplies
-`writeProjection(offers, signal?)` and `close()`. The writer returns one
-result per input, keyed by `storeId:productId`. It settles all writes before
-resolving and treats an equal or newer indexed version as unchanged. Failed
-items are explicitly retryable or permanent. The worker waits for in-flight
-work during shutdown, so the adapter must honor cancellation or have bounded
-request timeouts.
+Create the agreed Kafka topic and set up the approved OpenSearch index before
+starting the worker. With the approved PostgreSQL schema, topic, group and index
+selected, run `pnpm worker`. The worker and the manual catalog sync use the same
+version-guarded writer. Equal or newer indexed versions are unchanged. Failed
+items are classified as retryable or permanent.
 
 The relay records publication only after broker acknowledgment and a valid lease
 check. A crash before publication is recorded can produce duplicates.

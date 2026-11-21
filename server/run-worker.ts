@@ -1,40 +1,30 @@
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
-import { createKafka, createPostgresPool, ServiceConfigurationError } from "./connections.ts";
-import type { WriteProjection } from "./contracts/events.ts";
+import { createKafka, createOpenSearchClient, createPostgresPool, ServiceConfigurationError } from "./connections.ts";
 import { createDatabase } from "./db/database.ts";
+import { createCommerceProjectionWriter } from "./discovery/commerce-projection-writer.ts";
+import { required } from "./service-config.ts";
 import { runWorker } from "./worker.ts";
-
-interface WriterResource {
-  writeProjection: WriteProjection;
-  close(): Promise<void>;
-}
 
 const stop = new AbortController();
 const onSignal = () => stop.abort();
 process.once("SIGINT", onSignal);
 process.once("SIGTERM", onSignal);
 try {
-  const modulePath = process.env.ST_PROJECTION_WRITER_MODULE;
-  if (!modulePath) throw new ServiceConfigurationError("Set ST_PROJECTION_WRITER_MODULE to the real discovery adapter");
-  const adapter = await import(pathToFileURL(resolve(modulePath)).href) as {
-    createProjectionWriter?: () => WriterResource | Promise<WriterResource>;
-  };
-  if (typeof adapter.createProjectionWriter !== "function") {
-    throw new ServiceConfigurationError("The discovery adapter must export createProjectionWriter");
-  }
+  const index = required(process.env, "OPENSEARCH_INDEX");
   const kafka = createKafka();
   const pool = createPostgresPool();
   try {
     const db = createDatabase(pool, process.env.ST_DB_SCHEMA ?? "");
-    const writer = await adapter.createProjectionWriter();
+    const client = createOpenSearchClient();
     try {
+      if (!(await client.indices.exists({ index })).body) {
+        throw new ServiceConfigurationError("Set up the approved OpenSearch index before starting the worker");
+      }
       await runWorker({
-        db, kafka, writeProjection: (offers, signal) => writer.writeProjection(offers, signal),
+        db, kafka, writeProjection: createCommerceProjectionWriter(client, index),
         topic: process.env.KAFKA_TOPIC ?? "", groupId: process.env.KAFKA_GROUP_ID ?? "", signal: stop.signal,
       });
     } finally {
-      await writer.close();
+      await client.close();
     }
   } finally {
     await pool.end();

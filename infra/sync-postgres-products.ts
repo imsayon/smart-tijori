@@ -3,8 +3,7 @@ import { createDatabase } from "../server/db/database";
 import { createPostgresPool } from "../server/db/pool";
 import { setupProductIndex } from "../server/discovery/index-definition";
 import { getOpenSearchClient } from "../server/discovery/opensearch-client";
-import { toDiscoveryOffer } from "../server/discovery/postgres-product-facts-reader";
-import { writeProjection } from "../server/discovery/projection-writer";
+import { createCommerceProjectionWriter } from "../server/discovery/commerce-projection-writer";
 import { rebuildStoreProjection } from "../server/events/project";
 
 async function main() {
@@ -26,13 +25,9 @@ async function main() {
     const client = getOpenSearchClient();
     try {
       await setupProductIndex(client, index);
+      const writer = createCommerceProjectionWriter(client, index);
       for (const storeId of storeIds) {
-        const count = await rebuildStoreProjection(db, createCommerceFacts(db), async (offers) => {
-          const { items } = await writeProjection(offers.map(toDiscoveryOffer), { client, index });
-          return items.map(({ documentId, status, classification }) => status === "failure"
-            ? { documentId, status: "failed", retryable: classification === "transient" }
-            : { documentId, status });
-        }, storeId);
+        const count = await rebuildStoreProjection(db, createCommerceFacts(db), writer, storeId);
         console.log(`${storeId}: processed ${count} offers`);
       }
       await client.indices.refresh({ index });

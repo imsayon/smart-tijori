@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { Client } from "pg";
+import { createCommerceProjectionWriter } from "../server/discovery/commerce-projection-writer.ts";
 import {
   createKafka,
   createOpenSearchClient,
@@ -53,4 +54,34 @@ test("OpenSearch rejects HTTP and embedded credentials without exposing their va
   for (const url of ["http://localhost:9200", "https://user:secret@localhost:9200", "https://localhost:9200/?password=secret"])
     assert.throws(() => createOpenSearchClient({ OPENSEARCH_URL: url }), (error) =>
       error instanceof ServiceConfigurationError && !error.message.includes("secret"));
+});
+
+test("commerce writer keeps incomplete and failed OpenSearch requests retryable", async () => {
+  const offers = ["applied", "duplicate", "server-error", "invalid", "missing"].map(productId => ({
+    storeId: "blr-01", productId, name: productId, pricePaise: 500,
+    available: 1, attributes: {}, inventoryVersion: 1,
+  }));
+  const client = {
+    async bulk({ body }) {
+      assert.equal(body[0].index._index, "disposable");
+      assert.equal(body[0].index.version_type, "external");
+      assert.equal(body[1].availableStock, 1);
+      return { body: { items: [201, 409, 500, 400].map(status => ({ index: { status } })) } };
+    },
+  };
+  const writer = createCommerceProjectionWriter(client, "disposable");
+  assert.deepEqual(await writer(offers), [
+    { documentId: "blr-01:applied", status: "applied" },
+    { documentId: "blr-01:duplicate", status: "unchanged" },
+    { documentId: "blr-01:server-error", status: "failed", retryable: true },
+    { documentId: "blr-01:invalid", status: "failed", retryable: false },
+    { documentId: "blr-01:missing", status: "failed", retryable: true },
+  ]);
+
+  const broken = createCommerceProjectionWriter({
+    async bulk() { throw new Error("index unavailable"); },
+  }, "disposable");
+  assert.deepEqual(await broken(offers.slice(0, 1)), [
+    { documentId: "blr-01:applied", status: "failed", retryable: true },
+  ]);
 });
