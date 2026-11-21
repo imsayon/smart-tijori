@@ -30,6 +30,9 @@
       ],
       "@ai/*": [
         "./ai/*"
+      ],
+      "@/server/*": [
+        "./server/*"
       ]
     },
     "allowJs": true
@@ -41,7 +44,9 @@
     "client/.next/dev/types/**/*.ts",
     "server/**/*.ts",
     "ai/**/*.ts",
-    "tests/**/*.ts"
+    "tests/**/*.ts",
+    "client/test/**/*.ts",
+    "client/test/**/*.tsx"
   ],
   "exclude": [
     "node_modules"
