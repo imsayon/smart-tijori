@@ -36,9 +36,9 @@ describe('Green Atelier homepage hero', () => {
 
   it('can enter and exit the optional 3D experience without losing the photograph', () => {
     render(<AtelierHero />);
-    fireEvent.click(screen.getByRole('button', { name: /Switch to 3D Spatial Lock View/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Switch to interactive view/i }));
     expect(screen.queryByAltText('Warmly lit travel essentials arranged by a window')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Switch to Editorial View/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Switch to photographic view/i }));
     expect(screen.getByAltText('Warmly lit travel essentials arranged by a window')).toBeInTheDocument();
   });
 });
