@@ -149,9 +149,9 @@ WITH profiles(store_id, kind) AS (
 INSERT INTO inventory (store_id, product_id, stock_on_hand)
 SELECT profiles.store_id, products.id,
   CASE
-    WHEN left(md5(profiles.store_id || ':' || products.id), 1) = '0' THEN 0
-    WHEN left(md5(profiles.store_id || ':' || products.id), 1) = '1' THEN 1
-    ELSE 3 + (('x' || substr(md5(profiles.store_id || ':' || products.id), 1, 6))::bit(24)::integer % 24)
+    WHEN get_byte(decode(md5(profiles.store_id || ':' || products.id), 'hex'), 0) % 16 = 0 THEN 0
+    WHEN get_byte(decode(md5(profiles.store_id || ':' || products.id), 'hex'), 0) % 16 = 1 THEN 1
+    ELSE 3 + (get_byte(decode(md5(profiles.store_id || ':' || products.id), 'hex'), 0) % 24)
   END
 FROM profiles
 JOIN products ON products.id LIKE 'demo-%'
