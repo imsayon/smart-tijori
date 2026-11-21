@@ -849,3 +849,40 @@ html { scroll-padding-top: 86px; }
 @media (prefers-reduced-motion:reduce) {
   .atelier-store-card,.atelier-product-card,.atelier-product-media img,.atelier-product-view {transition:none!important; transform:none!important;}
 }
+
+/* Cashier counter: a dedicated mode within the authenticated merchant workbench. */
+.atelier-cashier-desk {width:100%;max-width:1500px;margin:0 auto;display:grid;gap:23px;}
+.atelier-cashier-banner {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,34%);gap:20px;
+  align-items:center;position:relative;min-height:340px;
+  padding:clamp(24px,5vw,55px);overflow:hidden;
+  background:radial-gradient(ellipse at 82% 50%,#24533c 0%,#152d23 51%,#10241b 100%);
+  border:1px solid #38523f;color:#f5f4ea;border-radius:5px;
+}
+.atelier-cashier-banner .atelier-label{color:#a4bd9d;}
+.atelier-cashier-banner .atelier-heading{font-size:clamp(2.4rem,5vw,4.6rem);margin:14px 0 18px;color:#f3f4e9;}
+.atelier-cashier-banner .atelier-heading em{color:#cbe18b;}
+.atelier-cashier-banner p:not(.atelier-label){color:#a9c0af;max-width:440px;line-height:1.65;}
+.atelier-cashier-banner-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:22px;}
+.atelier-cashier-banner-actions .atelier-secondary{color:#f3f4e9;border-color:#77917b;}
+.atelier-cashier-banner-actions .atelier-secondary:hover{background:#2d4c37;}
+.atelier-cashier-live{display:flex;align-items:center;gap:9px;font:600 .72rem var(--atelier-mono);letter-spacing:.055em;text-transform:uppercase;color:#d0e6a1;}
+.atelier-cashier-live>span{width:7px;height:7px;background:#cbe18b;border-radius:50%;box-shadow:0 0 0 4px rgba(203,225,139,.1);}
+.atelier-cashier-seal{width:min(100%,300px);margin:auto;color:#d0e4a1;filter:drop-shadow(0 0 25px #a5d6a52a);}
+.atelier-cashier-seal svg{width:100%;height:auto;animation:atelier-cashier-breathe 5s ease-in-out infinite;}
+@keyframes atelier-cashier-breathe{50%{transform:scale(1.035);opacity:.78;}}
+.atelier-cashier-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;align-items:stretch;gap:12px;}
+.atelier-cashier-stats>div{border:1px solid var(--atelier-line);padding:19px 22px;background:var(--atelier-ivory);display:flex;flex-direction:column;gap:6px;border-radius:4px;}
+.atelier-cashier-stats span{font:.69rem/1.4 var(--atelier-mono);color:var(--atelier-muted);text-transform:uppercase;letter-spacing:.07em;}
+.atelier-cashier-stats strong{font:400 clamp(1.7rem,3vw,2.8rem)/1.1 var(--atelier-serif);color:var(--atelier-forest);}
+.atelier-cashier-stats>.atelier-secondary{align-self:stretch;padding:12px;}
+.atelier-cashier-warning{padding:12px 17px;border:1px solid #ccaa90;background:#fff1de;color:#774624;}
+.atelier-cashier-footnote{color:var(--atelier-muted);font-size:.83rem;line-height:1.65;border-top:1px solid var(--atelier-line);padding-top:16px;}
+/* Make the scanner panel feel like an integral part of the workbench, not a second embedded app. */
+.atelier-cashier-desk .atelier-pos>div:first-child{display:none;}
+.atelier-cashier-desk .atelier-pos form{border-radius:5px;box-shadow:none;}
+.atelier-cashier-desk .atelier-pos input[type=text]{font-family:var(--atelier-mono);border-radius:3px;}
+.atelier-cashier-desk .atelier-pos .rounded-3xl{border-radius:5px;}
+@media(max-width:880px){.atelier-cashier-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.atelier-cashier-stats>.atelier-secondary{grid-column:1/-1;justify-self:start;}}
+@media(max-width:570px){.atelier-cashier-banner{grid-template-columns:minmax(0,1fr)}.atelier-cashier-seal{width:165px;position:absolute;right:-34px;top:-25px;opacity:.23}.atelier-cashier-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.atelier-cashier-stats>div:last-of-type{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.atelier-cashier-seal svg{animation:none;}}
