@@ -86,7 +86,7 @@ describe('Recovery HTTP Handler Tests (POST /api/recovery)', () => {
     expect(res.status).toBe(200);
 
     const result: RecoveryResult = await res.json();
-    expect(result.mode).toBe('ai');
+    expect(result.mode).toBe('rules'); // No model invocation in this standalone adapter.
     expect(result.candidates).toHaveLength(1);
     expect(result.candidates[0].offer.productId).toBe('cand-01');
 
