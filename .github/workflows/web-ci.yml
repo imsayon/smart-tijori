@@ -18,16 +18,19 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 12.21.0
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js 24.22.3
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24.22.3
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Existing service unit tests
+        run: pnpm test:services
 
       - name: TypeScript typecheck
         run: pnpm typecheck
@@ -43,6 +46,9 @@ jobs:
 
       - name: Run Browser & Accessibility Tests
         run: pnpm test:browser
+
+      - name: ESLint
+        run: pnpm lint
 
       - name: Web Application Production Build
         run: pnpm build
