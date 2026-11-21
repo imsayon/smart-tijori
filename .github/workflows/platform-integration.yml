@@ -1,0 +1,44 @@
+name: Commerce Platform Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CKJS_LINKING: dynamic
+
+jobs:
+  postgres-kafka:
+    name: Real PostgreSQL and Kafka commerce flows
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 12.21.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Start disposable PostgreSQL and Kafka
+        run: docker compose -f infra/platform-test.compose.yml up -d --wait
+      - name: Create isolated event topic
+        run: |
+          docker compose -f infra/platform-test.compose.yml exec -T kafka \
+            /opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:19093 \
+            --create --if-not-exists --topic commerce.events.platform-local.v1 \
+            --partitions 1 --replication-factor 1
+      - name: Verify stock races, 59-second CartLock, POS, outbox and worker recovery
+        run: pnpm test:platform
+      - name: Verify captured and late payments against PostgreSQL
+        run: node --conditions=react-server --import tsx tests/platform.payments.mts
+      - name: Shut down isolated services
+        if: always()
+        run: docker compose -f infra/platform-test.compose.yml down --volumes --remove-orphans
