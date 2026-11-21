@@ -15,6 +15,7 @@
     "typecheck": "next typegen client && tsc --noEmit",
     "setup:opensearch": "tsx infra/setup-index.ts",
     "seed:opensearch": "tsx infra/seed-opensearch.ts",
+    "sync:postgres-products": "tsx infra/sync-postgres-products.ts",
     "test:contracts": "tsx --test tests/contracts-and-fixtures.test.ts",
     "test:opensearch": "tsx --test tests/opensearch-projection.test.ts",
     "test:search": "tsx --test tests/discovery-search.test.ts",
