@@ -53,16 +53,27 @@ export function HoldTimer({ expiresAt, serverNow, onExpire, className = '' }: Ho
       role="timer"
       aria-live="polite"
       aria-atomic="true"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border font-mono text-sm font-bold shadow-2xs ${
+      className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border font-mono text-xs sm:text-sm font-black shadow-xs transition-all duration-200 ${
         timerState.isExpired
-          ? 'bg-red-100 text-red-800 border-red-300'
+          ? 'bg-rose-50 text-rose-800 border-rose-300'
           : isLowTime
-          ? 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
-          : 'bg-[#F5F1E8] text-[#173F35] border-[#275546]/30'
+          ? 'bg-amber-50 text-amber-950 border-amber-400 animate-pulse ring-2 ring-amber-400/30'
+          : 'bg-[#F4F0E8] text-[#0E2A22] border-[#C89B3C]/50 hover:border-[#C89B3C]'
       } ${className}`}
     >
-      <span className="text-base select-none">⏱️</span>
-      <span>
+      <span className="relative flex h-2.5 w-2.5">
+        <span
+          className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${
+            timerState.isExpired ? 'bg-rose-500' : isLowTime ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 animate-ping'
+          }`}
+        />
+        <span
+          className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+            timerState.isExpired ? 'bg-rose-600' : isLowTime ? 'bg-amber-600' : 'bg-emerald-600'
+          }`}
+        />
+      </span>
+      <span className="tracking-tight">
         {timerState.isExpired ? 'Hold Expired' : `Stock reserved: ${timerState.formattedTime}`}
       </span>
     </div>

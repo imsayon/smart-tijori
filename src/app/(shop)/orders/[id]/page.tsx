@@ -43,7 +43,7 @@ function OrderContent() {
 
   if (isLoading) {
     return (
-      <div className="max-w-xl mx-auto py-16 text-center text-stone-500 animate-pulse">
+      <div className="max-w-xl mx-auto py-16 text-center text-[#78716C] animate-pulse">
         Loading order confirmation…
       </div>
     );
@@ -52,29 +52,34 @@ function OrderContent() {
   if (error || !order) {
     return (
       <div className="max-w-xl mx-auto py-16 text-center">
-        <div className="text-4xl mb-3">📄</div>
-        <h2 className="text-xl font-bold text-stone-900 mb-2">Order Not Available</h2>
-        <p className="text-xs text-stone-500 mb-6">{error ?? 'Order could not be located.'}</p>
+        <div className="w-16 h-16 rounded-2xl bg-[#F3EFEA] text-3xl flex items-center justify-center mx-auto mb-4 border border-[#E3DDD2]">
+          📄
+        </div>
+        <h2 className="text-2xl font-black text-[#181614] mb-2 tracking-tight">Order Not Available</h2>
+        <p className="text-xs text-[#78716C] mb-6">{error ?? 'Order could not be located.'}</p>
         <Link
           href="/"
-          className="bg-[#173F35] text-white px-5 py-2.5 rounded-xl font-bold text-sm inline-block"
+          className="bg-[#0E2A22] hover:bg-[#163D31] text-[#FAF8F5] px-6 py-3 rounded-full font-black text-sm inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
         >
-          Return to Catalog
+          <span>Return to Catalog</span>
+          <span className="text-[#F59E0B]">→</span>
         </Link>
       </div>
     );
   }
 
-  return (
-    <div className="py-6">
-      <SimulatedPaymentReceipt order={order} />
-    </div>
-  );
+  return <SimulatedPaymentReceipt order={order} />;
 }
 
 export default function OrderPage() {
   return (
-    <Suspense fallback={<div className="max-w-xl mx-auto py-16 text-center text-stone-500">Loading order…</div>}>
+    <Suspense
+      fallback={
+        <div className="max-w-xl mx-auto py-16 text-center text-[#78716C] animate-pulse">
+          Loading order details…
+        </div>
+      }
+    >
       <OrderContent />
     </Suspense>
   );

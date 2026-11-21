@@ -35,13 +35,11 @@ export function CheckoutView() {
   const hasRequestedInitialRef = useRef<boolean>(false);
 
   // Track which cart ID the current checkout flow was started for.
-  // When the cart ID changes (e.g. user completed an order and started a new cart),
-  // we must reset the entire checkout state so the old receipt doesn't stick.
   const checkoutCartIdRef = useRef<string | null>(null);
 
   // Compute a stable cart fingerprint that changes when the cart content changes
   const cartFingerprint = cart
-    ? `${cart.id}::${cart.lines.map(l => `${l.productId}:${l.quantity}`).join(',')}`
+    ? `${cart.id}::${cart.lines.map((l) => `${l.productId}:${l.quantity}`).join(',')}`
     : '';
 
   // Reset checkout state when cart has meaningfully changed after an order
@@ -53,7 +51,6 @@ export function CheckoutView() {
       cartFingerprint !== checkoutCartIdRef.current;
 
     if (isNewCheckoutNeeded && (state === 'ORDER_CONFIRMED' || hold)) {
-      // Cart has changed since the last checkout — reset everything for a fresh flow
       setHold(null);
       setOrder(null);
       setState('CREATING_HOLD');
@@ -63,10 +60,10 @@ export function CheckoutView() {
       hasRequestedInitialRef.current = false;
       checkoutCartIdRef.current = cartFingerprint;
     } else if (checkoutCartIdRef.current === null) {
-      // First time entering checkout — register the current cart
       checkoutCartIdRef.current = cartFingerprint;
     }
   }, [cartFingerprint, state, hold, cart]);
+
   const requestReservation = useCallback(
     async (options?: { forceNewKey?: boolean }) => {
       if (!cart || cart.lines.length === 0) return;
@@ -75,19 +72,15 @@ export function CheckoutView() {
       isReservingRef.current = true;
       setIsSubmitting(true);
 
-      // Stable idempotency key for this exact cart snapshot (lines, quantities, and price)
       const cartRevision = `${cart.id}_${cart.totalPaise}_${cart.lines.map((l) => `${l.productId}:${l.quantity}`).join(',')}`;
       const intentId = `hold_${cartRevision}`;
 
       let holdKey: string;
       if (options?.forceNewKey) {
-        // Genuinely new reservation attempt (e.g. Re-reserve after hold expiry or replacement approval)
         holdKey = OperationKeyManager.generateNewKey(intentId);
       } else if (holdKeyRef.current) {
-        // Network retry of the same in-flight operation
         holdKey = holdKeyRef.current;
       } else {
-        // Initial checkout reservation
         holdKey = OperationKeyManager.getOrCreateKey(intentId);
       }
 
@@ -122,31 +115,28 @@ export function CheckoutView() {
   );
 
   useEffect(() => {
-    let active = true;
-    if (active && !hasRequestedInitialRef.current && cart && cart.lines.length > 0) {
+    if (cart && cart.lines.length > 0 && !hasRequestedInitialRef.current && state === 'CREATING_HOLD') {
       hasRequestedInitialRef.current = true;
-      void requestReservation();
+      void requestReservation({ forceNewKey: false });
     }
-    return () => {
-      active = false;
-    };
-  }, [cart, requestReservation]);
+  }, [cart, state, requestReservation]);
 
   const handleConfirmOrder = async () => {
-    if (!hold || isSubmitting) return;
+    if (!hold || !cart) return;
 
     try {
       setIsSubmitting(true);
       setState('CONFIRMING_ORDER');
       setErrorMessage(null);
 
-      if (!orderKeyRef.current) {
-        orderKeyRef.current = OperationKeyManager.getOrCreateKey(`order_${hold.id}`);
+      const orderIntentId = `order_${hold.id}`;
+      let orderKey = orderKeyRef.current;
+      if (!orderKey) {
+        orderKey = OperationKeyManager.getOrCreateKey(orderIntentId);
+        orderKeyRef.current = orderKey;
       }
 
-      const confirmedOrder = await api.confirmOrder(hold.id, orderKeyRef.current);
-      // Clear operation keys so subsequent shopping carts start with a clean slate
-      OperationKeyManager.clearAll();
+      const confirmedOrder = await api.confirmOrder(hold.id, orderKey);
       setOrder(confirmedOrder);
       setState('ORDER_CONFIRMED');
       await refreshCart();
@@ -202,13 +192,17 @@ export function CheckoutView() {
 
     return (
       <div className="max-w-xl mx-auto py-16 text-center">
-        <h2 className="text-xl font-bold text-stone-800 mb-2">No active cart for checkout</h2>
-        <p className="text-xs text-stone-500 mb-4">Please add items from your local branch.</p>
+        <div className="w-16 h-16 rounded-full bg-[#F3EFEA] text-[#0E2A22] text-3xl flex items-center justify-center mx-auto mb-4 border border-[#E3DDD2]">
+          🧺
+        </div>
+        <h2 className="text-2xl font-black text-[#181614] mb-2 tracking-tight">No active cart for checkout</h2>
+        <p className="text-xs text-[#78716C] mb-6">Please add items from your local neighborhood branch to proceed.</p>
         <Link
           href="/"
-          className="bg-[#173F35] text-white px-5 py-2.5 rounded-xl font-bold text-sm inline-block"
+          className="bg-[#0E2A22] hover:bg-[#163D31] text-[#FAF8F5] px-6 py-3 rounded-full font-black text-sm inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
         >
-          Return to Store →
+          <span>Return to Store</span>
+          <span className="text-[#F59E0B]">→</span>
         </Link>
       </div>
     );
@@ -217,11 +211,13 @@ export function CheckoutView() {
   return (
     <div className="max-w-3xl mx-auto">
       {state === 'CREATING_HOLD' && (
-        <div className="bg-white rounded-3xl border border-stone-200 p-12 text-center shadow-xs">
-          <div className="text-4xl animate-bounce mb-3">🔒</div>
-          <h2 className="text-xl font-black text-stone-900 mb-2">Securing CartLock Hold</h2>
-          <p className="text-xs text-stone-500 max-w-sm mx-auto">
-            Contacting store inventory authority to lock your items for 60 seconds…
+        <div className="bg-white rounded-3xl border border-[#E3DDD2] p-12 text-center shadow-md">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0E2A22] to-[#163D31] text-[#F59E0B] text-3xl flex items-center justify-center mx-auto mb-4 border border-[#1D4A3C] shadow-sm animate-pulse-slow">
+            🔒
+          </div>
+          <h2 className="text-2xl font-black text-[#181614] mb-2 tracking-tight">Securing CartLock Hold</h2>
+          <p className="text-xs text-[#78716C] max-w-sm mx-auto leading-relaxed">
+            Contacting store inventory authority to lock your items for 60 seconds with single-stock truth…
           </p>
         </div>
       )}
@@ -236,9 +232,11 @@ export function CheckoutView() {
       )}
 
       {state === 'HOLD_EXPIRED' && (
-        <div className="bg-white rounded-3xl border border-red-200 p-8 shadow-sm text-center">
-          <div className="text-4xl mb-3">⏰</div>
-          <h2 className="text-2xl font-black text-stone-900 mb-2">
+        <div className="bg-white rounded-3xl border border-rose-200 p-8 sm:p-10 shadow-md text-center">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-700 text-3xl flex items-center justify-center mx-auto mb-4 border border-rose-200">
+            ⏰
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#181614] mb-2 tracking-tight">
             {errorMessage ? 'Checkout Reservation Issue' : 'Reservation Expired'}
           </h2>
           {errorMessage ? (
@@ -246,16 +244,16 @@ export function CheckoutView() {
               {errorMessage}
             </Alert>
           ) : (
-            <p className="text-sm text-stone-600 mb-6 max-w-md mx-auto">
+            <p className="text-sm text-[#57534E] mb-6 max-w-md mx-auto leading-relaxed">
               Your 60-second stock hold has expired to ensure fairness for other shoppers. You can re-reserve with one click.
             </p>
           )}
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
             <button
               type="button"
               onClick={handleRetryReservation}
               disabled={isSubmitting}
-              className="bg-[#173F35] hover:bg-[#275546] text-white font-bold py-3 px-6 rounded-xl transition-all shadow-xs disabled:opacity-50"
+              className="bg-[#0E2A22] hover:bg-[#163D31] text-[#FAF8F5] font-black py-3.5 px-7 rounded-full transition-all duration-150 shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer border border-[#276350]/60"
             >
               {isSubmitting
                 ? 'Securing Hold…'
@@ -265,7 +263,7 @@ export function CheckoutView() {
             </button>
             <Link
               href="/cart"
-              className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-3 px-6 rounded-xl transition-all"
+              className="bg-[#F3EFEA] hover:bg-[#E5DFD5] text-[#181614] font-bold py-3.5 px-6 rounded-full transition-colors border border-[#E3DDD2]"
             >
               Review Cart
             </Link>
@@ -287,27 +285,27 @@ export function CheckoutView() {
             </Alert>
           )}
 
-          <div className="bg-[#F5F1E8] border border-[#275546]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
-            <div className="flex items-center justify-between pb-4 border-b border-[#275546]/10 mb-4">
+          <div className="bg-gradient-to-br from-[#F7F4EE] via-[#FBF9F5] to-[#F5F1E8] border border-[#E3DDD2] rounded-3xl p-6 sm:p-8 shadow-md">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E3DDD2] mb-4">
               <div>
-                <h3 className="font-bold text-stone-900 text-lg">Payment Simulation</h3>
-                <span className="text-xs text-stone-500">
+                <h3 className="font-black text-[#181614] text-lg sm:text-xl tracking-tight">Payment Simulation</h3>
+                <span className="text-xs text-[#78716C]">
                   Instant simulated gateway (no real charge)
                 </span>
               </div>
-              <span className="text-xs bg-[#173F35] text-white px-2.5 py-1 rounded-md font-mono uppercase">
+              <span className="text-xs bg-[#0E2A22] text-[#F59E0B] px-3 py-1 rounded-full font-mono font-bold uppercase border border-[#1D4A3C]">
                 Mode: SIMULATED
               </span>
             </div>
 
-            <p className="text-xs text-stone-600 mb-6 leading-relaxed">
+            <p className="text-xs text-[#57534E] mb-6 leading-relaxed">
               Clicking below atomically marks your CartLock reservation as CONSUMED, creates a confirmed order, and decrements book stock in PostgreSQL.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
               <div>
-                <span className="text-xs text-stone-500 block">Total Due</span>
-                <span className="text-2xl font-black text-[#173F35]">
+                <span className="text-xs text-[#78716C] block font-medium">Total Due</span>
+                <span className="text-2xl sm:text-3xl font-black text-[#0E2A22] tracking-tight font-mono">
                   {formatPaise(hold.totalPaise)}
                 </span>
               </div>
@@ -316,7 +314,7 @@ export function CheckoutView() {
                 type="button"
                 onClick={handleConfirmOrder}
                 disabled={state === 'CONFIRMING_ORDER'}
-                className="w-full sm:w-auto bg-lime-400 hover:bg-lime-300 text-[#173F35] font-black text-base px-8 py-3.5 rounded-xl shadow-sm transition-transform active:scale-95 disabled:opacity-50 focus:ring-2 focus:ring-[#173F35]"
+                className="w-full sm:w-auto bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#D97706] text-[#0E2A22] font-black text-sm sm:text-base px-8 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all duration-150 active:scale-95 disabled:opacity-50 focus:ring-2 focus:ring-[#0E2A22] cursor-pointer"
               >
                 {state === 'CONFIRMING_ORDER' ? 'Confirming Order…' : 'Confirm Order (Simulated) →'}
               </button>

@@ -40,27 +40,27 @@ export function ConstraintEditor({
   };
 
   return (
-    <div className="bg-[#F5F1E8] border border-stone-300 rounded-2xl p-5 text-stone-900 text-sm">
-      <h4 className="font-bold text-base text-[#173F35] mb-2 flex items-center gap-2">
+    <div className="bg-[#FAF8F5] border border-[#E3DDD2] rounded-3xl p-5 sm:p-6 text-[#181614] text-sm shadow-xs">
+      <h4 className="font-black text-base text-[#0E2A22] mb-1.5 flex items-center gap-2 tracking-tight">
         <span>⚙️ Refine Search Constraints</span>
       </h4>
-      <p className="text-xs text-stone-600 mb-4">
+      <p className="text-xs text-[#78716C] mb-4 leading-relaxed">
         Adjust your budget, specifications, or describe what you need in plain text.
       </p>
 
       <form onSubmit={handleUpdate} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
-            <label className="block font-semibold text-stone-700 mb-1">
+            <label className="block font-bold text-[#181614] mb-1">
               Purpose / Category:
             </label>
-            <span className="font-mono bg-white px-3 py-2 rounded-lg border border-stone-300 block text-stone-800">
+            <span className="font-mono bg-white px-3.5 py-2.5 rounded-xl border border-[#E3DDD2] block text-[#0E2A22] font-semibold">
               {constraints.purpose}
             </span>
           </div>
 
           <div>
-            <label className="block font-semibold text-stone-700 mb-1">
+            <label className="block font-bold text-[#181614] mb-1">
               Max Budget (₹):
             </label>
             <input
@@ -69,13 +69,13 @@ export function ConstraintEditor({
               max="2000"
               value={maxPriceRupees}
               onChange={(e) => setMaxPriceRupees(e.target.value)}
-              className="w-full bg-white px-3 py-2 rounded-lg border border-stone-300 font-bold text-stone-800 focus:ring-2 focus:ring-[#173F35]"
+              className="w-full bg-white px-3.5 py-2.5 rounded-xl border border-[#E3DDD2] font-bold text-[#181614] focus:ring-2 focus:ring-[#0E2A22]"
             />
           </div>
         </div>
 
         <div>
-          <label className="block font-semibold text-stone-700 mb-1 text-xs">
+          <label className="block font-bold text-[#181614] mb-1 text-xs">
             Describe specific needs (e.g. &quot;1L liquid detergent front-load under ₹300&quot;):
           </label>
           <input
@@ -83,7 +83,7 @@ export function ConstraintEditor({
             value={customText}
             onChange={(e) => setCustomText(e.target.value)}
             placeholder="Type your preferences…"
-            className="w-full bg-white px-3 py-2 rounded-lg border border-stone-300 text-xs text-stone-800 focus:ring-2 focus:ring-[#173F35]"
+            className="w-full bg-white px-3.5 py-2.5 rounded-xl border border-[#E3DDD2] text-xs text-[#181614] focus:ring-2 focus:ring-[#0E2A22]"
           />
         </div>
 
@@ -91,7 +91,7 @@ export function ConstraintEditor({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full sm:w-auto bg-[#173F35] hover:bg-[#275546] text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto bg-[#0E2A22] hover:bg-[#163D31] text-[#FAF8F5] font-black text-xs px-6 py-3 rounded-full transition-all shadow-sm disabled:opacity-50 cursor-pointer border border-[#276350]/60"
           >
             {isLoading ? 'Re-evaluating…' : 'Find Matching Alternatives →'}
           </button>
@@ -100,7 +100,7 @@ export function ConstraintEditor({
             type="button"
             onClick={handleInterest}
             disabled={interestSaved}
-            className="text-xs text-stone-600 hover:text-stone-900 underline font-medium"
+            className="text-xs text-[#78716C] hover:text-[#181614] underline font-medium cursor-pointer"
           >
             {interestSaved ? '✓ Stock interest recorded' : 'Save stock interest for later notification'}
           </button>

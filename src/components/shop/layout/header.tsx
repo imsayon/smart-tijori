@@ -9,57 +9,71 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
   const handleOpen = onOpenStoreSelector ?? openStoreModal;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#173F35] text-white shadow-md border-b border-[#275546]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand */}
+    <header className="sticky top-0 z-40 bg-[#0E2A22] text-[#FAF8F5] shadow-lg border-b border-[#1D4A3C]/80 backdrop-blur-md bg-opacity-95 transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-17 flex items-center justify-between gap-4">
+        {/* Brand & Identity */}
         <div className="flex items-center gap-4 sm:gap-6">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-              <span className="text-lime-400">Smart</span>Tijori
-            </span>
-            <span className="hidden md:inline-block text-xs uppercase tracking-widest text-emerald-200/80 font-medium border-l border-emerald-700/60 pl-3">
-              One stock truth
-            </span>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            {/* Vault Tijori Icon */}
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C89B3C] via-[#E5B558] to-[#997324] p-[1.5px] shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="w-full h-full bg-[#0E2A22] rounded-[10px] flex items-center justify-center text-[#E5B558] font-black text-sm">
+                ST
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1">
+                <span className="text-[#F59E0B] drop-shadow-xs">Smart</span>
+                <span className="text-[#FAF8F5]">Tijori</span>
+              </span>
+              <span className="hidden md:inline-block text-[10px] uppercase tracking-widest text-[#A8C7BC] font-medium -mt-0.5">
+                Neighborhood Vault · Single Stock Truth
+              </span>
+            </div>
           </Link>
 
           {/* Branch selector trigger */}
           <button
             type="button"
             onClick={handleOpen}
-            className="flex items-center gap-2 text-xs sm:text-sm bg-[#275546] hover:bg-[#326956] text-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-600/40 transition-colors focus:outline-hidden focus:ring-2 focus:ring-lime-400"
+            className="flex items-center gap-2.5 text-xs sm:text-sm bg-[#163D31] hover:bg-[#1D4A3C] text-[#E8F3EE] px-3.5 py-1.5 rounded-full border border-[#276350]/60 transition-all shadow-xs hover:border-[#C89B3C]/50 focus:outline-hidden focus:ring-2 focus:ring-[#F59E0B]"
             aria-label="Current store. Click to change store."
           >
-            <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
-            <span className="font-semibold text-white">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            </span>
+            <span className="font-semibold text-white tracking-wide">
               {selectedStore ? selectedStore.name : 'Select Store'}
             </span>
             {selectedStore?.area && (
-              <span className="hidden sm:inline text-[10px] bg-emerald-900/60 text-emerald-200 px-1.5 py-0.5 rounded-md">
+              <span className="hidden sm:inline-block text-[10px] bg-[#0E2A22] text-[#A8C7BC] font-medium px-2 py-0.5 rounded-full border border-[#1D4A3C]">
                 {selectedStore.area}
               </span>
             )}
-            <span className="text-emerald-300 text-xs">▼</span>
+            <span className="text-[#C89B3C] text-[10px] font-bold">▼</span>
           </button>
         </div>
 
-        {/* Navigation links */}
-        <div className="flex items-center gap-4">
+        {/* Navigation & Cart */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link
             href="/search"
-            className="text-sm text-emerald-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-emerald-800/40 transition-colors"
+            className="flex items-center gap-1.5 text-xs sm:text-sm text-[#A8C7BC] hover:text-white px-3 py-1.5 rounded-lg hover:bg-[#163D31]/70 transition-colors border border-transparent hover:border-[#276350]/50"
           >
-            🔍 Search
+            <span>🔍</span>
+            <span className="font-medium">Search</span>
           </Link>
 
-          {/* Cart Icon */}
+          {/* Cart Trigger with Pill badge */}
           <Link
             href="/cart"
-            className="relative flex items-center gap-2 bg-lime-400 hover:bg-lime-300 text-[#173F35] font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-white"
+            className="relative flex items-center gap-2.5 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#D97706] text-[#0E2A22] font-black text-xs sm:text-sm px-4 py-2 rounded-full transition-all duration-150 active:scale-95 shadow-md hover:shadow-lg focus:outline-hidden focus:ring-2 focus:ring-[#FAF8F5]"
             aria-label={`Cart with ${cartItemCount} items`}
           >
-            <span>🛒 Cart</span>
+            <span className="text-base leading-none">🛒</span>
+            <span className="tracking-wide">Cart</span>
             {cartItemCount > 0 && (
-              <span className="bg-[#173F35] text-white text-xs px-2 py-0.5 rounded-full font-extrabold min-w-[20px] text-center">
+              <span className="bg-[#0E2A22] text-[#F59E0B] text-xs px-2 py-0.5 rounded-full font-black min-w-[22px] text-center shadow-xs">
                 {cartItemCount}
               </span>
             )}

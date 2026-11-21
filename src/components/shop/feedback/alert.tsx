@@ -10,10 +10,10 @@ interface AlertProps {
 
 export function Alert({ type = 'info', title, children, className }: AlertProps) {
   const styles = {
-    info: 'bg-[#F5F1E8] text-[#17372D] border-[#275546]/30',
-    warning: 'bg-amber-50 text-amber-900 border-amber-300',
-    error: 'bg-red-50 text-red-900 border-red-300',
-    success: 'bg-emerald-50 text-emerald-900 border-emerald-300',
+    info: 'bg-[#F4F0E8] text-[#0E2A22] border-[#C89B3C]/50',
+    warning: 'bg-amber-50/90 text-amber-950 border-amber-300',
+    error: 'bg-rose-50 text-rose-950 border-rose-300',
+    success: 'bg-[#EAF4EE] text-[#14382C] border-[#B8DEC8]',
   };
 
   const icons = {
@@ -27,17 +27,17 @@ export function Alert({ type = 'info', title, children, className }: AlertProps)
     <div
       role="alert"
       className={cn(
-        'p-4 rounded-xl border text-sm leading-relaxed flex items-start gap-3 shadow-xs',
+        'p-4.5 rounded-2xl border text-sm leading-relaxed flex items-start gap-3.5 shadow-2xs',
         styles[type],
         className
       )}
     >
-      <span className="text-lg select-none" aria-hidden="true">
+      <span className="text-lg select-none shrink-0 mt-0.5" aria-hidden="true">
         {icons[type]}
       </span>
       <div className="flex-1">
-        {title && <h4 className="font-semibold text-base mb-1">{title}</h4>}
-        <div>{children}</div>
+        {title && <h4 className="font-black text-base mb-1 tracking-tight">{title}</h4>}
+        <div className="leading-relaxed">{children}</div>
       </div>
     </div>
   );

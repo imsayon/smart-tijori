@@ -46,14 +46,14 @@ function SearchContent() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-black text-stone-900 mb-2">Search Catalog</h1>
-        <p className="text-xs text-stone-500 mb-4">
-          Searching available stock at <span className="font-semibold text-stone-800">{selectedStore?.name}</span>
+        <h1 className="text-2xl sm:text-3xl font-black text-[#181614] mb-2 tracking-tight">Search Catalog</h1>
+        <p className="text-xs text-[#78716C] mb-4">
+          Searching available stock at <span className="font-bold text-[#0E2A22]">{selectedStore?.name}</span>
         </p>
         <SearchBar query={query} onChange={setQuery} onClear={() => setQuery('')} />
       </div>
 
-      <div className="mb-4 text-xs font-semibold text-stone-500">
+      <div className="mb-4 text-xs font-bold text-[#78716C]">
         Found {products.length} product(s)
       </div>
 
@@ -62,7 +62,7 @@ function SearchContent() {
       ) : (
         <ProductGrid
           products={products}
-          emptyMessage={`No items found matching "${query}". Try searching for basmati, oil, tea, or detergent.`}
+          emptyMessage={`No products match "${query}". Try searching for basmati, tea, detergent, oil, or spices.`}
         />
       )}
     </div>

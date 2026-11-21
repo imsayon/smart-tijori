@@ -50,43 +50,46 @@ export function ProductCard({ offer }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/90 hover:border-[#275546]/40 p-4 flex flex-col justify-between transition-all duration-200 hover:shadow-md group">
+    <div className="bg-white rounded-3xl border border-[#E3DDD2] hover:border-[#C89B3C] p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-lg group relative overflow-hidden">
+      {/* Subtle top indicator on hover */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0E2A22] via-[#C89B3C] to-[#0E2A22] opacity-0 group-hover:opacity-100 transition-opacity" />
+
       <div>
-        {/* Image / Placeholder */}
+        {/* Product Visual Container */}
         <Link
           href={`/products/${offer.productId}`}
-          className="block bg-stone-100 rounded-xl overflow-hidden mb-3.5 relative aspect-square flex items-center justify-center group-hover:opacity-95 transition-opacity"
+          className="block bg-gradient-to-b from-[#F7F4EE] to-[#F1ECE2] rounded-2xl overflow-hidden mb-4 relative aspect-square flex items-center justify-center group-hover:scale-[1.01] transition-transform border border-[#EBE5DA]"
         >
-          <div className="text-4xl select-none">
+          <div className="text-5xl select-none filter drop-shadow-sm group-hover:scale-110 transition-transform duration-200">
             {offer.category === 'pantry' ? '🌾' : offer.category === 'household' ? '🧼' : '🧴'}
           </div>
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2.5 left-2.5">
             <StockBadge available={offer.available} />
           </div>
         </Link>
 
-        {/* Category & purpose */}
-        <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-          <span className="capitalize font-medium text-stone-600">{offer.category}</span>
-          <span className="bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md font-mono text-[10px]">
+        {/* Category & Pack details */}
+        <div className="flex items-center justify-between text-xs text-[#78716C] mb-1.5">
+          <span className="capitalize font-bold text-[#14382C] tracking-wide">{offer.category}</span>
+          <span className="bg-[#F3EFEA] text-[#181614] font-semibold px-2.5 py-0.5 rounded-full font-mono text-[11px] border border-[#E3DDD2]">
             {offer.pack.quantity} {offer.pack.unit}
           </span>
         </div>
 
-        {/* Name */}
+        {/* Product Name */}
         <Link href={`/products/${offer.productId}`} className="block">
-          <h3 className="font-bold text-stone-900 text-base group-hover:text-[#173F35] transition-colors line-clamp-2 leading-snug">
+          <h3 className="font-black text-[#181614] text-base group-hover:text-[#0E2A22] transition-colors line-clamp-2 leading-snug tracking-tight">
             {offer.name}
           </h3>
         </Link>
 
-        {/* Attributes / Key features */}
+        {/* Brand / Attributes */}
         {offer.attributes && Object.keys(offer.attributes).length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div className="flex flex-wrap gap-1 mt-2.5">
             {Object.entries(offer.attributes).slice(0, 2).map(([k, v]) => (
               <span
                 key={k}
-                className="text-[11px] bg-stone-50 text-stone-600 border border-stone-200 px-1.5 py-0.5 rounded-md"
+                className="text-[10px] bg-[#FAF8F5] text-[#57534E] border border-[#E3DDD2] px-2 py-0.5 rounded-md font-medium"
               >
                 {k}: {v}
               </span>
@@ -95,19 +98,19 @@ export function ProductCard({ offer }: ProductCardProps) {
         )}
       </div>
 
-      {/* Pricing & Add to Cart */}
-      <div className="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between gap-3">
+      {/* Pricing & Add to Cart Action */}
+      <div className="pt-4 mt-3.5 border-t border-[#F0EBE1] flex items-center justify-between gap-3">
         <div>
-          <div className="text-lg font-extrabold text-[#173F35]">
+          <div className="text-xl font-black text-[#0E2A22] tracking-tight">
             {formatPaise(offer.pricePaise)}
           </div>
-          <div className="text-[11px] text-stone-400">Server verified</div>
+          <div className="text-[10px] text-[#A8A29E] font-medium tracking-wide">ShelfSync verified</div>
         </div>
 
         {isOutOfStock ? (
           <Link
             href={`/interest?storeId=${offer.storeId}&productId=${offer.productId}`}
-            className="text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-2 rounded-xl transition-colors"
+            className="text-xs font-black text-[#B45309] bg-[#FEF3C7] hover:bg-[#FDE68A] px-3.5 py-2 rounded-xl transition-colors border border-[#FCD34D]"
           >
             Notify me
           </Link>
@@ -116,27 +119,27 @@ export function ProductCard({ offer }: ProductCardProps) {
             type="button"
             onClick={handleAdd}
             disabled={isAdding}
-            className="bg-[#173F35] hover:bg-[#275546] active:scale-95 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all disabled:opacity-50 focus:ring-2 focus:ring-lime-400"
+            className="bg-[#0E2A22] hover:bg-[#163D31] active:scale-95 text-[#FAF8F5] font-black text-xs px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 disabled:opacity-50 cursor-pointer border border-[#276350]/60 focus:ring-2 focus:ring-[#F59E0B]"
           >
             {isAdding ? 'Adding…' : '+ Add to cart'}
           </button>
         ) : (
-          <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200">
+          <div className="flex items-center gap-2 bg-[#F3EFEA] p-1 rounded-xl border border-[#E3DDD2]">
             <button
               type="button"
               onClick={handleDecrement}
               disabled={isAdding}
-              className="w-7 h-7 rounded-lg bg-white text-stone-800 hover:bg-stone-200 font-bold text-sm flex items-center justify-center transition-colors shadow-2xs"
+              className="w-7 h-7 rounded-lg bg-white text-[#181614] hover:bg-[#E5DFD5] font-black text-sm flex items-center justify-center transition-colors shadow-2xs border border-[#E3DDD2] cursor-pointer"
               aria-label={`Decrease quantity of ${offer.name}`}
             >
               −
             </button>
-            <span className="text-xs font-bold w-5 text-center">{currentQty}</span>
+            <span className="text-xs font-black w-5 text-center text-[#0E2A22]">{currentQty}</span>
             <button
               type="button"
               onClick={handleIncrement}
               disabled={isAdding || currentQty >= offer.available}
-              className="w-7 h-7 rounded-lg bg-white text-stone-800 hover:bg-stone-200 font-bold text-sm flex items-center justify-center transition-colors shadow-2xs disabled:opacity-40"
+              className="w-7 h-7 rounded-lg bg-white text-[#181614] hover:bg-[#E5DFD5] font-black text-sm flex items-center justify-center transition-colors shadow-2xs border border-[#E3DDD2] disabled:opacity-40 cursor-pointer"
               aria-label={`Increase quantity of ${offer.name}`}
             >
               +

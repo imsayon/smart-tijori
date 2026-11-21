@@ -13,11 +13,11 @@ export function SearchBar({
   query,
   onChange,
   onClear,
-  placeholder = 'Search pantry, household, essentials…',
+  placeholder = 'Search local pantry, spices, grains, household essentials…',
 }: SearchBarProps) {
   return (
-    <div className="relative w-full">
-      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 text-base">
+    <div className="relative w-full group">
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#78716C] text-lg group-focus-within:text-[#0E2A22] transition-colors">
         🔍
       </div>
       <input
@@ -25,14 +25,14 @@ export function SearchBar({
         value={query}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-10 py-3 bg-white border border-stone-200 rounded-2xl text-stone-900 placeholder:text-stone-400 text-sm focus:outline-hidden focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]/20 shadow-2xs transition-all"
+        className="w-full pl-12 pr-12 py-3.5 bg-white border border-[#E3DDD2] hover:border-[#C89B3C] rounded-2xl text-[#181614] placeholder:text-[#A8A29E] text-sm sm:text-base focus:outline-hidden focus:border-[#0E2A22] focus:ring-3 focus:ring-[#0E2A22]/10 shadow-xs hover:shadow-md transition-all duration-200"
         aria-label="Search products"
       />
       {query && (
         <button
           type="button"
           onClick={onClear}
-          className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-700 font-bold text-sm"
+          className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#78716C] hover:text-[#181614] font-bold text-base transition-colors"
           aria-label="Clear search"
         >
           ✕

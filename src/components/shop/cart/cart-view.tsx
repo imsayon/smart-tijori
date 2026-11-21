@@ -12,7 +12,7 @@ export function CartView() {
 
   if (isLoading && !cart) {
     return (
-      <div className="max-w-4xl mx-auto py-12 text-center text-stone-500 animate-pulse">
+      <div className="max-w-4xl mx-auto py-16 text-center text-[#78716C] animate-pulse">
         Loading cart details…
       </div>
     );
@@ -21,19 +21,20 @@ export function CartView() {
   if (!cart || cart.lines.length === 0) {
     return (
       <div className="max-w-3xl mx-auto py-16 px-4 text-center">
-        <div className="w-20 h-20 bg-[#F5F1E8] rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 border border-stone-200">
+        <div className="w-20 h-20 bg-[#F3EFEA] rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 border border-[#E3DDD2]">
           🛒
         </div>
-        <h2 className="text-2xl font-black text-stone-900 mb-2">Your cart is empty</h2>
-        <p className="text-sm text-stone-500 mb-6 max-w-sm mx-auto">
+        <h2 className="text-2xl sm:text-3xl font-black text-[#181614] mb-2 tracking-tight">Your cart is empty</h2>
+        <p className="text-sm text-[#78716C] mb-6 max-w-sm mx-auto leading-relaxed">
           Explore our fresh local inventory at{' '}
-          <strong className="text-stone-700">{selectedStore?.name ?? 'your local branch'}</strong>.
+          <strong className="text-[#181614] font-bold">{selectedStore?.name ?? 'your local branch'}</strong>.
         </p>
         <Link
           href="/"
-          className="inline-block bg-[#173F35] hover:bg-[#275546] text-white font-bold px-6 py-3 rounded-xl transition-all shadow-xs"
+          className="inline-flex items-center gap-2 bg-[#0E2A22] hover:bg-[#163D31] text-[#FAF8F5] font-black px-7 py-3.5 rounded-full transition-all duration-150 shadow-md hover:shadow-lg active:scale-95 border border-[#276350]/60"
         >
-          Explore Catalog →
+          <span>Explore Catalog</span>
+          <span className="text-[#F59E0B]">→</span>
         </Link>
       </div>
     );
@@ -41,24 +42,25 @@ export function CartView() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-stone-200 mb-6 gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-5 border-b border-[#E3DDD2] mb-6 gap-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Shopping Cart</h1>
-          <p className="text-xs text-stone-500 mt-1">
-            Fulfilling from <span className="font-semibold text-emerald-900">{selectedStore?.name}</span> ({cart.storeId})
+          <h1 className="text-2xl sm:text-3xl font-black text-[#181614] tracking-tight">Shopping Cart</h1>
+          <p className="text-xs text-[#78716C] mt-1">
+            Fulfilling from <span className="font-bold text-[#0E2A22]">{selectedStore?.name}</span> ({cart.storeId})
           </p>
         </div>
         <Link
           href="/"
-          className="text-xs sm:text-sm font-semibold text-[#173F35] hover:underline"
+          className="text-xs sm:text-sm font-bold text-[#0E2A22] hover:text-[#C89B3C] transition-colors flex items-center gap-1"
         >
-          ← Continue shopping
+          <span>←</span>
+          <span>Continue shopping</span>
         </Link>
       </div>
 
       {/* CartLock stock guarantee rule */}
       <Alert type="info" className="mb-6">
-        <span className="font-semibold">CartLock Notice:</span> Items in your cart do not reserve stock. Stock is allocated and locked for 60 seconds once you enter checkout.
+        <span className="font-bold">CartLock Notice:</span> Items in your cart do not reserve stock. Stock is allocated and locked for 60 seconds once you enter checkout.
       </Alert>
 
       {/* Line Items */}
@@ -74,32 +76,32 @@ export function CartView() {
       </div>
 
       {/* Cart Summary & Checkout Action */}
-      <div className="bg-[#F5F1E8] border border-[#275546]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex items-center justify-between pb-4 border-b border-[#275546]/10 text-sm">
-          <span className="text-stone-600">Total lines</span>
-          <span className="font-bold text-stone-800">{cart.lines.length} items</span>
-        </div>
-        <div className="flex items-center justify-between py-4 border-b border-[#275546]/10">
-          <div>
-            <span className="text-base sm:text-lg font-bold text-stone-900">Total Order Amount</span>
-            <span className="text-xs text-stone-500 block">Server-authoritative calculation</span>
-          </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#173F35]">
-            {formatPaise(cart.totalPaise)}
-          </span>
+      <div className="bg-gradient-to-br from-[#F7F4EE] via-[#FBF9F5] to-[#F5F1E8] border border-[#E3DDD2] rounded-3xl p-6 sm:p-8 shadow-md">
+        <div className="flex items-center justify-between pb-4 border-b border-[#E3DDD2] text-sm">
+          <span className="text-[#78716C] font-medium">Total lines</span>
+          <span className="font-black text-[#181614] font-mono">{cart.lines.length} items</span>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-stone-600">
-            🔒 Checkout triggers an all-or-nothing 60-second inventory hold.
+        <div className="py-4 flex items-center justify-between">
+          <div>
+            <span className="text-xs text-[#78716C] block font-medium">Cart Total</span>
+            <span className="text-2xl sm:text-3xl font-black text-[#0E2A22] tracking-tight font-mono">
+              {formatPaise(cart.lines.reduce((sum, l) => sum + l.unitPricePaise * l.quantity, 0))}
+            </span>
           </div>
+
           <Link
             href="/checkout"
-            className="w-full sm:w-auto text-center bg-lime-400 hover:bg-lime-300 text-[#173F35] font-black text-base px-8 py-3.5 rounded-xl shadow-sm transition-transform active:scale-95 focus:ring-2 focus:ring-[#173F35]"
+            className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#D97706] text-[#0E2A22] font-black text-sm sm:text-base px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all duration-150 active:scale-95 inline-flex items-center gap-2 cursor-pointer focus:ring-2 focus:ring-[#0E2A22]"
           >
-            Proceed to Checkout →
+            <span>Proceed to CartLock Checkout</span>
+            <span>→</span>
           </Link>
         </div>
+
+        <p className="text-[11px] text-[#78716C] border-t border-[#E3DDD2] pt-3 mt-1 leading-relaxed">
+          🔒 Entering checkout initiates an atomic 60-second CartLock reservation at your chosen branch counter.
+        </p>
       </div>
     </div>
   );

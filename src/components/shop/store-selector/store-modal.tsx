@@ -37,21 +37,24 @@ export function StoreModal({ isOpen, onClose }: StoreModalProps) {
       aria-labelledby="store-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in"
     >
-      <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-stone-200 max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-[#E3DDD2] max-h-[90vh] flex flex-col relative overflow-hidden">
+        {/* Top subtle brass trim */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0E2A22] via-[#C89B3C] to-[#0E2A22]" />
+
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
+        <div className="flex items-center justify-between pb-4 border-b border-[#F0EBE1] mb-4">
           <div>
-            <h3 id="store-modal-title" className="text-xl font-black text-stone-900">
+            <h3 id="store-modal-title" className="text-xl font-black text-[#181614] tracking-tight">
               Select Neighborhood Store
             </h3>
-            <p className="text-xs text-stone-500">
-              Pick your local area branch for accurate in-store stock authority.
+            <p className="text-xs text-[#78716C] mt-0.5">
+              Pick your local branch for ShelfSync real-time counter inventory authority.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-stone-400 hover:text-stone-700 text-xl font-bold p-1 rounded-md"
+            className="text-[#A8A29E] hover:text-[#181614] text-xl font-black p-1.5 rounded-lg hover:bg-[#F3EFEA] transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             ✕
@@ -64,8 +67,8 @@ export function StoreModal({ isOpen, onClose }: StoreModalProps) {
             type="search"
             value={searchArea}
             onChange={(e) => setSearchArea(e.target.value)}
-            placeholder="Search by area (e.g. Koramangala, Indiranagar, Whitefield, Gokulam)…"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 text-xs text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-[#173F35]"
+            placeholder="Search by area (e.g. Koramangala, Indiranagar, Malleshwaram, Gokulam)…"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#E3DDD2] text-xs text-[#181614] placeholder:text-[#A8A29E] focus:ring-2 focus:ring-[#0E2A22] focus:border-[#0E2A22] bg-[#FAF8F5]"
           />
 
           <div className="flex items-center gap-2">
@@ -74,10 +77,10 @@ export function StoreModal({ isOpen, onClose }: StoreModalProps) {
                 key={city}
                 type="button"
                 onClick={() => setFilterCity(city)}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+                className={`text-xs font-black px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
                   filterCity === city
-                    ? 'bg-[#173F35] text-white shadow-2xs'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    ? 'bg-[#0E2A22] text-[#F59E0B] shadow-xs'
+                    : 'bg-[#F3EFEA] text-[#57534E] hover:bg-[#E5DFD5]'
                 }`}
               >
                 {city === 'ALL' ? 'All Areas' : `${city} Area`}
@@ -89,7 +92,7 @@ export function StoreModal({ isOpen, onClose }: StoreModalProps) {
         {/* Store list */}
         <div className="space-y-3 overflow-y-auto flex-1 pr-1 mb-4">
           {filteredStores.length === 0 ? (
-            <div className="p-8 text-center text-xs text-stone-500">
+            <div className="p-8 text-center text-xs text-[#78716C]">
               No store branches found matching &quot;{searchArea}&quot;.
             </div>
           ) : (
@@ -107,9 +110,9 @@ export function StoreModal({ isOpen, onClose }: StoreModalProps) {
           )}
         </div>
 
-        <div className="bg-[#F5F1E8] p-3 rounded-2xl border border-[#275546]/20 text-xs text-stone-700 flex items-center gap-2">
-          <span>🏪</span>
-          <span>
+        <div className="bg-[#FAF8F5] p-3.5 rounded-2xl border border-[#E3DDD2] text-xs text-[#57534E] flex items-center gap-2.5">
+          <span className="text-base">🏪</span>
+          <span className="leading-relaxed">
             Orders are fulfilled exclusively from the selected neighborhood branch. Changing store resets your cart.
           </span>
         </div>

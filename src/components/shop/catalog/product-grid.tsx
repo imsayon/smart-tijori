@@ -13,10 +13,12 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (products.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center my-6">
-        <div className="text-4xl mb-3">📦</div>
-        <h3 className="text-lg font-bold text-stone-800 mb-1">Catalog Empty</h3>
-        <p className="text-sm text-stone-500 max-w-md mx-auto">{emptyMessage}</p>
+      <div className="bg-white rounded-3xl border border-[#E3DDD2] p-12 text-center my-6 shadow-sm">
+        <div className="w-16 h-16 rounded-2xl bg-[#F3EFEA] text-3xl flex items-center justify-center mx-auto mb-3 border border-[#E3DDD2]">
+          📦
+        </div>
+        <h3 className="text-lg font-black text-[#181614] mb-1 tracking-tight">Catalog Empty</h3>
+        <p className="text-sm text-[#78716C] max-w-md mx-auto leading-relaxed">{emptyMessage}</p>
       </div>
     );
   }

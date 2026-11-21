@@ -109,17 +109,22 @@ export function ConflictRecoveryPanel({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-md text-stone-900 animate-in fade-in">
-      <div className="pb-4 border-b border-stone-200 mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-2xl select-none">⚡</span>
-          <h2 className="text-xl sm:text-2xl font-black text-stone-900">
+    <div className="bg-white rounded-3xl border border-[#E3DDD2] p-6 sm:p-9 shadow-xl text-[#181614] animate-in fade-in relative overflow-hidden">
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-[#C89B3C] to-amber-600" />
+
+      <div className="pb-5 border-b border-[#F0EBE1] mb-6">
+        <div className="flex items-center gap-3 mb-1.5">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl border border-amber-200">
+            ⚡
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-[#181614] tracking-tight">
             ZeroDeadEnd: Stock Conflict Detected
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-stone-600">
+        <p className="text-xs sm:text-sm text-[#57534E] leading-relaxed">
           The counter POS or another shopper just secured the remaining unit of{' '}
-          <strong className="text-stone-900 font-semibold">
+          <strong className="text-[#181614] font-bold">
             {unavailableCartLine?.name ?? unavailableId}
           </strong>
           .
@@ -131,14 +136,14 @@ export function ConflictRecoveryPanel({
       </Alert>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div>
-            <h3 className="font-extrabold text-lg text-stone-900">
+            <h3 className="font-black text-lg text-[#181614] tracking-tight">
               Verified In-Stock Replacements
             </h3>
-            <span className="text-xs text-stone-500">
+            <span className="text-xs text-[#78716C]">
               Mode:{' '}
-              <span className="font-mono font-bold text-emerald-800 uppercase">
+              <span className="font-mono font-bold text-[#14382C] uppercase bg-[#EAF4EE] px-2 py-0.5 rounded-md border border-[#B8DEC8]">
                 {recoveryResult?.mode ?? 'rules'}
               </span>{' '}
               · Up to 3 factual suggestions from {storeId}
@@ -147,19 +152,19 @@ export function ConflictRecoveryPanel({
         </div>
 
         {isLoading ? (
-          <div className="py-8 text-center text-stone-500 animate-pulse text-sm">
+          <div className="py-12 text-center text-[#78716C] animate-pulse text-sm">
             Retrieving current branch facts and evaluating candidate replacements…
           </div>
         ) : !recoveryResult || recoveryResult.candidates.length === 0 ? (
-          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center">
-            <p className="text-sm text-stone-600 font-medium mb-3">
+          <div className="bg-[#FAF8F5] border border-[#E3DDD2] rounded-2xl p-7 text-center">
+            <p className="text-sm text-[#57534E] font-medium mb-4">
               No exact match found satisfying all hard constraints at this branch.
             </p>
             <button
               type="button"
               onClick={handleSaveInterest}
               disabled={interestRecorded}
-              className="text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl transition-colors"
+              className="text-xs font-black bg-[#C89B3C] hover:bg-[#B3872F] text-[#0E2A22] px-5 py-2.5 rounded-full transition-colors shadow-xs cursor-pointer"
             >
               {interestRecorded ? '✓ Stock Interest Recorded' : 'Save Demand / Notify When Restocked'}
             </button>
@@ -192,11 +197,11 @@ export function ConflictRecoveryPanel({
         </div>
       )}
 
-      <div className="pt-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="pt-4 border-t border-[#F0EBE1] flex flex-col sm:flex-row items-center justify-between gap-3">
         <button
           type="button"
           onClick={onKeepCartWithoutUnavailable}
-          className="text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 underline"
+          className="text-xs sm:text-sm font-bold text-[#78716C] hover:text-[#0E2A22] underline cursor-pointer"
         >
           Remove unavailable item and proceed with remaining items →
         </button>
