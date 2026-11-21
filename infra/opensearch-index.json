@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "max_ngram_diff": 8,
+      "analysis": {
+        "analyzer": {
+          "tijori_search_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": ["lowercase", "trim"]
+          },
+          "tijori_ngram_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": ["lowercase", "trim", "tijori_edge_ngram"]
+          }
+        },
+        "filter": {
+          "tijori_edge_ngram": {
+            "type": "edge_ngram",
+            "min_gram": 2,
+            "max_gram": 10
+          }
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "productId": { "type": "keyword" },
+      "storeId": { "type": "keyword" },
+      "city": { "type": "keyword" },
+      "name": {
+        "type": "text",
+        "analyzer": "tijori_ngram_analyzer",
+        "search_analyzer": "tijori_search_analyzer",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "category": { "type": "keyword" },
+      "purpose": { "type": "keyword" },
+      "description": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "pricePaise": { "type": "long" },
+      "imageUrl": { "type": "keyword", "index": false },
+      "pack": {
+        "properties": {
+          "quantity": { "type": "double" },
+          "unit": { "type": "keyword" }
+        }
+      },
+      "knownAttributes": {
+        "type": "object",
+        "dynamic": true
+      },
+      "available": { "type": "boolean" },
+      "inventoryVersion": { "type": "long" },
+      "checkedAt": { "type": "date" },
+      "indexedAt": { "type": "date" }
+    }
+  }
+}
+
