@@ -18,7 +18,7 @@ export interface CommerceCommands {
    * Creates an atomic stock reservation hold for the shopper's cart.
    *
    * INTEGRATION CONTRACT REQUIREMENT (FOR SAYON'S POSTGRESQL IMPLEMENTATION):
-   * 1. Duration: Must enforce exactly 60 seconds hold expiry (`now() + interval '60 seconds'`).
+   * 1. Duration: Must enforce exactly 59 seconds hold expiry (`now() + interval '59 seconds'`).
    * 2. Timestamps: Return server-generated `serverNow` and `expiresAt` in ISO-8601 format.
    * 3. Idempotency: Duplicate calls with the same (sessionId, operationKey, cartFingerprint)
    *    must return the cached hold result without creating duplicate allocations.
