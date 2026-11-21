@@ -37,7 +37,7 @@ function MechanismPoster() {
 export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
   const root = useRef<HTMLElement>(null);
   const [scene, setScene] = useState(false);
-  const [viewMode, setViewMode] = useState<'3d' | 'editorial'>('3d');
+  const [viewMode, setViewMode] = useState<'3d' | 'editorial'>(shopper ? 'editorial' : '3d');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
     let scope: { revert(): void } | undefined;
     let stopped = false;
 
-    const sync = () => setScene(visible && !contextLost && !motion.matches && wide.matches && !document.hidden);
+    const sync = () => setScene(visible && !contextLost && !motion.matches && wide.matches && !document.hidden && (!shopper || viewMode === '3d'));
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); });
     observer.observe(section);
 
@@ -84,23 +84,23 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
       wide.removeEventListener('change', sync);
       document.removeEventListener('visibilitychange', sync);
     };
-  }, [shopper]);
+  }, [shopper, viewMode]);
 
   return (
     <section className={`atelier-hero ${shopper ? 'atelier-hero-shop' : 'atelier-hero-ops'}`} ref={root}>
       <div className="atelier-hero-display">
-        <p className="atelier-label">{shopper ? 'A neighbourhood shop, brought closer' : 'One stock ledger'}</p>
-        <h2 className="atelier-heading">{shopper ? <>Good things.<br /><em>Close to home.</em></> : <>Every counter.<br /><em>In sync.</em></>}</h2>
+        <p className="atelier-label">{shopper ? 'The neighbourhood edition / 001' : 'One stock ledger'}</p>
+        <h2 className="atelier-heading">{shopper ? <>Better things.<br /><em>Closer home.</em></> : <>Every counter.<br /><em>In sync.</em></>}</h2>
         <p>{shopper
-          ? 'Discover the shelves at your chosen branch, save the last one for your basket, and know exactly where it is waiting.'
+          ? 'Great finds from the stores around you. Discover what is available, reserve your pick at checkout, and see alternatives when something sells out.'
           : 'Online reservations and counter sales draw from the same branch inventory.'}</p>
         <div className="atelier-hero-actions">
           <Link href={shopper ? '/#market' : '/ops/inventory'} className="atelier-action">
-            {shopper ? 'Explore the market' : 'Explore inventory'} <Icon name="arrow" size={16} />
+            {shopper ? 'Explore the collection' : 'Explore inventory'} <Icon name="arrow" size={16} />
           </Link>
-          {shopper && <Link href="/stores" className="atelier-secondary">Choose a branch <Icon name="arrow" size={15} /></Link>}
+          {shopper && <Link href="/stores" className="atelier-secondary">Find your store <Icon name="arrow" size={15} /></Link>}
         </div>
-        {shopper && <p className="atelier-hero-index"><span>01 — 04</span><span>A neighbourhood shop, brought closer</span></p>}
+        {shopper && <p className="atelier-hero-index"><span>01—04</span><span>AN EASIER WAY TO SHOP NEARBY</span></p>}
       </div>
       <div className="atelier-hero-art">
         {shopper && (
@@ -111,7 +111,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
             aria-label={`Switch to ${viewMode === '3d' ? 'Editorial View' : '3D Spatial Lock View'}`}
           >
             <span className="pulse" aria-hidden="true" />
-            <span>{viewMode === '3d' ? '3D Spatial Lock' : 'Editorial View'}</span>
+            <span>{viewMode === '3d' ? 'Show photograph' : 'Explore in 3D'}</span>
           </button>
         )}
 
@@ -128,7 +128,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
             <span className="atelier-photo-frame" />
             <div className="atelier-photo-caption">
               <span className="atelier-photo-dot" aria-hidden="true" />
-              <div><b>SMARTTIJORI / LOCAL GOODS</b><span>Good finds, just around the corner.</span></div>
+              <div><b>STOCK CHECK</b><span>Revalidated at checkout</span></div>
               <Icon name="upRight" size={16} />
             </div>
           </>
