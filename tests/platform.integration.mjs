@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 import { after, before, test } from "node:test";
 import { KafkaJS } from "@confluentinc/kafka-javascript";
@@ -396,4 +397,27 @@ test("Kafka acknowledgment, stale leases, duplicates, restart, partial failures 
     stopSecond.abort();
     await Promise.allSettled([...workers, producer.disconnect(), admin.disconnect()]);
   }
+});
+
+test("illustrative nationwide store seed is valid, idempotent and assortment-specific", async () => {
+  const fixture = await readFile(new URL("../server/db/seed-india-demo.sql", import.meta.url), "utf8");
+  await query(fixture);
+  const [first] = await rows(`SELECT
+    (SELECT count(*)::int FROM stores WHERE id LIKE 'dm-%') AS stores,
+    (SELECT count(*)::int FROM products WHERE id LIKE 'demo-%') AS products,
+    (SELECT count(*)::int FROM inventory WHERE store_id LIKE 'dm-%') AS offers`);
+  assert.equal(first.stores, 47);
+  assert.equal(first.products, 41);
+  assert.ok(first.offers > 100);
+  const fishRows = await rows(`
+    SELECT p.purpose FROM inventory i JOIN products p ON p.id = i.product_id
+    WHERE i.store_id = 'dm-kol-gar-fs'`);
+  assert.ok(fishRows.length >= 2);
+  assert.ok(fishRows.every(row => ['fresh-fish','fresh-seafood','drinking-water'].includes(row.purpose)));
+  await query(fixture);
+  const [second] = await rows(`SELECT
+    (SELECT count(*)::int FROM stores WHERE id LIKE 'dm-%') AS stores,
+    (SELECT count(*)::int FROM products WHERE id LIKE 'demo-%') AS products,
+    (SELECT count(*)::int FROM inventory WHERE store_id LIKE 'dm-%') AS offers`);
+  assert.deepEqual(second, first, "Repeating seed must not overwrite or duplicate existing commerce rows");
 });
