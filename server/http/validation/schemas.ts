@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_QUANTITY } from '../../contracts/commerce';
 
 export const updateCartSchema = z.object({
   storeId: z.string().min(1, 'storeId is required').max(64),
@@ -52,4 +53,10 @@ export const recoveryRequestSchema = z.object({
       preferences: z.array(z.string()).optional(),
     })
     .optional(),
+});
+
+export const posSaleRequestSchema = z.object({
+  storeId: z.string().min(1).max(64),
+  barcode: z.string().trim().min(1).max(64),
+  quantity: z.number().int().min(1).max(MAX_QUANTITY),
 });

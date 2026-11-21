@@ -18,6 +18,7 @@ export function postgresCommerce(): CommerceCommands {
   const db = createDatabase(createPostgresPool(), process.env.ST_DB_SCHEMA ?? "");
   const commands = createCommerceCommands(db);
   return {
+    authorizePosSale: commands.authorizePosSale,
     async listStores() {
       return value(await commands.listStores()).filter(s => s.id === "blr-01" || s.id === "mys-01").map(s => {
         if (s.city !== "Bengaluru" && s.city !== "Mysuru") throw new Error("Unknown branch city");

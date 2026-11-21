@@ -14,6 +14,13 @@ export interface RecordedCall {
  * controlled fixture data that you configure via `setFixture`.
  */
 export class RecordingAdapter implements CommerceCommands {
+
+  authorizePosSale: CommerceCommands['authorizePosSale'] = async (actor, input) => {
+    this.record('authorizePosSale', [actor, input]);
+    if (this.delegate) return this.delegate.authorizePosSale(actor, input);
+    return { ok: false, error: { code: 'DEPENDENCY_UNAVAILABLE', message: 'POS authorization is unavailable.' } };
+  };
+
   readonly calls: RecordedCall[] = [];
 
   private fixtures: Partial<Record<keyof CommerceCommands, unknown>> = {};
