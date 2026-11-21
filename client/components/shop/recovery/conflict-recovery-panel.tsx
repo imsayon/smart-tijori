@@ -27,6 +27,7 @@ export function ConflictRecoveryPanel({
   const [recoveryResult, setRecoveryResult] = useState<RecoveryResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [failed, setFailed] = useState(false);
+  const [shopperDescription, setShopperDescription] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [interestRecorded, setInterestRecorded] = useState<boolean>(false);
@@ -55,7 +56,7 @@ export function ConflictRecoveryPanel({
     : activeCartLine ? { pricePaise: activeCartLine.unitPricePaise } : null;
 
   const fetchAlternatives = useCallback(
-    async (customConstraints?: Partial<RecoveryConstraints>) => {
+    async (customConstraints?: Partial<RecoveryConstraints>, searchText?: string) => {
       if (!activeUnavailableId) return;
       setFailed(false);
       setIsLoading(true);
@@ -65,6 +66,7 @@ export function ConflictRecoveryPanel({
           unavailableProductId: activeUnavailableId,
           quantity: activeQuantity,
           explicitConstraints: customConstraints,
+          text: searchText ?? (shopperDescription.trim() || undefined),
         });
         setRecoveryResult(result);
       } catch {
@@ -73,7 +75,7 @@ export function ConflictRecoveryPanel({
         setIsLoading(false);
       }
     },
-    [storeId, activeUnavailableId, activeQuantity]
+    [storeId, activeUnavailableId, activeQuantity, shopperDescription]
   );
 
   useEffect(() => {
@@ -141,6 +143,7 @@ export function ConflictRecoveryPanel({
         // More conflicts remain to be resolved
         setRecoveryResult(null);
         setActiveUnavailableId(nextPending[0]);
+        setShopperDescription('');
       }
     } catch {
       setActionError('Could not update your cart. Please try again.');
@@ -287,6 +290,7 @@ export function ConflictRecoveryPanel({
                       onClick={() => {
                         setActiveUnavailableId(id);
                         setRecoveryResult(null);
+                        setShopperDescription('');
                       }}
                       className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
                         isActive
@@ -311,6 +315,24 @@ export function ConflictRecoveryPanel({
           </div>
         </div>
       )}
+
+      <form className="atelier-recovery-intent" onSubmit={event => {
+        event.preventDefault();
+        void fetchAlternatives(undefined, shopperDescription.trim());
+      }}>
+        <label htmlFor="recovery-wishlist">
+          <strong>Tell us what matters most.</strong>
+          <span>Brand, budget, pack size or anything else you need from a replacement.</span>
+        </label>
+        <div>
+          <input id="recovery-wishlist" type="text" maxLength={500}
+            placeholder="e.g. Same type of dal, 1 kg, below ₹180"
+            value={shopperDescription} onChange={event => setShopperDescription(event.target.value)} />
+          <button type="submit" disabled={isLoading || !shopperDescription.trim()}>
+            Find my match →
+          </button>
+        </div>
+      </form>
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
