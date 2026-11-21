@@ -4,7 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { Client } from "pg";
-import { features } from "@confluentinc/kafka-javascript";
+import kafkaNative from "@confluentinc/kafka-javascript";
+const { features } = kafkaNative;
 import { createCommerceProjectionWriter } from "../server/discovery/commerce-projection-writer.ts";
 import {
   createKafka,
