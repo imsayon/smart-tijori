@@ -14,7 +14,7 @@ export interface BarcodeMapping {
 }
 
 /**
- * Authoritative mapping verified against canonical seed products.
+ * Preview-only display mapping for seeded catalog examples; PostgreSQL is authoritative.
  */
 export const BARCODE_CATALOG: Record<string, { productId: string; name: string }> = {
   // Nilgiri Black Tea 250g (Signature item - 1 unit stock in blr-01 for hold demonstration)
@@ -74,15 +74,9 @@ export function resolveBarcodeToProductId(barcode: string): string | null {
 }
 
 /**
- * Resolves the appropriate barcode identifier to send to the backend.
- * If an EAN-13 barcode maps to a canonical product, sends its registered 'ST:<productId>' format.
+ * Return the scanned identifier unchanged (except scanner whitespace).
+ * PostgreSQL owns the active barcode mapping; this client dictionary is only a preview.
  */
 export function resolveBarcodeToSend(barcode: string): string {
-  if (!barcode) return '';
-  const clean = barcode.trim();
-  const entry = BARCODE_CATALOG[clean];
-  if (entry) {
-    return `ST:${entry.productId}`;
-  }
-  return clean;
+  return barcode.trim();
 }
