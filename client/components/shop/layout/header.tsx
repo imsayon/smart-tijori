@@ -18,7 +18,7 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
         <Link href="/#market">Shop products</Link>
         <Link href="/stores">Our stores</Link>
         <Link href="/#stock">How it works</Link>
-        <Link href="/ops">Dashboard <Icon name="upRight" size={13} /></Link>
+        <Link href="/ops">For merchants <Icon name="upRight" size={13} /></Link>
       </nav>
       <div className="atelier-shop-tools">
         <button type="button" className="atelier-branch-select" onClick={onOpenStoreSelector ?? openStoreModal}

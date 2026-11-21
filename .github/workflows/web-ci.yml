@@ -36,6 +36,9 @@ jobs:
       - name: Existing service unit tests
         run: pnpm test:services
 
+      - name: India demo data integrity checks
+        run: pnpm test:india-demo
+
       - name: TypeScript typecheck
         run: pnpm typecheck
 
