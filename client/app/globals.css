@@ -939,3 +939,9 @@ html { scroll-padding-top: 86px; }
 .atelier-recovery-intent button:hover:not(:disabled){background:#2b4e39;}
 .atelier-recovery-intent button:disabled{opacity:.48;}
 @media(max-width:560px){.atelier-recovery-intent>div{flex-direction:column;}}
+
+.atelier-product-illustration{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 43% 30%,#e8ebdc,#d4ddcb 65%,#c3d0bb);color:#3a674c;}
+.atelier-product-illustration svg{width:86%;height:88%;max-height:225px;filter:drop-shadow(0 12px 17px rgba(29,57,36,.08));transition:transform .45s cubic-bezier(.22,1,.36,1);}
+.atelier-product-card:hover .atelier-product-illustration svg{transform:translateY(-4px) scale(1.04);}
+.atelier-product-illustration-note{position:absolute;bottom:13px;left:0;right:0;text-align:center;text-transform:uppercase;font:500 .55rem/1.5 var(--atelier-mono);letter-spacing:.15em;color:#54705e;}
+@media(prefers-reduced-motion:reduce){.atelier-product-illustration svg{transition:none!important;transform:none!important;}}
