@@ -22,6 +22,7 @@ export interface ProductOffer {
   pack: Pack;
   knownAttributes: Record<string, string | number | boolean | string[]>;
   available: boolean;
+  availableStock?: number;
   inventoryVersion: number;
   checkedAt: string; // ISO 8601
 }

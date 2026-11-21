@@ -3,18 +3,15 @@ import type { ProductOffer } from "../contracts/catalog";
 import type { ProductFactsReader } from "../contracts/facts";
 import { getOpenSearchClient, getOpenSearchConfig } from "./opensearch-client";
 import { FixtureProductFactsReader } from "./fixtures/catalog-fixture";
-import { PostgresProductFactsReader } from "./postgres-product-facts-reader";
 
-export function createDefaultProductFactsReader(): ProductFactsReader {
-  if (process.env.DATABASE_URL) {
-    return new PostgresProductFactsReader(undefined, new FixtureProductFactsReader());
+export async function createDefaultProductFactsReader(): Promise<ProductFactsReader> {
+  if (process.env.SMARTTIJORI_DEMO_MODE === "true") return new FixtureProductFactsReader();
+  try {
+    const { getPostgresProductFactsReader } = await import("./postgres-product-facts-reader.ts");
+    return getPostgresProductFactsReader();
+  } catch {
+    throw new DependencyUnavailableError("Authoritative commerce facts reader is not configured.");
   }
-  if (process.env.SMARTTIJORI_DEMO_MODE === "true" || process.env.NODE_ENV !== "production") {
-    return new FixtureProductFactsReader();
-  }
-  throw new DependencyUnavailableError(
-    "Authoritative commerce facts reader is not configured. Live search must not use fixtures."
-  );
 }
 
 export interface SearchOptions {
@@ -283,7 +280,7 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
 
   const client = options.client || getOpenSearchClient();
   const index = options.index || getOpenSearchConfig().index;
-  const factsReader = options.factsReader || createDefaultProductFactsReader();
+  const factsReader = options.factsReader ?? await createDefaultProductFactsReader();
   const limit = Math.min(Math.max(options.limit ?? 24, 1), 24);
 
   const query = buildOpenSearchQuery(options);
