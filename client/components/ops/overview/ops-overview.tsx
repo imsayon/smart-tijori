@@ -87,7 +87,7 @@ export function OpsOverview({
                 {loading ? 'Refreshing…' : 'Refresh facts'}
               </button>
             )}
-            <Link className="atelier-action" href="/ops/pos">
+            <Link className="atelier-action" href="/ops/cashier">
               Open counter <Icon name="arrow" size={15} />
             </Link>
           </>
@@ -99,14 +99,14 @@ export function OpsOverview({
         <div className="flex items-center gap-3">
           <span className="w-2.5 h-2.5 rounded-full bg-[#142a20] animate-pulse" />
           <span className="text-xs font-mono text-[#142a20] font-semibold tracking-wider uppercase">
-            Point of Sale Terminal Ready
+            Your counter is ready
           </span>
           <span className="text-xs text-[#53645b] hidden sm:inline">
             Fast barcode scanning & immediate stock debits
           </span>
         </div>
-        <Link href="/ops/pos" className="text-xs font-bold text-[#6e4731] hover:underline flex items-center gap-1">
-          Open barcode scanner <Icon name="arrow" size={13} />
+        <Link href="/ops/cashier" className="text-xs font-bold text-[#6e4731] hover:underline flex items-center gap-1">
+          Open cashier counter <Icon name="arrow" size={13} />
         </Link>
       </div>
 
