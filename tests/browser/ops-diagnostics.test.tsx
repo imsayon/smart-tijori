@@ -73,7 +73,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
 
     // Quarantine and retries
     expect(screen.getByText('Updates needing review')).toBeInTheDocument();
-    expect(screen.getByText(/quarantined \/ 3 retries/i)).toBeInTheDocument();
+    expect(screen.getByText(/need review \/ 3 retries/i)).toBeInTheDocument();
 
     // Error banner
     expect(screen.getByText(/Last Update issue: OPENSEARCH_TIMEOUT/i)).toBeInTheDocument();
@@ -87,8 +87,8 @@ describe('Operations Workbench Diagnostics Screen', () => {
 
     expect(screen.getByText('HEALTHY')).toBeInTheDocument();
     expect(screen.getByText(/Store updates are up to date/i)).toBeInTheDocument();
-    expect(screen.getByText('Zero backlog')).toBeInTheDocument();
-    expect(screen.queryByText(/Last Pipeline Error/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Nothing pending')).toBeInTheDocument();
+    expect(screen.queryByText(/Last Update issue/i)).not.toBeInTheDocument();
   });
 
   it('treats missing broker acknowledgement as UNCONFIRMED / IDLE instead of HEALTHY', () => {
@@ -156,8 +156,8 @@ describe('Operations Workbench Diagnostics Screen', () => {
     expect(screen.getByText('evt-002')).toBeInTheDocument();
 
     // Event Types
-    expect(screen.getByText('inventory.changed')).toBeInTheDocument();
-    expect(screen.getByText('order.placed')).toBeInTheDocument();
+    expect(screen.getByText('Stock updated')).toBeInTheDocument();
+    expect(screen.getByText('Order placed')).toBeInTheDocument();
 
     // Publication Statuses
     expect(screen.getByText('Shared')).toBeInTheDocument();
@@ -194,7 +194,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
       })
     );
 
-    const retryButton = screen.getByRole('button', { name: /Retry Connection/i });
+    const retryButton = screen.getByRole('button', { name: /Try again/i });
     await userEvent.click(retryButton);
 
     await waitFor(() => {
@@ -243,7 +243,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
     render(<DiagnosticsView />);
     expect(screen.getByText(/Store activity is temporarily unavailable/i)).toBeInTheDocument();
 
-    const retryButton = screen.getByRole('button', { name: /Retry Connection/i });
+    const retryButton = screen.getByRole('button', { name: /Try again/i });
     await userEvent.click(retryButton);
 
     await waitFor(() => {
@@ -271,7 +271,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
 
     render(<DiagnosticsView />);
 
-    const retryButton = screen.getByRole('button', { name: /Retry Connection/i });
+    const retryButton = screen.getByRole('button', { name: /Try again/i });
     await userEvent.click(retryButton);
 
     await waitFor(() => {
@@ -294,7 +294,7 @@ describe('Operations Workbench Diagnostics Screen', () => {
 
     render(<DiagnosticsView storeId="blr-01" />);
 
-    const retryButton = screen.getByRole('button', { name: /Retry Connection/i });
+    const retryButton = screen.getByRole('button', { name: /Try again/i });
     await userEvent.click(retryButton);
 
     await waitFor(() => {
