@@ -101,7 +101,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     expect(screen.getByText('One stock ledger')).toBeInTheDocument();
     expect(screen.getByText('Recent stock movements')).toBeInTheDocument();
     expect(screen.getByText('Event pipeline')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/pos');
+    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/cashier');
   });
 
   it('renders authoritative held and available quantities', async () => {
