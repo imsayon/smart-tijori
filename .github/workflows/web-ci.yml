@@ -1,0 +1,52 @@
+name: Web Module CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  web-checks:
+    name: Build, Lint & Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript typecheck
+        run: pnpm typecheck
+
+      - name: Run Unit Tests
+        run: pnpm test:unit
+
+      - name: Run HTTP Handler Tests
+        run: pnpm test:http
+
+      - name: Run Security Tests (CSRF, Sessions, Bounds)
+        run: pnpm test:security
+
+      - name: Run Browser & Accessibility Tests
+        run: pnpm test:browser
+
+      - name: Web Application Production Build
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_DEMO_MODE: 'false'
+          SESSION_SECRET: 'ci-build-test-secret-min-32-characters-long'
