@@ -15,7 +15,10 @@
     "typecheck": "next typegen client && tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
-    "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs"
+    "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
+    "db:migrate": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/run-migrations.ts",
+    "worker": "node --conditions=react-server --env-file-if-exists=client/.env.local server/run-worker.ts",
+    "test:platform": "node --conditions=react-server --test tests/platform.integration.mjs"
   },
   "dependencies": {
     "@confluentinc/kafka-javascript": "1.11.0",

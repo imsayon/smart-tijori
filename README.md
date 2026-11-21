@@ -1,9 +1,8 @@
 # SmartTijori
 
-One TypeScript/Next.js application and one eventual Node worker. This revision
-contains a startup page, pinned tooling, lazy server-only service clients and
-read-only connectivity checks. Commerce, sessions, HTTP APIs, shared domain
-contracts and the event worker are not implemented yet.
+One TypeScript/Next.js application and one Node worker. The app serves a startup
+page. The commerce platform provides shared contracts, PostgreSQL commands and
+facts, an outbox relay, and a Kafka consumer with an injected projection writer.
 
 ## Setup and commands
 
@@ -55,14 +54,14 @@ when their first real implementation is ready.
 | `client/app/`, `client/components/` | Next routes, shopper/operator UI and thin server-executed API entry points |
 | `server/connections.ts` | Lazy PostgreSQL, Kafka and OpenSearch client factories |
 | `server/check-services.mjs` | Authenticated, read-only connectivity check |
-| `server/commerce/`, `server/db/` | Planned stock transactions, current facts, migrations and seeds |
-| `server/events/`, `server/worker.ts` | Planned outbox delivery, consumption and expiry scheduling |
+| `server/commerce/`, `server/db/` | Stock transactions, current facts, migrations and seeds |
+| `server/events/`, `server/worker.ts` | Outbox delivery, consumption and expiry scheduling |
 | `server/http/` | Planned shared sessions, permissions, validation and HTTP handlers |
 | `server/discovery/`, `server/operations/` | Planned search, projection writer and operations behavior |
-| `server/contracts/` | Planned browser-safe DTOs and small module interfaces |
+| `server/contracts/` | Browser-safe DTOs and small module interfaces |
 | `ai/` | Planned model providers, intent extraction and evaluations |
 | `infra/` | Deployment/container configuration when needed |
-| `tests/` | Service configuration tests and the running-app smoke check |
+| `tests/` | Platform, service configuration and running-app checks |
 
 The web track owns shopper routes, shared HTTP/security helpers and web delivery.
 The commerce/platform track owns database/events/worker and system composition.
@@ -89,8 +88,9 @@ plans in Bangalore (`do-blr`). OpenSearch remains in its owner's separate projec
 This proves connectivity, not stock allocation, event delivery or search freshness.
 No application tables, Kafka topic or search index were created by these checks.
 
-Read [service setup and lifecycle](docs/SERVICES.md) for teammate setup, certificate
-files, client ownership and the remaining integration boundary. Shared plans,
+Read [service setup and lifecycle](docs/SERVICES.md) for teammate setup and
+[commerce and event platform](docs/PLATFORM.md) for the local proof,
+migrations, adapter contract and worker commands. Shared plans,
 current handoff prompts and access status are in the
 [Linear shared KB](https://linear.app/msayon/document/smarttijori-shared-kb-start-here-20ae5a755fbf).
 Linear documents and source files do not automatically synchronize.

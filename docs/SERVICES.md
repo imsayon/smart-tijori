@@ -10,8 +10,9 @@
 
 The obsolete `pharmalink` service/project was deleted with explicit approval.
 No application tables, topic, index, producer/consumer workflow or model connection
-was created. The startup page remains independent of live services. The rest of
-the flow below is the intended contract, not an implemented pipeline.
+was created by the setup check. The startup page remains independent of live
+services. See [platform commands](PLATFORM.md) for the local commerce and Kafka
+proof and the inputs required for a live worker.
 
 ## Connect a teammate's checkout
 
@@ -131,8 +132,8 @@ The factories in `server/connections.ts` validate configuration only when called
 imports and builds do not demand credentials or connect. They are guarded by
 `server-only`; standalone Node commands use `--conditions=react-server`. The caller
 owns each returned pool/client and must close it. The PostgreSQL pool is capped
-at two connections per instance. No HTTP composition or worker lifecycle exists yet.
-The web app needs PostgreSQL and OpenSearch in
+at two connections per instance. The worker accepts an injected discovery writer
+and owns the Kafka lifecycle. The integrated web app needs PostgreSQL and OpenSearch in
 live composition, plus optional model access for AI-assisted parsing. It does not
 produce/consume Kafka directly. The worker needs PostgreSQL, Kafka and OpenSearch;
 it runs outside request handlers and needs no model key.
@@ -149,11 +150,12 @@ covers release, idle error handling and shutdown.
 
 ## Development dependencies
 
-These per-track modes are planned; their scripts/fixtures are not present yet.
+The platform proof below runs locally with dedicated PostgreSQL and Kafka
+containers. The other tracks supply their own test commands.
 
 | Mode | Required live services | Controlled dependencies |
 | --- | --- | --- |
-| Current foundation: `pnpm dev` or `pnpm build`/`pnpm start` | None | None; startup page only |
+| Startup page: `pnpm dev` or `pnpm build`/`pnpm start` | None | None |
 | Web/HTTP component work | None | Explicit HTTP scenarios for UI; recording commands for real handler checks |
 | Commerce/event platform | Isolated PostgreSQL and Kafka | Recording projection writer; no OpenSearch/model required |
 | Discovery/operations component proof | Isolated OpenSearch | Controlled stock, commands and pipeline readers; deterministic model responses |
