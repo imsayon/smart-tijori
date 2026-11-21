@@ -13,15 +13,22 @@
     "start": "next start client",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen client && tsc --noEmit",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
+    "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs"
   },
   "dependencies": {
+    "@confluentinc/kafka-javascript": "1.11.0",
+    "@opensearch-project/opensearch": "3.10.0",
     "next": "16.4.6",
+    "pg": "8.23.1",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "9.39.5",
