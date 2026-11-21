@@ -8,6 +8,7 @@ import { BarcodeSalePanel } from '@/components/ops/pos/barcode-sale-panel';
 describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    window.sessionStorage.clear();
   });
 
   it('renders scanner input with auto-focus and clear simulated fixture labeling', () => {
@@ -147,5 +148,51 @@ describe('BarcodeSalePanel Browser & Scanner Input Tests', () => {
     const second = mockFetch.mock.calls[1][1].headers;
     expect(second.Authorization).toBeUndefined();
     expect(second['Idempotency-Key']).toBe(first['Idempotency-Key']);
+  });
+
+  it('sends the exact scanned EAN to the server instead of substituting a preview alias', async () => {
+    const user = userEvent.setup();
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false, status: 404,
+      json: async () => ({ error: { code: 'NOT_FOUND', message: 'Barcode is not registered for this store.' } }),
+    });
+    global.fetch = mockFetch;
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
+
+    await user.type(screen.getByPlaceholderText(/Scan item barcode or enter SKU/i), '8901030383192{enter}');
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(mockFetch.mock.calls[0][1].body).barcode).toBe('8901030383192');
+    await screen.findByText('NOT_FOUND');
+  });
+
+  it('restores the unresolved key after a cashier terminal remount', async () => {
+    const user = userEvent.setup();
+    const mockFetch = vi.fn()
+      .mockRejectedValueOnce(new Error('connection lost after commit'))
+      .mockResolvedValueOnce({
+        ok: true, status: 200,
+        json: async () => ({
+          sale: {
+            saleId: 'sale-replayed-1', storeId: 'blr-01', status: 'CONFIRMED',
+            soldAt: '2026-11-21T12:00:00.000Z', totalPaise: 15000,
+            lines: [{ productId: 'tea-250', name: 'Nilgiri Black Tea', quantity: 1, unitPricePaise: 15000 }],
+          },
+        }),
+      });
+    global.fetch = mockFetch;
+    const terminal = render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
+    await user.type(screen.getByPlaceholderText(/Scan item barcode or enter SKU/i), 'ST:tea-250{enter}');
+    await screen.findByText(/Sale outcome is unknown/i);
+    const previousKey = mockFetch.mock.calls[0][1].headers['Idempotency-Key'];
+
+    terminal.unmount();
+    render(<BarcodeSalePanel storeId="blr-01" operatorId="cashier" fixture />);
+    const restoredInput = screen.getByPlaceholderText(/Scan item barcode or enter SKU/i);
+    await waitFor(() => expect(restoredInput).toHaveValue('ST:tea-250'));
+    await user.type(restoredInput, '{enter}');
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    expect(mockFetch.mock.calls[1][1].headers['Idempotency-Key']).toBe(previousKey);
+    await screen.findByText(/ID: sale-replayed-1/i);
+    expect(window.sessionStorage.length).toBe(0);
   });
 });
