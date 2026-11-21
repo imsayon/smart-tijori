@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET as getProducts } from '../../client/app/api/products/route';
 import { POST as postRecovery } from '../../client/app/api/recovery/route';
@@ -19,6 +19,7 @@ describe('opt-in shopper demo routes', () => {
     } else {
       process.env.SMARTTIJORI_DEMO_MODE = previousMode;
     }
+    vi.unstubAllEnvs();
     setCommerceCommands(null);
   });
 
@@ -46,8 +47,21 @@ describe('opt-in shopper demo routes', () => {
     expect(result.candidates.length).toBeLessThanOrEqual(3);
   });
 
+  it('enables the same rule handler with the explicitly selected PostgreSQL catalog', async () => {
+    vi.stubEnv('SMARTTIJORI_DEMO_MODE', 'false');
+    vi.stubEnv('ST_CATALOG_SOURCE', 'postgres');
+    const response = await postRecovery(new Request('http://localhost:3000/api/recovery', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ storeId: 'blr-01', unavailableProductId: 'blr-detergent-liquid-1l' }),
+    }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ mode: 'rules' });
+  });
+
   it('fails closed for recovery when fixture mode is disabled', async () => {
     delete process.env.SMARTTIJORI_DEMO_MODE;
+    vi.stubEnv('ST_CATALOG_SOURCE', undefined);
     const response = await postRecovery(
       new Request('http://localhost:3000/api/recovery', { method: 'POST' }),
     );

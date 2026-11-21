@@ -115,7 +115,7 @@ export function ProductCard({ offer }: ProductCardProps) {
           <button
             type="button"
             onClick={handleAdd}
-            disabled={isAdding}
+            disabled={!cart || isAdding}
             className="bg-[#173F35] hover:bg-[#275546] active:scale-95 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all disabled:opacity-50 focus:ring-2 focus:ring-lime-400"
           >
             {isAdding ? 'Adding…' : '+ Add to cart'}

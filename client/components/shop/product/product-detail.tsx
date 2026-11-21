@@ -106,7 +106,7 @@ export function ProductDetail({ offer }: { offer: ProductOffer }) {
               <button
                 type="button"
                 onClick={handleAdd}
-                disabled={isAdding}
+                disabled={!cart || isAdding}
                 className="flex-1 bg-[#173F35] hover:bg-[#275546] text-white font-bold py-3.5 px-6 rounded-xl transition-all active:scale-98 shadow-sm focus:ring-2 focus:ring-lime-400 disabled:opacity-50"
               >
                 {isAdding ? 'Adding…' : 'Add to Cart'}

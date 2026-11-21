@@ -208,6 +208,23 @@ describe('Recovery HTTP Handler Tests (POST /api/recovery)', () => {
     expect(body3.error.code).toBe('VALIDATION_ERROR');
   });
 
+  it('requires the same purpose, requested pack unit and known attributes', async () => {
+    const offer = createCandidate('match', 'Refill', 22000, 1500, 4);
+    recordingAdapter.setFixture('getProductOffers', [
+      unavailableOffer, offer,
+      { ...offer, productId: 'wrong-purpose', purpose: 'dishwashing' },
+      { ...offer, productId: 'wrong-unit', pack: { quantity: 1500, unit: 'g' } },
+      { ...offer, productId: 'unknown-attributes', attributes: {} },
+      { ...offer, productId: 'wrong-branch', storeId: 'mys-01' },
+    ]);
+    const res = await handlePostRecovery(makeRequest({
+      storeId: 'blr-01', unavailableProductId: unavailableOffer.productId,
+    }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).candidates.map((candidate: { offer: ProductOffer }) => candidate.offer.productId))
+      .toEqual(['match']);
+  });
+
   it('rejects oversized request bodies (> 64 KB) with 400 VALIDATION_ERROR', async () => {
     const hugePadding = 'x'.repeat(70 * 1024); // 70 KB
     const req = makeRequest(

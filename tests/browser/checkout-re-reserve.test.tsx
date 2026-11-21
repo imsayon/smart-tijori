@@ -179,9 +179,9 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
 
     // Must transition to stock conflict panel showing recovery options
     await waitFor(() => {
-      expect(screen.getByText(/ZeroDeadEnd: Stock Conflict Detected/i)).toBeInTheDocument();
-      expect(screen.getByText(/The counter POS or another shopper just secured/i)).toBeInTheDocument();
-      expect(screen.getByText(/Verified In-Stock Replacements/i)).toBeInTheDocument();
+      expect(screen.getByText(/This item just became unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText(/Your branch can no longer reserve/i)).toBeInTheDocument();
+      expect(screen.getByText(/In-stock alternatives/i)).toBeInTheDocument();
     });
   });
 

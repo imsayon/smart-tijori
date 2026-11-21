@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import type { RecoveryResult, ProductOffer, RecoveryConstraints } from '@/contracts';
+import type { Cart, RecoveryResult, ProductOffer, RecoveryConstraints } from '@/contracts';
 import { api } from '@/lib/api-client';
 import { useStore } from '@/lib/session/store-context';
 import { AlternativeCard } from './alternative-card';
@@ -11,8 +11,8 @@ import { Alert } from '../feedback/alert';
 interface ConflictRecoveryPanelProps {
   storeId: string;
   unavailableProductIds: string[];
-  onReplacementApproved: () => void;
-  onKeepCartWithoutUnavailable: () => void;
+  onReplacementApproved: (cart: Cart) => Promise<void>;
+  onKeepCartWithoutUnavailable: () => Promise<void>;
 }
 
 export function ConflictRecoveryPanel({
@@ -24,6 +24,8 @@ export function ConflictRecoveryPanel({
   const { cart } = useStore();
   const [recoveryResult, setRecoveryResult] = useState<RecoveryResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [failed, setFailed] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [interestRecorded, setInterestRecorded] = useState<boolean>(false);
 
@@ -31,18 +33,18 @@ export function ConflictRecoveryPanel({
   const unavailableCartLine = cart?.lines.find((l) => l.productId === unavailableId);
 
   const fetchAlternatives = useCallback(
-    async (customConstraints?: Partial<RecoveryConstraints>, text?: string) => {
+    async (customConstraints?: Partial<RecoveryConstraints>) => {
       if (!unavailableId) return;
+      setFailed(false);
       try {
         const result = await api.getRecovery({
           storeId,
           unavailableProductId: unavailableId,
-          text,
           explicitConstraints: customConstraints,
         });
         setRecoveryResult(result);
-      } catch (err) {
-        console.error('Failed to fetch recovery alternatives:', err);
+      } catch {
+        setFailed(true);
       } finally {
         setIsLoading(false);
       }
@@ -62,8 +64,8 @@ export function ConflictRecoveryPanel({
         if (active) {
           setRecoveryResult(result);
         }
-      } catch (err) {
-        console.error('Failed to fetch recovery alternatives:', err);
+      } catch {
+        if (active) setFailed(true);
       } finally {
         if (active) {
           setIsLoading(false);
@@ -81,18 +83,21 @@ export function ConflictRecoveryPanel({
     if (!cart || !unavailableId) return;
     try {
       setIsApproving(true);
+      setActionError(null);
       const qty = unavailableCartLine?.quantity ?? 1;
 
       const remainingLines = cart.lines
         .filter((l) => l.productId !== unavailableId)
         .map((l) => ({ productId: l.productId, quantity: l.quantity }));
 
-      remainingLines.push({ productId: replacement.productId, quantity: qty });
+      const existing = remainingLines.find(line => line.productId === replacement.productId);
+      if (existing) existing.quantity += qty;
+      else remainingLines.push({ productId: replacement.productId, quantity: qty });
 
-      await api.updateCart(storeId, remainingLines);
-      onReplacementApproved();
-    } catch (err) {
-      console.error('Failed to approve replacement:', err);
+      const updated = await api.updateCart(storeId, remainingLines);
+      await onReplacementApproved(updated);
+    } catch {
+      setActionError('Could not update your cart. Please try again.');
     } finally {
       setIsApproving(false);
     }
@@ -103,8 +108,8 @@ export function ConflictRecoveryPanel({
     try {
       await api.saveInterest(storeId, unavailableId);
       setInterestRecorded(true);
-    } catch (err) {
-      console.error('Failed to save stock interest:', err);
+    } catch {
+      setActionError('Could not save restock interest. Please try again.');
     }
   };
 
@@ -114,11 +119,11 @@ export function ConflictRecoveryPanel({
         <div className="flex items-center gap-2 mb-1">
           <span className="text-2xl select-none">⚡</span>
           <h2 className="text-xl sm:text-2xl font-black text-stone-900">
-            ZeroDeadEnd: Stock Conflict Detected
+            This item just became unavailable
           </h2>
         </div>
         <p className="text-xs sm:text-sm text-stone-600">
-          The counter POS or another shopper just secured the remaining unit of{' '}
+          Your branch can no longer reserve{' '}
           <strong className="text-stone-900 font-semibold">
             {unavailableCartLine?.name ?? unavailableId}
           </strong>
@@ -127,29 +132,33 @@ export function ConflictRecoveryPanel({
       </div>
 
       <Alert type="info" className="mb-6">
-        <strong>Your other cart lines remain intact!</strong> SmartTijori preserves your shopping goal. You can choose a verified alternative from your store, adjust constraints, or continue without this item.
+        Your other cart items are still here. Choose a replacement or continue without this item.
       </Alert>
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-extrabold text-lg text-stone-900">
-              Verified In-Stock Replacements
+              In-stock alternatives
             </h3>
-            <span className="text-xs text-stone-500">
-              Mode:{' '}
-              <span className="font-mono font-bold text-emerald-800 uppercase">
-                {recoveryResult?.mode ?? 'rules'}
-              </span>{' '}
-              · Up to 3 factual suggestions from {storeId}
-            </span>
+            {recoveryResult?.mode === 'rules' && (
+              <p className="text-xs text-stone-500">Matched by product, pack size and price.</p>
+            )}
           </div>
         </div>
 
         {isLoading ? (
-          <div className="py-8 text-center text-stone-500 animate-pulse text-sm">
-            Retrieving current branch facts and evaluating candidate replacements…
+          <div className="py-8 text-center text-stone-500 motion-safe:animate-pulse text-sm">
+            Checking branch stock…
           </div>
+        ) : failed ? (
+          <Alert type="error">
+            Could not load alternatives.{' '}
+            <button type="button" className="underline" onClick={() => {
+              setIsLoading(true);
+              void fetchAlternatives();
+            }}>Try again</button>
+          </Alert>
         ) : !recoveryResult || recoveryResult.candidates.length === 0 ? (
           <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center">
             <p className="text-sm text-stone-600 font-medium mb-3">
@@ -161,7 +170,7 @@ export function ConflictRecoveryPanel({
               disabled={interestRecorded}
               className="text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl transition-colors"
             >
-              {interestRecorded ? '✓ Stock Interest Recorded' : 'Save Demand / Notify When Restocked'}
+              {interestRecorded ? '✓ Stock Interest Recorded' : 'Save restock interest'}
             </button>
           </div>
         ) : (
@@ -182,20 +191,31 @@ export function ConflictRecoveryPanel({
         <div className="mb-8">
           <ConstraintEditor
             constraints={recoveryResult.constraints}
-            onApply={(updated, text) => {
+            onApply={(updated) => {
               setIsLoading(true);
-              fetchAlternatives(updated, text);
+              void fetchAlternatives(updated);
             }}
-            onSaveInterest={handleSaveInterest}
             isLoading={isLoading}
           />
         </div>
       )}
 
+      {actionError && <Alert type="error">{actionError}</Alert>}
       <div className="pt-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3">
         <button
           type="button"
-          onClick={onKeepCartWithoutUnavailable}
+          disabled={isApproving}
+          onClick={async () => {
+            setIsApproving(true);
+            setActionError(null);
+            try {
+              await onKeepCartWithoutUnavailable();
+            } catch {
+              setActionError('Could not update your cart. Please try again.');
+            } finally {
+              setIsApproving(false);
+            }
+          }}
           className="text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 underline"
         >
           Remove unavailable item and proceed with remaining items →
