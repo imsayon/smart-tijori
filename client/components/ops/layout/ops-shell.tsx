@@ -54,7 +54,7 @@ export function OpsShell({ children, operator, fixture, branchName }: {
 
           <div className="atelier-rail-branch">
             <span className="atelier-rail-branch-icon" aria-hidden="true">
-              {operator.storeId.slice(0, 2).toUpperCase()}
+              {(operator.storeId ?? 'ST').slice(0, 2).toUpperCase()}
             </span>
             <div>
               <strong>{branchName ?? operator.storeId}</strong>
