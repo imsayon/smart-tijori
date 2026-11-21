@@ -8,7 +8,7 @@ vi.mock('next/dynamic', () => ({
   default: () => function MockScene() { return null; },
 }));
 vi.mock('next/image', () => ({
-  default: ({ alt, src }: { alt: string; src: string }) => <img alt={alt} src={src} />,
+  default: ({ alt, src }: { alt: string; src: string }) => React.createElement('img', { alt, src }),
 }));
 
 beforeEach(() => {
