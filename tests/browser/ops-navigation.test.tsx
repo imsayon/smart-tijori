@@ -69,7 +69,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     expect(nav).toBeInTheDocument();
     expect(screen.getByLabelText('Retail workspace sidebar')).toBeInTheDocument();
     expect(within(nav).getByRole('link', { name: /Overview/ })).toHaveAttribute('href', '/ops');
-    expect(within(nav).getByRole('link', { name: /POS/ })).toHaveAttribute('href', '/ops/pos');
+    expect(within(nav).getByRole('link', { name: /Cashier counter/ })).toHaveAttribute('href', '/ops/cashier');
     expect(within(nav).getByRole('link', { name: /Inventory/ })).toHaveAttribute('href', '/ops/inventory');
     expect(within(nav).getByRole('link', { name: /Activity/ })).toHaveAttribute('href', '/ops/diagnostics');
     expect(within(nav).getByRole('link', { name: /Reservations/ })).toHaveAttribute('href', '/ops/reservations');
@@ -79,7 +79,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
 
   it('highlights the active navigation link based on current route', () => {
     // When on /ops/pos
-    mockPathname.mockReturnValue('/ops/pos');
+    mockPathname.mockReturnValue('/ops/cashier');
 
     render(
       <OpsShell operator={actor} fixture>
@@ -87,7 +87,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
       </OpsShell>
     );
 
-    const posLink = screen.getByRole('link', { name: 'POS' });
+    const posLink = screen.getByRole('link', { name: 'Cashier counter' });
     expect(posLink).toHaveAttribute('aria-current', 'page');
 
     const overviewLink = screen.getByRole('link', { name: /Overview/i });
