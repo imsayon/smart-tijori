@@ -1,28 +1,39 @@
 {
-  "name": "smarttijori",
-  "version": "0.1.0",
+  "name": "smart-tijori",
+  "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@12.21.0",
+  "engines": {
+    "node": "24.22.3",
+    "pnpm": "12.21.0"
+  },
   "scripts": {
-    "dev": "next dev",
-    "dev:shopping": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "vitest run",
+    "dev": "next dev client",
+    "build": "next build client",
+    "start": "next start client",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "next typegen client && tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
+    "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
+    "dev:shopping": "next dev client",
     "test:unit": "vitest run tests/unit",
     "test:http": "vitest run tests/http",
     "test:security": "vitest run tests/security",
     "test:browser": "vitest run tests/browser",
-    "test:shopping": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "test:shopping": "vitest run"
   },
   "dependencies": {
     "cookie": "^2.0.2",
     "next": "16.4.6",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "uuid": "^14.0.3",
-    "zod": "^4.6.7"
+    "zod": "^4.6.7",
+    "@confluentinc/kafka-javascript": "1.11.0",
+    "@opensearch-project/opensearch": "3.10.0",
+    "pg": "8.23.1",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
@@ -31,18 +42,18 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.13",
     "@types/cookie": "^1.0.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@types/uuid": "^11.0.0",
-    "eslint": "^9",
+    "eslint": "9.39.5",
     "eslint-config-next": "16.4.6",
     "happy-dom": "^21.0.4",
     "jsdom": "^31.0.1",
     "msw": "^3.0.7",
     "tailwindcss": "4.3.3",
-    "typescript": "^5",
-    "vitest": "^5.1.1"
-  },
-  "packageManager": "pnpm@12.21.0"
+    "typescript": "6.0.3",
+    "vitest": "^5.1.1",
+    "@types/pg": "8.23.1"
+  }
 }
