@@ -1,16 +1,16 @@
 # Shopper prototype
 
 The hosted prototype uses Aiven PostgreSQL for current prices and stock, carts,
-reservations, orders and rules-based alternatives. Payments use Razorpay where configured; local fixture mode simulates payment. [Open the demo](https://smart-tijori.onrender.com).
+reservations, orders and rules-based alternatives. Payments are simulated. [Open the demo](https://smart-tijori.onrender.com).
 
 ## Walkthrough
 
 1. Pick Bengaluru or Mysuru, add a product to your cart and proceed to checkout.
-   Checkout reserves the items for five minutes. Confirm to see the simulated receipt.
+   Checkout reserves the items for 59 seconds. Confirm to see the simulated receipt.
 2. To show a conflict, open the Bengaluru catalog in two separate browser
    profiles. In each profile, add one unit of an item that shows one available,
    such as Clear Day Front Load Liquid in the initial seed.
-3. Open checkout in the first profile, then in the second within five minutes.
+3. Open checkout in the first profile, then in the second within 59 seconds.
    Keep the first hold active. The second profile shows the conflict and suggests
    eligible in-stock products from the same branch. Approve a replacement to check
    out again. The first hold expires on its original deadline.
@@ -34,7 +34,7 @@ The Render web service builds with the pinned Node and pnpm versions and
 `CKJS_LINKING=dynamic`. The start command loads its private environment and
 runs `infra/run-render.mjs` to launch Next.js and the projection worker. Both
 processes follow the Free web instance's lifecycle, including idle suspension.
-Merchant access requires a verified Firebase account with an active branch membership in `operator_memberships`.
+`ST_OPS_OPERATOR_TOKEN` and `ST_OPS_STORE_ID` configure operator sign-in.
 The runtime uses private PostgreSQL connection settings and a trusted CA.
 `ST_CATALOG_SOURCE=opensearch` enables typo-tolerant catalog search. Set private
 `OPENSEARCH_*` credentials with read access to the selected index. Populate the

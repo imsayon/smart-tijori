@@ -62,7 +62,7 @@ try {
   console.log(storeId, "100 contenders, 1 winner");
   const timer = ok(await hold("coffee-100","deadline"));
   const owned = ok(await hold("rice-1kg","owner"));
-  assert.equal(Date.parse(owned.expiresAt)-Date.parse(owned.serverNow),300000);
+  assert.equal(Date.parse(owned.expiresAt)-Date.parse(owned.serverNow),59000);
   assert.equal(ok(await commands.reserve(shopper("owner"),{cartId:owned.cartId,key:"reserve"})).expiresAt,owned.expiresAt);
   assert.equal((await pos("rice-1kg","protected")).error.code,"STOCK_LOCKED_ONLINE");
   assert.equal((await commands.getHold(shopper("other"),owned.id)).error.code,"NOT_FOUND");
@@ -82,7 +82,7 @@ try {
       (SELECT count(*)::int FROM stock_movements WHERE reference_id=$3) AS movements
     FROM inventory WHERE store_id=$1 AND product_id='rice-1kg'`,[storeId,owned.id,order.id])).rows[0]);
   assert.deepEqual(stats,{stock:0,version:3,orders:1,movements:1});
-  console.log("5m deadline, both orderings, expiry without sweep, single debit verified");
+  console.log("59s deadline, both orderings, expiry without sweep, single debit verified");
   await producer.connect();
   await admin.connect();
   const claim = await claimOutbox(db);

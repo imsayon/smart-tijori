@@ -157,7 +157,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
     } catch (err) {
       if (err instanceof ApiClientError && err.code === 'HOLD_EXPIRED') {
         setState('HOLD_EXPIRED');
-        setErrorMessage('Your five-minute checkout hold has expired. Please revalidate and reserve again.');
+        setErrorMessage('Your 59-second checkout hold has expired. Please revalidate and reserve again.');
       } else if (err instanceof ApiClientError) {
         setErrorMessage(err.message);
         setState('HOLD_ACTIVE');
@@ -231,7 +231,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
   if (!checkoutStarted) {
     return <section className="mx-auto max-w-xl space-y-5">
       <h1 className="atelier-heading text-5xl">Checkout</h1>
-      <p>Reserve your bag for five minutes, then pay online.</p>
+      <p>Reserve your bag for 59 seconds, then pay online.</p>
       <p className="text-lg font-semibold">{formatPaise(cart.totalPaise)}</p>
       <button type="button" className="atelier-action" onClick={() => setCheckoutStarted(true)}>Reserve items</button>
     </section>;
@@ -249,7 +249,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
           <div className="text-4xl animate-bounce mb-3">🔒</div>
           <h2 className="text-xl font-black text-stone-900 mb-2">Securing CartLock Hold</h2>
           <p className="text-xs text-stone-500 max-w-sm mx-auto">
-            Contacting store inventory authority to lock your items for five minutes…
+            Contacting store inventory authority to lock your items for 59 seconds…
           </p>
         </div>
       )}
@@ -280,7 +280,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
             </Alert>
           ) : (
             <p className="text-sm text-stone-600 mb-6 max-w-md mx-auto">
-              Your five-minute stock hold has expired to ensure fairness for other shoppers. You can re-reserve with one click.
+              Your 59-second stock hold has expired to ensure fairness for other shoppers. You can re-reserve with one click.
             </p>
           )}
           {online && hold && <Link className="mb-4 block underline" href={`/checkout/status/${hold.id}`}>

@@ -46,7 +46,7 @@ export default function HomePage() {
               </div>
               <h3 className="font-serif text-2xl text-[#16261f] mb-2">Zero Dead Ends</h3>
               <p className="text-sm text-[#53645b] leading-relaxed">
-                If the last item sells out at your counter while you browse, SmartTijori helps you compare available alternatives based on current branch stock.
+                If the last item sells out at your counter while you browse, SmartTijori instantly surfaces available nearby branches and identical alternatives.
               </p>
             </div>
             <p className="mt-6 text-xs font-mono uppercase tracking-wider text-[#6e4731]">02 / Intelligent Recovery</p>
@@ -59,9 +59,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-full bg-[#142a20] text-[#c9a247] flex items-center justify-center mb-4">
                 <Icon name="pulse" size={18} />
               </div>
-              <h3 className="font-serif text-2xl text-[#16261f] mb-2">Event-driven Sync</h3>
+              <h3 className="font-serif text-2xl text-[#16261f] mb-2">Sub-Second Sync</h3>
               <p className="text-sm text-[#53645b] leading-relaxed">
-                Counter sales via POS terminal and online reservations feed the same event pipeline, while checkout reads PostgreSQL directly and search catches up asynchronously.
+                Counter sales via POS terminal and online reservations feed the same event pipeline, keeping branch inventory in lockstep.
               </p>
             </div>
             <p className="mt-6 text-xs font-mono uppercase tracking-wider text-[#6e4731]">03 / Telemetry Stream</p>

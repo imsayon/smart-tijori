@@ -324,8 +324,8 @@ export function createCommerceCommands(db: Database): CommerceCommands {
         const priced = pricedLines(lines, await inventoryFacts(client, cart.storeId, productIds(lines), now), true);
         if (hold) await finishHold(client, hold, heldLines, now);
         const { rows: [created] } = await client.query<HoldRow>(`
-          INSERT INTO reservations (cart_id, store_id, status, created_at, expires_at, total_paise, duration_seconds)
-          VALUES ($1, $2, 'ACTIVE', $3::timestamptz, $3::timestamptz + interval '5 minutes', $4, 300)
+          INSERT INTO reservations (cart_id, store_id, status, created_at, expires_at, total_paise)
+          VALUES ($1, $2, 'ACTIVE', $3::timestamptz, $3::timestamptz + interval '59 seconds', $4)
           RETURNING id, cart_id AS "cartId", store_id AS "storeId", status,
             expires_at AS "expiresAt", total_paise AS "totalPaise"`, [cart.id, cart.storeId, now, total(priced)]);
         await client.query(`

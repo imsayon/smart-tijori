@@ -75,7 +75,7 @@ async function counts() {
 async function setDeadline(id, interval) {
   return (await rows(`
     WITH clock AS (SELECT date_trunc('milliseconds', clock_timestamp()) + $2::interval AS deadline)
-    UPDATE reservations SET created_at = deadline - make_interval(secs => duration_seconds), expires_at = deadline
+    UPDATE reservations SET created_at = deadline - interval '59 seconds', expires_at = deadline
     FROM clock WHERE id = $1 RETURNING expires_at`, [id, interval]))[0].expires_at;
 }
 
@@ -104,7 +104,7 @@ test("seed, owned carts and holds, nonrenewal, rollback and idempotent interest"
 
   await cartFor(alice, lines(["tea-500"]), "mys-01");
   const hold = ok(await commands.reserve(alice, { cartId: cart.id, key: "good" }));
-  assert.equal(Date.parse(hold.expiresAt) - Date.parse(hold.serverNow), 300_000);
+  assert.equal(Date.parse(hold.expiresAt) - Date.parse(hold.serverNow), 59_000);
   assert.deepEqual(ok(await commands.reserve(alice, { cartId: cart.id, key: "good" })), hold);
   assert.equal(ok(await commands.reserve(alice, { cartId: cart.id, key: "also-good" })).expiresAt, hold.expiresAt);
   conflict(await commands.reserve(alice, { cartId: randomUUID(), key: "good" }), "IDEMPOTENCY_CONFLICT");
