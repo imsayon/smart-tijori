@@ -102,7 +102,7 @@ export function RetailPulse({ shopper = false }: { shopper?: boolean }) {
         </div>
         {shopper && <p className="atelier-hero-index"><span>01 — 04</span><span>A neighbourhood shop, brought closer</span></p>}
       </div>
-      <div className="atelier-hero-art" aria-hidden="true">
+      <div className="atelier-hero-art">
         {shopper && (
           <button
             type="button"
