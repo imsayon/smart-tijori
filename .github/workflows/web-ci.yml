@@ -27,11 +27,8 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Emit normalized lockfile chunks for reproducible web integration
-        run: |
-          node -e 'const fs=require("node:fs");const v=JSON.stringify(fs.readFileSync("pnpm-lock.yaml","utf8"));for(let i=0;i<v.length;i+=3000)console.log("WEBLOCKCHUNK:"+Math.floor(i/3000)+":"+v.slice(i,i+3000));'
       - name: Existing service unit tests
         run: pnpm test:services
 
