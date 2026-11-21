@@ -2,7 +2,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { OPERATOR_ROLE } from '@server/http/auth/operator-guard';
 import { OpsShell } from '@/components/ops/layout/ops-shell';
 import OpsOverviewPage from '@/app/ops/page';
@@ -52,15 +51,15 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
       </OpsShell>
     );
 
-    expect(screen.getByText(/Smart/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tijori/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Smart/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Tijori/i).length).toBeGreaterThan(0);
     expect(document.querySelector('.atelier-branch-chip')).toHaveTextContent('blr-01');
-    expect(screen.getByText('cashier')).toBeInTheDocument();
+    expect(screen.getAllByText('cashier').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Demo mode')).toBeInTheDocument();
   });
 
-  it('renders the primary tabs and reveals the remaining pages from the menu', async () => {
-    const { container } = render(
+  it('renders every operational route in the persistent Atelier sidebar', () => {
+    render(
       <OpsShell operator={actor} fixture>
         <div>Content</div>
       </OpsShell>
@@ -68,22 +67,14 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
 
     const nav = screen.getByRole('navigation', { name: /Operations Navigation/i });
     expect(nav).toBeInTheDocument();
-
-    const overviewLink = screen.getByRole('link', { name: /Overview/i });
-    expect(overviewLink).toHaveAttribute('href', '/ops');
-
-    const posLink = screen.getByRole('link', { name: 'POS' });
-    expect(posLink).toHaveAttribute('href', '/ops/pos');
-
-    const inventoryLink = screen.getByRole('link', { name: 'Inventory' });
-    expect(inventoryLink).toHaveAttribute('href', '/ops/inventory');
-
-    const diagnosticsLink = screen.getByRole('link', { name: 'Activity' });
-    expect(diagnosticsLink).toHaveAttribute('href', '/ops/diagnostics');
-
-    await userEvent.click(container.querySelector('summary[aria-label="Open workspace menu"]')!);
-    expect(screen.getByRole('link', { name: 'Reservations' })).toHaveAttribute('href', '/ops/reservations');
-    expect(screen.getByRole('link', { name: 'Orders' })).toHaveAttribute('href', '/ops/orders');
+    expect(screen.getByLabelText('Retail workspace sidebar')).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: /Overview/ })).toHaveAttribute('href', '/ops');
+    expect(within(nav).getByRole('link', { name: /POS/ })).toHaveAttribute('href', '/ops/pos');
+    expect(within(nav).getByRole('link', { name: /Inventory/ })).toHaveAttribute('href', '/ops/inventory');
+    expect(within(nav).getByRole('link', { name: /Activity/ })).toHaveAttribute('href', '/ops/diagnostics');
+    expect(within(nav).getByRole('link', { name: /Reservations/ })).toHaveAttribute('href', '/ops/reservations');
+    expect(within(nav).getByRole('link', { name: /Orders/ })).toHaveAttribute('href', '/ops/orders');
+    expect(screen.getByRole('link', { name: /Shopper storefront/ })).toHaveAttribute('href', '/');
   });
 
   it('highlights the active navigation link based on current route', () => {
