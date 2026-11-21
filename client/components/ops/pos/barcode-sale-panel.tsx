@@ -47,6 +47,7 @@ export function BarcodeSalePanel({
   const [lastConflict, setLastConflict] = useState<PosConflictState | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recoveryBlocked, setRecoveryBlocked] = useState(false);
+  const [recoveryReady, setRecoveryReady] = useState(false);
   const pendingStorageKey = `smart-tijori:pos:pending:${fixture ? 'fixture' : 'live'}:${storeId}:${operatorId}`;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,26 +57,35 @@ export function BarcodeSalePanel({
   // Restore an unresolved transaction before accepting a new scan. Storage is
   // scoped to this browser tab, verified operator and branch; no auth secret is stored.
   useEffect(() => {
-    try {
-      const saved = window.sessionStorage.getItem(pendingStorageKey);
-      if (!saved) return;
-      const parsed: unknown = JSON.parse(saved);
-      if (!parsed || typeof parsed !== 'object' ||
-          !('barcode' in parsed) || typeof parsed.barcode !== 'string' || !parsed.barcode ||
-          !('quantity' in parsed) || !Number.isInteger(parsed.quantity) ||
-          (parsed.quantity as number) < 1 ||
-          !('key' in parsed) || typeof parsed.key !== 'string' || !parsed.key) {
-        throw new Error('Invalid unresolved transaction record');
+    let cancelled = false;
+    // Restore from browser storage asynchronously, and block submissions until
+    // the recovery check completes so a new scan cannot overtake an old one.
+    queueMicrotask(() => {
+      if (cancelled) return;
+      try {
+        const saved = window.sessionStorage.getItem(pendingStorageKey);
+        if (!saved) return;
+        const parsed: unknown = JSON.parse(saved);
+        if (!parsed || typeof parsed !== 'object' ||
+            !('barcode' in parsed) || typeof parsed.barcode !== 'string' || !parsed.barcode ||
+            !('quantity' in parsed) || !Number.isInteger(parsed.quantity) ||
+            (parsed.quantity as number) < 1 ||
+            !('key' in parsed) || typeof parsed.key !== 'string' || !parsed.key) {
+          throw new Error('Invalid unresolved transaction record');
+        }
+        const previous = parsed as { barcode: string; quantity: number; key: string };
+        attempt.current = previous;
+        setBarcodeInput(previous.barcode);
+        setQuantity(previous.quantity);
+        setErrorMessage('An earlier sale may have committed. Retry this barcode and quantity to recover its receipt.');
+      } catch {
+        setRecoveryBlocked(true);
+        setErrorMessage('Sale recovery storage is unavailable or invalid. Stop checkout and reconcile the previous transaction.');
+      } finally {
+        setRecoveryReady(true);
       }
-      const previous = parsed as { barcode: string; quantity: number; key: string };
-      attempt.current = previous;
-      setBarcodeInput(previous.barcode);
-      setQuantity(previous.quantity);
-      setErrorMessage('An earlier sale may have committed. Retry this barcode and quantity to recover its receipt.');
-    } catch {
-      setRecoveryBlocked(true);
-      setErrorMessage('Sale recovery storage is unavailable or invalid. Stop checkout and reconcile the previous transaction.');
-    }
+    });
+    return () => { cancelled = true; };
   }, [pendingStorageKey]);
 
   // Auto-focus input on mount for continuous scanner streams
@@ -86,7 +96,7 @@ export function BarcodeSalePanel({
   const handleAuthorizeSale = useCallback(
     async (codeToScan: string) => {
       const cleanCode = codeToScan.trim();
-      if (!cleanCode || inFlight.current || recoveryBlocked) return;
+      if (!cleanCode || inFlight.current || !recoveryReady || recoveryBlocked) return;
       const barcode = resolveBarcodeToSend(cleanCode);
       const previous = attempt.current;
       if (previous && (previous.barcode !== barcode || previous.quantity !== quantity)) {
@@ -161,12 +171,12 @@ export function BarcodeSalePanel({
         setTimeout(() => inputRef.current?.focus(), 50);
       }
     },
-    [storeId, operatorId, fixture, quantity, pendingStorageKey, recoveryBlocked]
+    [storeId, operatorId, fixture, quantity, pendingStorageKey, recoveryReady, recoveryBlocked]
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!barcodeInput.trim() || isSubmitting || recoveryBlocked) return;
+    if (!barcodeInput.trim() || isSubmitting || !recoveryReady || recoveryBlocked) return;
     void handleAuthorizeSale(barcodeInput);
   };
 
@@ -253,7 +263,7 @@ export function BarcodeSalePanel({
 
                 <button
                   type="submit"
-                  disabled={!barcodeInput.trim() || isSubmitting || recoveryBlocked}
+                  disabled={!barcodeInput.trim() || isSubmitting || !recoveryReady || recoveryBlocked}
                   className="bg-[#276350] hover:bg-[#1E4D3E] disabled:bg-[#A8A29E] text-white px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 disabled:pointer-events-none"
                 >
                   {isSubmitting ? 'Verifying...' : 'Authorize'}
