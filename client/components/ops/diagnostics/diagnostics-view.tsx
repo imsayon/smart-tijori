@@ -107,7 +107,7 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
               Activity is temporarily unavailable
             </h2>
             <p className="text-xs sm:text-sm text-red-700 leading-relaxed max-w-lg mx-auto">
-              {errorMessage || 'Your store's latest activity could not be fetched.'}
+              {errorMessage || "Your store's latest activity could not be fetched."}
             </p>
           </div>
           <div className="pt-2 flex justify-center gap-3">
