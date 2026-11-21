@@ -96,6 +96,23 @@ describe('Recovery HTTP Handler Tests (POST /api/recovery)', () => {
     expect(calls[0].args[0]).toBe('blr-01');
   });
 
+  it('never suggests unrelated salt for Toor Dal, including purpose spelling variants', async () => {
+    const dal = { ...unavailableOffer, productId: 'dal-original', name: 'Toor Dal 500g',
+      category: 'pantry' as const, purpose: 'toor-dal', pack: { quantity: 500, unit: 'g' as const },
+      attributes: {}, pricePaise: 9500, available: 0 };
+    const salt = { ...dal, productId: 'salt-1kg', name: 'Iodized Salt',
+      purpose: 'table-salt', pricePaise: 2900, pack: { quantity: 1000, unit: 'g' as const }, available: 20 };
+    const alternative = { ...dal, productId: 'dal-1kg', name: 'Toor Dal Family Pack',
+      purpose: 'Toor_Dal', pricePaise: 11400, pack: { quantity: 1000, unit: 'g' as const }, available: 4 };
+    recordingAdapter.setFixture('getProductOffers', [dal, salt, alternative]);
+    const response = await handlePostRecovery(makeRequest({
+      storeId: 'blr-01', unavailableProductId: 'dal-original', quantity: 2,
+    }));
+    expect(response.status).toBe(200);
+    const result: RecoveryResult = await response.json();
+    expect(result.candidates.map(candidate => candidate.offer.productId)).toEqual(['dal-1kg']);
+  });
+
   it('bounds alternatives to a maximum of three candidates', async () => {
     const candidates = [
       unavailableOffer,

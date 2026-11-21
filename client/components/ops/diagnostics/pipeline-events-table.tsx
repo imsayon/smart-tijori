@@ -11,7 +11,7 @@ export function PipelineEventsTable({ events }: PipelineEventsTableProps) {
   if (events.length === 0) {
     return (
       <div className="bg-[#FAF8F5] rounded-2xl border border-[#E3DDD2] p-8 text-center text-xs font-mono text-[#78716C]">
-        No recent pipeline events logged in outbox for this branch.
+        No recent store activity recorded for this branch.
       </div>
     );
   }
@@ -21,10 +21,10 @@ export function PipelineEventsTable({ events }: PipelineEventsTableProps) {
       <table className="w-full text-left text-xs">
         <thead className="bg-[#FAF8F5] text-[#78716C] uppercase text-[10px] tracking-wider border-b border-[#E3DDD2]">
           <tr>
-            <th scope="col" className="px-4 py-3 font-bold">Event ID</th>
+            <th scope="col" className="px-4 py-3 font-bold">Reference</th>
             <th scope="col" className="px-4 py-3 font-bold">Type</th>
-            <th scope="col" className="px-4 py-3 font-bold">Occurred At (UTC)</th>
-            <th scope="col" className="px-4 py-3 font-bold">Published At (Broker)</th>
+            <th scope="col" className="px-4 py-3 font-bold">Recorded at</th>
+            <th scope="col" className="px-4 py-3 font-bold">Shared at</th>
             <th scope="col" className="px-4 py-3 font-bold text-center">Status</th>
           </tr>
         </thead>
@@ -35,11 +35,11 @@ export function PipelineEventsTable({ events }: PipelineEventsTableProps) {
             const typeBadge =
               evt.type === 'inventory.changed' ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  inventory.changed
+                  Stock updated
                 </span>
               ) : evt.type === 'order.placed' ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                  order.placed
+                  Order placed
                 </span>
               ) : (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 text-stone-800 border border-stone-200">
@@ -70,13 +70,13 @@ export function PipelineEventsTable({ events }: PipelineEventsTableProps) {
                       hour12: false,
                     })
                   ) : (
-                    <span className="text-amber-700 font-bold">Unpublished</span>
+                    <span className="text-amber-700 font-bold">Not shared yet</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-center">
                   {isPublished ? (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Acked
+                      Shared
                     </span>
                   ) : (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">

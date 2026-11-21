@@ -43,7 +43,7 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
       if (err instanceof ApiClientError && err.status === 404) {
         setState('pending_api');
       } else {
-        const message = err instanceof Error ? err.message : 'Failed to load pipeline diagnostics';
+        const message = err instanceof Error ? err.message : 'Could not refresh store activity';
         setErrorMessage(message);
         setState('error');
       }
@@ -56,10 +56,10 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E3DDD2]">
         <div>
           <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#78716C]">
-            Operations Workbench · Observability
+            Your store · Recent updates
           </span>
           <h1 className="text-xl sm:text-2xl font-black text-[#181614] tracking-tight">
-            Pipeline & Worker Diagnostics
+            Store activity & sync
           </h1>
         </div>
 
@@ -74,7 +74,7 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
             type="button"
             onClick={fetchPipelineFacts}
             disabled={state === 'loading'}
-            aria-label="Refresh pipeline diagnostics"
+            aria-label="Refresh store activity"
             className="p-1.5 rounded-xl border border-[#E3DDD2] bg-[#FAF8F5] hover:bg-[#F3EFEA] text-[#181614] transition-colors cursor-pointer disabled:opacity-50"
             title="Refresh facts"
           >
@@ -88,10 +88,10 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
         <div className="bg-white rounded-3xl border border-[#E3DDD2] p-12 text-center shadow-xs">
           <div className="text-3xl animate-spin mb-3">⏳</div>
           <h2 className="text-base font-black text-[#181614] mb-1">
-            Loading Pipeline Facts…
+            Checking recent store activity…
           </h2>
           <p className="text-xs text-[#78716C] font-mono">
-            Contacting outbox telemetry reader for {effectiveStoreId ? `branch ${effectiveStoreId}` : 'authorized branch'}
+            Checking recent activity for {effectiveStoreId ? `branch ${effectiveStoreId}` : 'authorized branch'}
           </p>
         </div>
       )}
@@ -104,10 +104,10 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
           </div>
           <div className="space-y-2">
             <h2 className="text-lg font-black text-red-900 tracking-tight">
-              Failed to Load Pipeline Diagnostics
+              Activity is temporarily unavailable
             </h2>
             <p className="text-xs sm:text-sm text-red-700 leading-relaxed max-w-lg mx-auto">
-              {errorMessage || 'An error occurred while communicating with the telemetry reader.'}
+              {errorMessage || "Your store's latest activity could not be fetched."}
             </p>
           </div>
           <div className="pt-2 flex justify-center gap-3">
@@ -116,13 +116,13 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
               onClick={fetchPipelineFacts}
               className="inline-flex items-center gap-1.5 bg-[#276350] hover:bg-[#1E4D3E] text-white px-5 py-2.5 rounded-2xl text-xs font-mono font-bold transition-all shadow-xs cursor-pointer"
             >
-              🔄 Retry Connection
+              🔄 Try again
             </button>
             <Link
-              href="/ops/pos"
+              href="/ops/cashier"
               className="inline-flex items-center gap-1.5 bg-[#FAF8F5] hover:bg-[#F3EFEA] border border-[#E3DDD2] text-[#181614] px-5 py-2.5 rounded-2xl text-xs font-mono font-bold transition-all cursor-pointer"
             >
-              ← Back to Active POS Terminal
+              ← Return to cashier
             </Link>
           </div>
         </div>
@@ -136,13 +136,13 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
           </div>
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300">
-              ⏳ Coming Soon (Phase 4)
+              ⏳ Not available just yet
             </div>
             <h2 className="text-lg font-black text-[#181614] tracking-tight">
-              Kafka Outbox & Worker Telemetry Coming Soon
+              Store activity is temporarily unavailable
             </h2>
             <p className="text-xs sm:text-sm text-[#78716C] leading-relaxed max-w-lg mx-auto">
-              This surface will display live projection pipeline health and event publication telemetry for{' '}
+              We could not read the latest stock and order updates for{' '}
               <span className="font-mono font-bold text-[#0E2A22]">
                 {effectiveStoreId ? `branch ${effectiveStoreId}` : 'your session-authorized branch'}
               </span>:
@@ -151,24 +151,24 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
 
           <div className="bg-[#FAF8F5] rounded-2xl border border-[#E3DDD2] p-4 text-left space-y-2 text-xs font-mono">
             <div className="flex items-center justify-between py-1 border-b border-[#E3DDD2]/60">
-              <span className="text-[#57534E]">Authoritative Telemetry Reader:</span>
-              <span className="font-bold text-[#0E2A22]">server/events/diagnostics.ts (createPipelineReader)</span>
+              <span className="text-[#57534E]">Latest confirmed update</span>
+              <span className="font-bold text-[#0E2A22]">Awaiting activity</span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-[#E3DDD2]/60">
-              <span className="text-[#57534E]">Outbox Queue Depth:</span>
-              <span className="font-bold text-[#0E2A22]">pendingCount & oldestPendingAt</span>
+              <span className="text-[#57534E]">Unsent updates</span>
+              <span className="font-bold text-[#0E2A22]">Awaiting confirmation</span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-[#E3DDD2]/60">
-              <span className="text-[#57534E]">Kafka Broker Acknowledgment:</span>
-              <span className="font-bold text-[#0E2A22]">lastBrokerAckAt</span>
+              <span className="text-[#57534E]">Last shared update</span>
+              <span className="font-bold text-[#0E2A22]">Awaiting confirmation</span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-[#E3DDD2]/60">
-              <span className="text-[#57534E]">OpenSearch Projection Progress:</span>
-              <span className="font-bold text-[#0E2A22]">lastProjectionAcceptedAt</span>
+              <span className="text-[#57534E]">Shop availability</span>
+              <span className="font-bold text-[#0E2A22]">Awaiting confirmation</span>
             </div>
             <div className="flex items-center justify-between py-1">
-              <span className="text-[#57534E]">Quarantine Monitor:</span>
-              <span className="font-bold text-[#0E2A22]">quarantineCount (poison pill isolation)</span>
+              <span className="text-[#57534E]">Updates requiring attention</span>
+              <span className="font-bold text-[#0E2A22]">Awaiting review</span>
             </div>
           </div>
 
@@ -178,13 +178,13 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
               onClick={fetchPipelineFacts}
               className="inline-flex items-center gap-1.5 bg-[#276350] hover:bg-[#1E4D3E] text-white px-5 py-2.5 rounded-2xl text-xs font-mono font-bold transition-all shadow-xs cursor-pointer"
             >
-              🔄 Retry Connection
+              🔄 Try again
             </button>
             <Link
-              href="/ops/pos"
+              href="/ops/cashier"
               className="inline-flex items-center gap-1.5 bg-[#FAF8F5] hover:bg-[#F3EFEA] border border-[#E3DDD2] text-[#181614] px-5 py-2.5 rounded-2xl text-xs font-mono font-bold transition-all cursor-pointer"
             >
-              ← Back to Active POS Terminal
+              ← Return to cashier
             </Link>
           </div>
         </div>
@@ -195,10 +195,10 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
         <div className="bg-white rounded-3xl border border-[#E3DDD2] p-12 text-center shadow-xs">
           <div className="text-3xl mb-2">📋</div>
           <h2 className="text-base font-black text-[#181614] mb-1">
-            No Outbox Telemetry Logged
+            No recent store activity
           </h2>
           <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-            Zero pending or published events recorded for store {effectiveStoreId ?? 'this branch'}.
+            No recorded stock updates or orders for store {effectiveStoreId ?? 'this branch'}.
           </p>
         </div>
       )}
@@ -209,12 +209,12 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
           {/* Top Metric Cards */}
           <PipelineMetricCards facts={facts} />
 
-          {/* Recent Outbox Events Table */}
+          {/* Recent activity Table */}
           <div className="space-y-3 pt-2">
             <div>
-              <h2 className="text-base font-black text-[#181614]">Recent Outbox Events</h2>
+              <h2 className="text-base font-black text-[#181614]">Recent activity</h2>
               <p className="text-xs font-mono text-[#78716C]">
-                Last 20 domain events recorded in transactional outbox for asynchronous Kafka publication
+                Latest changes to products and orders in your store
               </p>
             </div>
 
@@ -235,7 +235,7 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
               )}
             </div>
             <div className="text-right">
-              Outbox Invariant: <span className="font-bold text-[#276350]">At-Least-Once Delivery</span>
+              Status: <span className="font-bold text-[#276350]">Latest available activity</span>
             </div>
           </div>
         </div>

@@ -24,6 +24,7 @@
     "test": "node --test tests/*.test.mjs",
     "test:services": "node --conditions=react-server --test tests/services.unit.mjs",
     "test:india-demo": "node --test tests/india-demo-data.test.mjs",
+    "test:ai": "vitest run tests/ai/gemini-adapter.test.ts tests/ai/intent-schema.test.ts tests/ai/intent-merger.test.ts",
     "check:services": "node --conditions=react-server --env-file-if-exists=client/.env.local server/check-services.mjs",
     "db:migrate": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/run-migrations.ts",
     "db:seed:india-demo": "node --conditions=react-server --env-file-if-exists=client/.env.local server/db/seed-india-demo.ts",

@@ -42,6 +42,9 @@ jobs:
       - name: TypeScript typecheck
         run: pnpm typecheck
 
+      - name: AI intent and constraint safety tests
+        run: pnpm test:ai
+
       - name: Run Unit Tests
         run: pnpm test:unit
 

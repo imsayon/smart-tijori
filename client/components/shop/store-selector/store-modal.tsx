@@ -71,7 +71,7 @@ export function StoreModal({ isOpen, onClose }: StoreModalProps) {
               onSelect={() => { selectStore(store); onClose(); }} />
           )) : <div className="atelier-store-empty">No stores match those filters. Try another city or locality.</div>}
         </div>
-        <p className="atelier-store-note">Switching branches may clear a cart from another store. Demo-labelled listings represent sample stores, not verified retail partners.</p>
+        <p className="atelier-store-note">Switching branches may clear a cart from another store. Illustrative outlets are not verified retail partners.</p>
       </section>
     </div>
   );

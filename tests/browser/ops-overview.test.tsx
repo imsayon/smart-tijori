@@ -40,10 +40,10 @@ describe('Operations Overview', () => {
     expect(stats).toHaveTextContent('11');
     expect(stats).toHaveTextContent('2');
     expect(stats).toHaveTextContent('1');
-    expect(screen.getByText('Event pipeline')).toBeInTheDocument();
-    expect(screen.getByText('Pending events')).toBeInTheDocument();
+    expect(screen.getByText('Store updates')).toBeInTheDocument();
+    expect(screen.getByText('Updates waiting to share')).toBeInTheDocument();
     expect(screen.getByText('TIMEOUT')).toBeInTheDocument();
-    expect(screen.getByText('Last Kafka acknowledgment')).toBeInTheDocument();
+    expect(screen.getByText('Last shared update')).toBeInTheDocument();
   });
 
   it('leaves unknown values blank and explains when sources are unavailable', () => {
@@ -57,7 +57,7 @@ describe('Operations Overview', () => {
 
   it('links the dashboard to counter, inventory, and activity', () => {
     render(<OpsOverview />);
-    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/pos');
+    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/cashier');
     expect(screen.getByRole('link', { name: /^Inventory/i })).toHaveAttribute('href', '/ops/inventory');
     expect(screen.getByRole('link', { name: /View activity/i })).toHaveAttribute('href', '/ops/diagnostics');
   });
@@ -78,7 +78,7 @@ describe('Operations Overview', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Refresh facts/i }));
     await waitFor(() => expect(screen.getByText('Tracked SKUs')).toBeInTheDocument());
-    expect(screen.getByText('Pending events')).toBeInTheDocument();
+    expect(screen.getByText('Updates waiting to share')).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
     for (const [url] of fetchMock.mock.calls) expect(url).not.toContain('storeId');
     vi.unstubAllGlobals();

@@ -24,38 +24,38 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
   if (hasQuarantine) {
     bannerConfig = {
       icon: '🚨',
-      headline: 'Poison Pill Quarantine Active',
+      headline: 'Some store updates need attention',
       badgeText: 'ATTENTION REQUIRED',
       containerClass: 'bg-red-50 border-red-300 text-red-900',
     };
   } else if (hasError) {
     bannerConfig = {
       icon: '⚠️',
-      headline: `Pipeline Error: ${facts.lastError?.code}`,
+      headline: `Update issue: ${facts.lastError?.code}`,
       badgeText: 'ATTENTION REQUIRED',
       containerClass: 'bg-red-50 border-red-300 text-red-900',
     };
   } else if (hasPending) {
     bannerConfig = {
       icon: '⏳',
-      headline: `${facts.pendingCount} Outbox Events Pending Publication`,
+      headline: `${facts.pendingCount} store updates awaiting confirmation`,
       badgeText: 'ATTENTION REQUIRED',
       containerClass: 'bg-amber-50 border-amber-300 text-amber-900',
     };
   } else if (hasRetries) {
     bannerConfig = {
       icon: '⚠️',
-      headline: `${facts.projectionRetryCount} Projection Retries in Progress`,
+      headline: `${facts.projectionRetryCount} availability refresh attempts`,
       badgeText: 'ATTENTION REQUIRED',
       containerClass: 'bg-amber-50 border-amber-300 text-amber-900',
     };
   } else if (isUnconfirmed) {
     const unconfirmedMessage =
       facts.lastBrokerAckAt === null && facts.lastProjectionAcceptedAt === null
-        ? 'Awaiting Initial Broker Ack & Projection Progress'
+        ? 'Waiting for first store update'
         : facts.lastBrokerAckAt === null
-        ? 'Awaiting Initial Kafka Broker Acknowledgment'
-        : 'Awaiting Initial OpenSearch Projection Acceptance';
+        ? 'Waiting for first shared update'
+        : 'Waiting for updated availability';
 
     bannerConfig = {
       icon: '⏸️',
@@ -66,7 +66,7 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
   } else {
     bannerConfig = {
       icon: '✅',
-      headline: 'All Events Published & Projected',
+      headline: 'Store updates are up to date',
       badgeText: 'HEALTHY',
       containerClass: 'bg-emerald-50 border-emerald-300 text-emerald-900',
     };
@@ -84,7 +84,7 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
           </span>
           <div>
             <div className="text-xs font-bold uppercase tracking-wider">
-              Pipeline Health Status
+              Store update status
             </div>
             <div className="text-sm font-black">
               {bannerConfig.headline}
@@ -104,7 +104,7 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
         {/* Pending Outbox Count */}
         <div className="bg-white rounded-2xl border border-[#E3DDD2] p-4 shadow-2xs">
           <span className="text-[10px] uppercase font-bold text-[#78716C] block">
-            Outbox Queue Depth
+            Unsent updates
           </span>
           <span className="text-2xl font-black text-[#181614] mt-1 block">
             {facts.pendingCount}
@@ -112,14 +112,14 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
           <span className="text-[11px] text-[#78716C] mt-1 block truncate">
             {facts.oldestPendingAt
               ? `Oldest: ${new Date(facts.oldestPendingAt).toLocaleTimeString()}`
-              : 'Zero backlog'}
+              : 'Nothing pending'}
           </span>
         </div>
 
         {/* Kafka Broker Acknowledgment */}
         <div className="bg-white rounded-2xl border border-[#E3DDD2] p-4 shadow-2xs">
           <span className="text-[10px] uppercase font-bold text-[#78716C] block">
-            Last Kafka Broker Ack
+            Last shared update
           </span>
           <span className="text-lg font-black text-[#0E2A22] mt-1 block truncate">
             {facts.lastBrokerAckAt
@@ -129,14 +129,14 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
           <span className="text-[11px] text-[#78716C] mt-1 block truncate">
             {facts.lastBrokerAckAt
               ? new Date(facts.lastBrokerAckAt).toLocaleDateString()
-              : 'Awaiting publish'}
+              : 'No shared updates yet'}
           </span>
         </div>
 
         {/* Projection Progress */}
         <div className="bg-white rounded-2xl border border-[#E3DDD2] p-4 shadow-2xs">
           <span className="text-[10px] uppercase font-bold text-[#78716C] block">
-            Last Projection Accepted
+            Availability updated
           </span>
           <span className="text-lg font-black text-[#276350] mt-1 block truncate">
             {facts.lastProjectionAcceptedAt
@@ -146,14 +146,14 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
           <span className="text-[11px] text-[#78716C] mt-1 block truncate">
             {facts.lastProjectionAcceptedAt
               ? new Date(facts.lastProjectionAcceptedAt).toLocaleDateString()
-              : 'OpenSearch writer'}
+              : 'No updates yet'}
           </span>
         </div>
 
-        {/* Quarantine & Retries */}
+        {/* Updates needing review */}
         <div className="bg-white rounded-2xl border border-[#E3DDD2] p-4 shadow-2xs">
           <span className="text-[10px] uppercase font-bold text-[#78716C] block">
-            Quarantine & Retries
+            Updates needing review
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span
@@ -164,13 +164,13 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
               {facts.quarantineCount + facts.unattributedQuarantineCount}
             </span>
             <span className="text-xs text-[#78716C]">
-              quarantined / {facts.projectionRetryCount} retries
+              need review / {facts.projectionRetryCount} retries
             </span>
           </div>
           <span className="text-[11px] text-[#78716C] mt-1 block truncate">
             {facts.unattributedQuarantineCount > 0
               ? `(${facts.unattributedQuarantineCount} unattributed)`
-              : 'Poison pill isolation'}
+              : 'No issues detected'}
           </span>
         </div>
       </div>
@@ -180,7 +180,7 @@ export function PipelineMetricCards({ facts }: PipelineMetricCardsProps) {
         <div className="rounded-2xl border border-red-200 bg-red-50/60 p-4 text-xs font-mono">
           <div className="flex items-center gap-2 text-red-800 font-bold mb-1">
             <span>⚠️</span>
-            <span>Last Pipeline Error: {facts.lastError.code}</span>
+            <span>Last Update issue: {facts.lastError.code}</span>
           </div>
           <p className="text-red-700">
             Recorded at: {new Date(facts.lastError.at).toUTCString()}

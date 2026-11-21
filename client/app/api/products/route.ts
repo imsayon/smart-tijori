@@ -9,7 +9,7 @@ import {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Explicitly opted-in local fixture mode; live discovery stays OpenSearch-based.
-  if (new URL(request.url).searchParams.has("productId") || process.env.SMARTTIJORI_DEMO_MODE === "true" || process.env.ST_CATALOG_SOURCE === "postgres") {
+  if (new URL(request.url).searchParams.get("storeId")?.startsWith("dm-") || new URL(request.url).searchParams.has("productId") || process.env.SMARTTIJORI_DEMO_MODE === "true" || process.env.ST_CATALOG_SOURCE === "postgres") {
     return handleCommerceProducts(request);
   }
 

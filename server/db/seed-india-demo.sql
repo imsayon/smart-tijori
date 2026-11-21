@@ -1,55 +1,55 @@
--- OPT-IN SAMPLE DATA ONLY. Not real participating merchants or observed inventory.
+-- OPT-IN ILLUSTRATIVE DATA ONLY. Not real participating merchants or observed inventory.
 -- Geography names refer to real Indian towns/market areas; shop identities,
 -- prices, stock and purchase eligibility are synthetic demonstration fixtures.
 -- Run only in a disposable/explicitly approved st_* schema, not as normal migrations.
 INSERT INTO stores (id, name, city) VALUES
-  ('dm-blr-jay-kr', 'Demo · Jayanagar 4th Block Kirana', 'Bengaluru'),
-  ('dm-blr-krm-vg', 'Demo · KR Market Vegetable Stall', 'Bengaluru'),
-  ('dm-blr-ind-sm', 'Demo · Indiranagar Mini Supermarket', 'Bengaluru'),
-  ('dm-mys-dev-sp', 'Demo · Devaraja Market Spice Shop', 'Mysuru'),
-  ('dm-chi-ctl-kr', 'Demo · Mylapore Corner Kirana', 'Chennai'),
-  ('dm-coi-rsp-sm', 'Demo · RS Puram Neighbourhood Mart', 'Coimbatore'),
-  ('dm-mdu-mat-vg', 'Demo · Mattuthavani Produce Stall', 'Madurai'),
-  ('dm-kum-twn-te', 'Demo · Kumbakonam Town Tea & Grocery', 'Kumbakonam'),
-  ('dm-mum-dad-kr', 'Demo · Dadar West Kirana', 'Mumbai'),
-  ('dm-pun-tul-bz', 'Demo · Tulsi Baug Street Market', 'Pune'),
-  ('dm-nsk-pan-vg', 'Demo · Panchavati Produce Seller', 'Nashik'),
-  ('dm-bar-mkt-vg', 'Demo · Baramati Market Yard Vendor', 'Baramati'),
-  ('dm-kol-gar-fs', 'Demo · Gariahat Fish Seller', 'Kolkata'),
-  ('dm-kol-new-sm', 'Demo · New Market Grocery Mart', 'Kolkata'),
-  ('dm-sil-bid-sp', 'Demo · Bidhan Market Spice Shop', 'Siliguri'),
-  ('dm-bis-twn-kr', 'Demo · Bishnupur Town Kirana', 'Bishnupur'),
-  ('dm-del-sar-sm', 'Demo · Sarojini Nagar Grocery Mart', 'New Delhi'),
-  ('dm-del-kha-sp', 'Demo · Khari Baoli Spice Trader', 'New Delhi'),
-  ('dm-hyd-beg-kr', 'Demo · Begum Bazaar Kirana', 'Hyderabad'),
-  ('dm-war-han-vg', 'Demo · Hanamkonda Vegetable Seller', 'Warangal'),
-  ('dm-ahm-man-kr', 'Demo · Manek Chowk Kirana', 'Ahmedabad'),
-  ('dm-sur-ada-sm', 'Demo · Adajan Family Supermarket', 'Surat'),
-  ('dm-bhv-mai-st', 'Demo · Bhavnagar Main Bazaar Street Stall', 'Bhavnagar'),
-  ('dm-jai-joh-kr', 'Demo · Johari Bazaar Corner Kirana', 'Jaipur'),
-  ('dm-uda-hat-sp', 'Demo · Hathi Pole Spice Merchant', 'Udaipur'),
-  ('dm-dau-old-vg', 'Demo · Dausa Old Market Vendor', 'Dausa'),
-  ('dm-lko-ami-kr', 'Demo · Aminabad Kirana', 'Lucknow'),
-  ('dm-var-god-kr', 'Demo · Godowlia Grocery Shop', 'Varanasi'),
-  ('dm-gor-gol-vg', 'Demo · Golghar Produce Stall', 'Gorakhpur'),
-  ('dm-pat-bor-kr', 'Demo · Boring Road Kirana', 'Patna'),
-  ('dm-gay-tow-kr', 'Demo · Tower Chowk Grocery', 'Gaya'),
-  ('dm-bhu-uni-vg', 'Demo · Unit 1 Market Vegetable Stall', 'Bhubaneswar'),
-  ('dm-cut-cho-kr', 'Demo · Choudhury Bazar Kirana', 'Cuttack'),
-  ('dm-guw-fan-kr', 'Demo · Fancy Bazaar Grocery Shop', 'Guwahati'),
-  ('dm-nag-tow-vg', 'Demo · Nagaon Town Market Seller', 'Nagaon'),
-  ('dm-ran-upp-kr', 'Demo · Upper Bazar Kirana', 'Ranchi'),
-  ('dm-dha-ban-hh', 'Demo · Bank More Household Shop', 'Dhanbad'),
-  ('dm-koc-bro-sp', 'Demo · Broadway Spice Counter', 'Kochi'),
-  ('dm-pal-sul-kr', 'Demo · Sultanpet Grocery Shop', 'Palakkad'),
-  ('dm-ind-raj-kr', 'Demo · Rajwada Kirana', 'Indore'),
-  ('dm-bho-new-sm', 'Demo · New Market Supermarket', 'Bhopal'),
-  ('dm-viz-dwa-kr', 'Demo · Dwaraka Nagar Kirana', 'Visakhapatnam'),
-  ('dm-raj-mai-vg', 'Demo · Rajahmundry Produce Seller', 'Rajahmundry'),
-  ('dm-rai-gol-kr', 'Demo · Gol Bazar Kirana', 'Raipur'),
-  ('dm-amr-hal-bk', 'Demo · Hall Bazaar Bakery Counter', 'Amritsar'),
-  ('dm-deh-pal-kr', 'Demo · Paltan Bazar Grocery Shop', 'Dehradun'),
-  ('dm-sri-lal-dr', 'Demo · Lal Chowk Dry Fruit Seller', 'Srinagar')
+  ('dm-blr-jay-kr', 'Jayanagar 4th Block Kirana', 'Bengaluru'),
+  ('dm-blr-krm-vg', 'KR Market Vegetable Stall', 'Bengaluru'),
+  ('dm-blr-ind-sm', 'Indiranagar Mini Supermarket', 'Bengaluru'),
+  ('dm-mys-dev-sp', 'Devaraja Market Spice Shop', 'Mysuru'),
+  ('dm-chi-ctl-kr', 'Mylapore Corner Kirana', 'Chennai'),
+  ('dm-coi-rsp-sm', 'RS Puram Neighbourhood Mart', 'Coimbatore'),
+  ('dm-mdu-mat-vg', 'Mattuthavani Produce Stall', 'Madurai'),
+  ('dm-kum-twn-te', 'Kumbakonam Town Tea & Grocery', 'Kumbakonam'),
+  ('dm-mum-dad-kr', 'Dadar West Kirana', 'Mumbai'),
+  ('dm-pun-tul-bz', 'Tulsi Baug Street Market', 'Pune'),
+  ('dm-nsk-pan-vg', 'Panchavati Produce Seller', 'Nashik'),
+  ('dm-bar-mkt-vg', 'Baramati Market Yard Vendor', 'Baramati'),
+  ('dm-kol-gar-fs', 'Gariahat Fish Seller', 'Kolkata'),
+  ('dm-kol-new-sm', 'New Market Grocery Mart', 'Kolkata'),
+  ('dm-sil-bid-sp', 'Bidhan Market Spice Shop', 'Siliguri'),
+  ('dm-bis-twn-kr', 'Bishnupur Town Kirana', 'Bishnupur'),
+  ('dm-del-sar-sm', 'Sarojini Nagar Grocery Mart', 'New Delhi'),
+  ('dm-del-kha-sp', 'Khari Baoli Spice Trader', 'New Delhi'),
+  ('dm-hyd-beg-kr', 'Begum Bazaar Kirana', 'Hyderabad'),
+  ('dm-war-han-vg', 'Hanamkonda Vegetable Seller', 'Warangal'),
+  ('dm-ahm-man-kr', 'Manek Chowk Kirana', 'Ahmedabad'),
+  ('dm-sur-ada-sm', 'Adajan Family Supermarket', 'Surat'),
+  ('dm-bhv-mai-st', 'Bhavnagar Main Bazaar Street Stall', 'Bhavnagar'),
+  ('dm-jai-joh-kr', 'Johari Bazaar Corner Kirana', 'Jaipur'),
+  ('dm-uda-hat-sp', 'Hathi Pole Spice Merchant', 'Udaipur'),
+  ('dm-dau-old-vg', 'Dausa Old Market Vendor', 'Dausa'),
+  ('dm-lko-ami-kr', 'Aminabad Kirana', 'Lucknow'),
+  ('dm-var-god-kr', 'Godowlia Grocery Shop', 'Varanasi'),
+  ('dm-gor-gol-vg', 'Golghar Produce Stall', 'Gorakhpur'),
+  ('dm-pat-bor-kr', 'Boring Road Kirana', 'Patna'),
+  ('dm-gay-tow-kr', 'Tower Chowk Grocery', 'Gaya'),
+  ('dm-bhu-uni-vg', 'Unit 1 Market Vegetable Stall', 'Bhubaneswar'),
+  ('dm-cut-cho-kr', 'Choudhury Bazar Kirana', 'Cuttack'),
+  ('dm-guw-fan-kr', 'Fancy Bazaar Grocery Shop', 'Guwahati'),
+  ('dm-nag-tow-vg', 'Nagaon Town Market Seller', 'Nagaon'),
+  ('dm-ran-upp-kr', 'Upper Bazar Kirana', 'Ranchi'),
+  ('dm-dha-ban-hh', 'Bank More Household Shop', 'Dhanbad'),
+  ('dm-koc-bro-sp', 'Broadway Spice Counter', 'Kochi'),
+  ('dm-pal-sul-kr', 'Sultanpet Grocery Shop', 'Palakkad'),
+  ('dm-ind-raj-kr', 'Rajwada Kirana', 'Indore'),
+  ('dm-bho-new-sm', 'New Market Supermarket', 'Bhopal'),
+  ('dm-viz-dwa-kr', 'Dwaraka Nagar Kirana', 'Visakhapatnam'),
+  ('dm-raj-mai-vg', 'Rajahmundry Produce Seller', 'Rajahmundry'),
+  ('dm-rai-gol-kr', 'Gol Bazar Kirana', 'Raipur'),
+  ('dm-amr-hal-bk', 'Hall Bazaar Bakery Counter', 'Amritsar'),
+  ('dm-deh-pal-kr', 'Paltan Bazar Grocery Shop', 'Dehradun'),
+  ('dm-sri-lal-dr', 'Lal Chowk Dry Fruit Seller', 'Srinagar')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO products (id, name, category, purpose, price_paise, pack_quantity, pack_unit, attributes) VALUES
@@ -149,9 +149,9 @@ WITH profiles(store_id, kind) AS (
 INSERT INTO inventory (store_id, product_id, stock_on_hand)
 SELECT profiles.store_id, products.id,
   CASE
-    WHEN left(md5(profiles.store_id || ':' || products.id), 1) = '0' THEN 0
-    WHEN left(md5(profiles.store_id || ':' || products.id), 1) = '1' THEN 1
-    ELSE 3 + (('x' || substr(md5(profiles.store_id || ':' || products.id), 1, 6))::bit(24)::integer % 24)
+    WHEN get_byte(decode(md5(profiles.store_id || ':' || products.id), 'hex'), 0) % 16 = 0 THEN 0
+    WHEN get_byte(decode(md5(profiles.store_id || ':' || products.id), 'hex'), 0) % 16 = 1 THEN 1
+    ELSE 3 + (get_byte(decode(md5(profiles.store_id || ':' || products.id), 'hex'), 0) % 24)
   END
 FROM profiles
 JOIN products ON products.id LIKE 'demo-%'

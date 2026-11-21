@@ -10,7 +10,7 @@ import { AccountAccess } from '@/components/account/account-access';
 const views: { title: string; href: string; icon: IconName }[] = [
   { title: 'Overview', href: '/ops', icon: 'overview' },
   { title: 'Inventory', href: '/ops/inventory', icon: 'shelf' },
-  { title: 'Point of sale', href: '/ops/pos', icon: 'terminal' },
+  { title: 'Cashier counter', href: '/ops/cashier', icon: 'terminal' },
   { title: 'Activity', href: '/ops/diagnostics', icon: 'pulse' },
   { title: 'Reservations', href: '/ops/reservations', icon: 'clock' },
   { title: 'Orders', href: '/ops/orders', icon: 'receipt' },
@@ -49,7 +49,7 @@ export function OpsShell({ children, operator, fixture, branchName }: {
         <aside className="atelier-rail" id="workspace-sidebar" aria-label="Retail workspace sidebar">
           <div className="atelier-rail-head">
             <Wordmark href="/ops" dark />
-            <span className="atelier-rail-edition">THE NEIGHBOURHOOD OS / 02</span>
+            <span className="atelier-rail-edition">YOUR STORE · YOUR WORKSPACE</span>
           </div>
 
           <div className="atelier-rail-branch">
@@ -71,7 +71,7 @@ export function OpsShell({ children, operator, fixture, branchName }: {
                 aria-current={pathname === view.href ? 'page' : undefined}
                 onClick={() => setMobileOpen(false)}>
                 <Icon name={view.icon} size={16} />
-                <span>{view.title === 'Point of sale' ? 'POS' : view.title}</span>
+                <span>{view.title}</span>
                 <small aria-hidden="true">{String(index + 1).padStart(2, '0')}</small>
               </Link>
             ))}

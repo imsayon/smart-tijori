@@ -10,7 +10,7 @@ test('India demo seed remains visibly synthetic and conflict-safe', () => {
   assert.ok(storeRows.length >= 40);
   assert.ok(cities.size >= 25);
   assert.equal(new Set(storeIds).size, storeIds.length);
-  assert.ok(storeRows.every(row => row[2].startsWith('Demo · ')));
+  assert.ok(storeRows.every(row => !row[2].includes('Demo')));
   assert.match(sql, /ON CONFLICT \(id\) DO NOTHING/);
   assert.match(sql, /ON CONFLICT \(store_id, product_id\) DO NOTHING/);
   assert.doesNotMatch(sql, /TRUNCATE|DELETE FROM|DROP TABLE/i);
