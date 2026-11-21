@@ -55,7 +55,7 @@ describe('Interest and Recovery HTTP Handlers Tests', () => {
     expect(res.status).toBe(200);
 
     const result = await res.json();
-    expect(result.mode).toBe('ai');
+    expect(result.mode).toBe('rules'); // No model was invoked by the standalone adapter.
     expect(result.candidates.length).toBeLessThanOrEqual(3);
     for (const cand of result.candidates) {
       expect(cand.offer.productId).not.toBe('blr-detergent-liquid-1l');
