@@ -63,13 +63,15 @@ export const api = {
 
   async getProducts(params?: {
     q?: string;
+    productId?: string;
+    page?: number;
     category?: string;
     includeUnavailable?: boolean;
     minPricePaise?: number;
     maxPricePaise?: number;
     city?: string;
     storeId?: string;
-  }): Promise<{ items: ProductOffer[] }> {
+  }): Promise<{ items: ProductOffer[]; hasMore?: boolean }> {
     const searchParams = new URLSearchParams();
     if (params) {
       for (const [k, v] of Object.entries(params)) {
@@ -79,7 +81,7 @@ export const api = {
       }
     }
     const query = searchParams.toString();
-    return request<{ items: ProductOffer[] }>(`/api/products${query ? `?${query}` : ''}`);
+    return request<{ items: ProductOffer[]; hasMore?: boolean }>(`/api/products${query ? `?${query}` : ''}`);
   },
 
   async getCart(): Promise<Cart> {
@@ -140,6 +142,7 @@ export const api = {
   async getRecovery(params: {
     storeId: string;
     unavailableProductId: string;
+    quantity?: number;
     text?: string;
     explicitConstraints?: Partial<RecoveryConstraints>;
   }): Promise<RecoveryResult> {

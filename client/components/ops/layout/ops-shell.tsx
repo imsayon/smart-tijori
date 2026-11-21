@@ -1,124 +1,108 @@
 'use client';
 
-import React from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils/cn';
+import { Icon, Wordmark, type IconName } from '@/components/ui/atelier';
 import type { OperatorActor } from '@server/http/auth/operator-guard';
-import { OperatorAccess } from './operator-access';
+import { AccountAccess } from '@/components/account/account-access';
 
-interface NavItem {
-  name: string;
-  href: string;
-  icon: string;
-  badge?: string;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { name: 'Overview', href: '/ops', icon: '📊' },
-  { name: 'POS Terminal', href: '/ops/pos', icon: '🏪', badge: 'Active' },
-  { name: 'Store Inventory', href: '/ops/inventory', icon: '📦' },
-  { name: 'Diagnostics', href: '/ops/diagnostics', icon: '⚡' },
+const views: { title: string; href: string; icon: IconName }[] = [
+  { title: 'Overview', href: '/ops', icon: 'overview' },
+  { title: 'Inventory', href: '/ops/inventory', icon: 'shelf' },
+  { title: 'Point of sale', href: '/ops/pos', icon: 'terminal' },
+  { title: 'Activity', href: '/ops/diagnostics', icon: 'pulse' },
+  { title: 'Reservations', href: '/ops/reservations', icon: 'clock' },
+  { title: 'Orders', href: '/ops/orders', icon: 'receipt' },
 ];
+const primaryViews = views.slice(0, 4);
 
-interface OpsShellProps {
-  children: React.ReactNode;
-  operator: OperatorActor | null;
-  fixture: boolean;
-}
-
-export function OpsShell({ children, operator, fixture }: OpsShellProps) {
+export function OpsShell({ children, operator, fixture, branchName }: {
+  children: ReactNode; operator: OperatorActor | null; fixture: boolean; branchName?: string;
+}) {
   const pathname = usePathname();
-
-  const isItemActive = (href: string) => {
-    if (href === '/ops') {
-      return pathname === '/ops';
-    }
-    return pathname.startsWith(href);
+  const [query, setQuery] = useState('');
+  const command = useRef<HTMLDialogElement>(null);
+  const openSearch = () => {
+    setQuery('');
+    command.current?.showModal();
   };
 
+  useEffect(() => {
+    if (!operator) return;
+    function shortcut(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        if (command.current?.open) command.current.close();
+        else openSearch();
+      }
+    }
+    window.addEventListener('keydown', shortcut);
+    return () => window.removeEventListener('keydown', shortcut);
+  }, [operator]);
+
   return (
-    <div className="min-h-screen bg-[#F6F4EE] text-[#181614] antialiased">
-      {/* Workbench Global Header */}
-      <header className="sticky top-0 z-30 bg-[#0E2A22] text-[#FAF8F5] border-b border-[#276350] shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
-            {/* Brand & Subtitle */}
-            <div className="flex items-center gap-3">
-              <Link href="/ops" className="flex items-center gap-2 group">
-                <span className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-1.5">
-                  <span className="text-lime-400">Smart</span>Tijori
-                </span>
-                <span className="text-xs font-mono font-bold uppercase tracking-wider bg-lime-400/20 text-lime-300 px-2 py-0.5 rounded-md border border-lime-400/30">
-                  Ops
-                </span>
-              </Link>
-              <span className="hidden md:inline text-xs text-[#E8F3EE]/60 border-l border-emerald-800/80 pl-3">
-                Store Operations Workbench
-              </span>
-            </div>
-
-            {/* Operator Session Pill & Adapter Disclosure */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {operator && <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#163D31] text-[#E8F3EE] border border-[#276350]">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>{operator.storeId}</span>
-                <span className="text-emerald-400/60">·</span>
-                <span className="text-emerald-200">{operator.operatorId} (operator)</span>
-              </div>}
-
-              {operator && <span className="text-[11px] bg-amber-500/20 text-amber-300 font-mono font-bold px-2.5 py-1 rounded-full border border-amber-500/40">
-                {fixture ? '⚡ DEMO MODE' : 'Live operations'}
-              </span>}
-              {operator && !fixture && <OperatorAccess signedIn />}
-
-              <Link
-                href="/"
-                className="text-xs text-[#E8F3EE]/80 hover:text-white px-2.5 py-1 rounded-lg hover:bg-emerald-800/40 transition-colors"
-                title="Return to customer shop"
-              >
-                ← Shop
-              </Link>
-            </div>
-          </div>
-
-          {/* Workbench Responsive Navigation Bar */}
-          <nav
-            aria-label="Operations Navigation"
-            className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-2 -mb-px border-t border-[#1E4D3E] text-xs font-semibold"
-          >
-            {NAV_ITEMS.map((item) => {
-              const active = isItemActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all font-mono text-xs',
-                    active
-                      ? 'bg-lime-400 text-[#0E2A22] font-black shadow-sm'
-                      : 'text-[#E8F3EE]/80 hover:text-white hover:bg-[#163D31]'
-                  )}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.name}</span>
-                  {item.badge && !active && (
-                    <span className="text-[9px] bg-lime-400/20 text-lime-300 px-1.5 py-0.2 rounded-full font-bold">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+    <div className="atelier-ops">
+      <a className="atelier-skip" href="#workspace">Skip to content</a>
+      <header className="atelier-ops-top">
+        <Wordmark href="/ops" />
+        {operator ? <>
+          <nav id="workspace-navigation" aria-label="Operations Navigation" className="atelier-ops-nav">
+            {primaryViews.map(view => <Link key={view.href} href={view.href}
+              aria-current={pathname === view.href ? 'page' : undefined}>
+              <span>{view.title === 'Point of sale' ? 'POS' : view.title}</span>
+            </Link>)}
           </nav>
-        </div>
+          <div className="atelier-ops-tools">
+            <span className="atelier-branch-chip" title={branchName ?? operator.storeId}>
+              <Icon name="pin" size={15} /><span>{branchName ?? operator.storeId}</span>
+            </span>
+            {fixture && <span className="atelier-tag atelier-tag-warn">Demo mode</span>}
+            <button type="button" className="atelier-top-icon" aria-label="Search workspace" onClick={openSearch}>
+              <Icon name="search" />
+            </button>
+            <details className="atelier-top-menu">
+              <summary className="atelier-top-icon" aria-label="Open workspace menu" title="Workspace menu"><Icon name="menu" /></summary>
+              <div className="atelier-top-popover">
+                <p className="atelier-label">Workspace</p>
+                {views.slice(4).map(view => <Link key={view.href} href={view.href} aria-current={pathname === view.href ? 'page' : undefined}>
+                  <Icon name={view.icon} />{view.title}<Icon name="arrow" size={14} />
+                </Link>)}
+                <Link href="/" className="atelier-popover-shop"><Icon name="shop" />Shopper storefront<Icon name="upRight" size={13} /></Link>
+              </div>
+            </details>
+            <details className="atelier-top-menu atelier-profile-menu">
+              <summary aria-label={`Account menu for ${operator.operatorId}`} title="Merchant account">
+                {operator.operatorId.slice(0, 2).toUpperCase()}
+              </summary>
+              <div className="atelier-top-popover atelier-profile-popover">
+                <p className="atelier-label">Merchant account</p>
+                <strong>{operator.operatorId}</strong>
+                <span>{operator.storeId}</span>
+                {!fixture && <AccountAccess merchant signedIn />}
+              </div>
+            </details>
+          </div>
+        </> : <div className="atelier-ops-tools">
+          <Link className="atelier-top-shop" href="/">Shop <Icon name="arrow" size={14} /></Link>
+        </div>}
       </header>
-
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {children}
-      </main>
+      <main className="atelier-ops-main" id="workspace">{children}</main>
+      {operator && <dialog className="atelier-command" ref={command}>
+        <header><label htmlFor="workspace-search">Find a workspace page</label>
+          <form method="dialog"><button type="submit" className="atelier-icon-button" aria-label="Close page search"><Icon name="close" /></button></form>
+        </header>
+        <input id="workspace-search" className="atelier-input" type="search" placeholder="Inventory, orders, point of sale…" value={query}
+          onChange={event => setQuery(event.target.value)} />
+        <div className="atelier-command-links">
+          {views.filter(view => view.title.toLowerCase().includes(query.trim().toLowerCase())).map(view => (
+            <Link key={view.href} href={view.href} onClick={() => command.current?.close()}>
+              <Icon name={view.icon} />{view.title}<Icon name="arrow" size={14} />
+            </Link>
+          ))}
+          {!views.some(view => view.title.toLowerCase().includes(query.trim().toLowerCase())) && <p>No matching pages.</p>}
+        </div>
+      </dialog>}
     </div>
   );
 }

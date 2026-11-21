@@ -1,3 +1,4 @@
+import { paymentConfig, reconcilePayments } from "./payments/razorpay.ts";
 import "server-only";
 import { setTimeout as sleep } from "node:timers/promises";
 import type { KafkaJS } from "@confluentinc/kafka-javascript";
@@ -104,6 +105,19 @@ export async function runWorker({ db, kafka, topic, groupId, writeProjection, si
         await wait(500, signal);
       }
     };
+    const paymentSweep = async () => {
+      const config = paymentConfig();
+      if (!config) return;
+      while (!signal.aborted) {
+        try {
+          await reconcilePayments(db, config);
+        } catch {
+          console.error("[payments] Could not read reconciliation queue");
+        }
+        await wait(5_000, signal);
+      }
+    };
+
     const sweep = async () => {
       while (!signal.aborted) {
         try {
@@ -114,7 +128,7 @@ export async function runWorker({ db, kafka, topic, groupId, writeProjection, si
         await wait(1_000, signal);
       }
     };
-    await Promise.all([relay(), sweep()]);
+    await Promise.all([relay(), sweep(), paymentSweep()]);
   } finally {
     const shutdown = await Promise.allSettled([
       consumer.disconnect(),

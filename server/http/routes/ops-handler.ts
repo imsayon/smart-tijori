@@ -3,7 +3,8 @@ import { createCommerceFacts } from '../../commerce/facts';
 import { createPipelineReader } from '../../events/diagnostics';
 import type { Database } from '../../db/database';
 import { getCommerceDatabase } from '../../db/runtime';
-import { verifyOperatorSession, type OperatorActor } from '../auth/operator-guard';
+import type { OperatorActor } from '../auth/operator-guard';
+import { requireMerchant } from '../auth/merchant';
 import { handleServerError, HttpError } from '../errors/http-errors';
 
 let opsDatabase: Database | undefined;
@@ -37,7 +38,7 @@ function resolveAuthorizedStoreId(request: Request, operator: OperatorActor): st
 
 export async function handleGetOpsInventory(request: Request): Promise<NextResponse> {
   try {
-    const operator = verifyOperatorSession(request);
+    const operator = await requireMerchant(request);
     const storeId = resolveAuthorizedStoreId(request, operator);
 
     const db = getOpsDatabase();
@@ -53,7 +54,7 @@ export async function handleGetOpsInventory(request: Request): Promise<NextRespo
 
 export async function handleGetOpsDiagnostics(request: Request): Promise<NextResponse> {
   try {
-    const operator = verifyOperatorSession(request);
+    const operator = await requireMerchant(request);
     const storeId = resolveAuthorizedStoreId(request, operator);
 
     const db = getOpsDatabase();

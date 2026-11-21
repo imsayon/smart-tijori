@@ -9,7 +9,7 @@ export const metadata = { title: 'Operations Overview | SmartTijori' };
 export default async function OpsOverviewPage() {
   const { actor, fixture } = await readWorkbenchOperator();
   if (!actor?.storeId) return null;
-  if (fixture) return <p>Live branch facts require a PostgreSQL connection.</p>;
+  if (fixture) return <OpsOverview storeId={actor.storeId} fixture />;
   const db = getCommerceDatabase();
   const [inventory, pipeline] = await Promise.allSettled([
     createCommerceFacts(db).readOpsFacts(actor.storeId),

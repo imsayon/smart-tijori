@@ -1,68 +1,44 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Icon, Wordmark } from '@/components/ui/atelier';
 import { useStore } from '@/lib/session/store-context';
 
 export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => void }) {
+  const pathname = usePathname();
   const { selectedStore, cartItemCount, openStoreModal } = useStore();
-  const handleOpen = onOpenStoreSelector ?? openStoreModal;
 
-  return (
-    <header className="sticky top-0 z-40 bg-[#173F35] text-white shadow-md border-b border-[#275546]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
-        {/* Brand */}
-        <div className="flex min-w-0 items-center gap-2 sm:gap-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 group">
-            <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-              <span className="text-lime-400">Smart</span>Tijori
-            </span>
-          </Link>
-
-          {/* Branch selector trigger */}
-          <button
-            type="button"
-            onClick={handleOpen}
-            className="flex min-w-0 items-center gap-1.5 text-xs sm:text-sm bg-[#275546] hover:bg-[#326956] text-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-600/40 transition-colors focus:outline-hidden focus:ring-2 focus:ring-lime-400"
-            aria-label="Current store. Click to change store."
-          >
-            <span className="w-2 h-2 rounded-full bg-lime-400" />
-            <span className="truncate font-semibold text-white">
-              {selectedStore ? selectedStore.name : 'Select Store'}
-            </span>
-            {selectedStore?.area && (
-              <span className="hidden sm:inline text-[10px] bg-emerald-900/60 text-emerald-200 px-1.5 py-0.5 rounded-md">
-                {selectedStore.area}
-              </span>
-            )}
-            <span className="text-emerald-300 text-xs">▼</span>
-          </button>
-        </div>
-
-        {/* Navigation links */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-4">
-          <Link
-            href="/search"
-            className="text-sm text-emerald-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-emerald-800/40 transition-colors"
-          >
-            Search
-          </Link>
-
-          {/* Cart Icon */}
-          <Link
-            href="/cart"
-            className="relative flex items-center gap-2 bg-lime-400 hover:bg-lime-300 text-[#173F35] font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-white"
-            aria-label={`Cart with ${cartItemCount} items`}
-          >
-            <span>Cart</span>
-            {cartItemCount > 0 && (
-              <span className="bg-[#173F35] text-white text-xs px-2 py-0.5 rounded-full font-extrabold min-w-[20px] text-center">
-                {cartItemCount}
-              </span>
-            )}
-          </Link>
-        </div>
+  return <>
+    <div className="atelier-ribbon"><span>THE NEIGHBOURHOOD EDITION</span><span>STOCK YOU CAN TRUST. SHOP LOCAL.</span><span>WALNUT ATELIER&nbsp; / &nbsp;INDIA</span></div>
+    <header className="atelier-shop-top">
+      <Wordmark href="/" />
+      <nav aria-label="Shop navigation" className="atelier-shop-nav">
+        <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Discover</Link>
+        <Link href="/#market">Shop products</Link>
+        <Link href="/#stock">How it works</Link>
+      </nav>
+      <div className="atelier-shop-tools">
+        <button type="button" className="atelier-branch-select" onClick={onOpenStoreSelector ?? openStoreModal}
+          aria-label={`Current branch: ${selectedStore?.name ?? 'Choose a branch'}. Change branch`}>
+          <Icon name="pin" size={15} /><span>{selectedStore?.name ?? 'Choose a branch'}</span><span aria-hidden="true">⌄</span>
+        </button>
+        <Link className="atelier-shop-icon" href="/search" aria-label="Search products"><Icon name="search" /></Link>
+        <Link className="atelier-profile-link" href="/account" aria-label="Your account"><Icon name="person" size={18} /></Link>
+        <details className="atelier-shop-menu">
+          <summary className="atelier-shop-icon" aria-label="Open menu" title="Menu"><Icon name="menu" /></summary>
+          <nav aria-label="More shop links" className="atelier-shop-popover">
+            <p className="atelier-label">Your shop</p>
+            <Link href="/stores"><Icon name="pin" />Choose a branch</Link>
+            <Link href="/orders"><Icon name="receipt" />Orders</Link>
+            <Link href="/account"><Icon name="person" />Account</Link>
+            <Link href="/ops"><Icon name="shelf" />Retail workspace<Icon name="upRight" size={13} /></Link>
+          </nav>
+        </details>
+        <Link className="atelier-bag-link" href="/cart" aria-label={`Bag with ${cartItemCount} items`}>
+          <span>Bag</span><b>{cartItemCount}</b><Icon name="arrow" size={14} />
+        </Link>
       </div>
     </header>
-  );
+  </>;
 }

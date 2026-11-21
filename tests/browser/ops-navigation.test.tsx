@@ -2,6 +2,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { OPERATOR_ROLE } from '@server/http/auth/operator-guard';
 import { OpsShell } from '@/components/ops/layout/ops-shell';
 import OpsOverviewPage from '@/app/ops/page';
@@ -44,7 +45,7 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     mockPathname.mockReturnValue('/ops');
   });
 
-  it('renders workbench brand, server-verified session pill, and runtime mode indicator', () => {
+  it('renders the workbench brand, branch, account, and runtime mode', () => {
     render(
       <OpsShell operator={actor} fixture>
         <div>Content</div>
@@ -53,14 +54,13 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
 
     expect(screen.getByText(/Smart/i)).toBeInTheDocument();
     expect(screen.getByText(/Tijori/i)).toBeInTheDocument();
-    expect(screen.getByText('Ops')).toBeInTheDocument();
-    expect(screen.getByText(/blr-01/i)).toBeInTheDocument();
-    expect(screen.getByText(/cashier \(operator\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/⚡ DEMO MODE/i)).toBeInTheDocument();
+    expect(document.querySelector('.atelier-branch-chip')).toHaveTextContent('blr-01');
+    expect(screen.getByText('cashier')).toBeInTheDocument();
+    expect(screen.getByText('Demo mode')).toBeInTheDocument();
   });
 
-  it('renders all four navigation items with expected links', () => {
-    render(
+  it('renders the primary tabs and reveals the remaining pages from the menu', async () => {
+    const { container } = render(
       <OpsShell operator={actor} fixture>
         <div>Content</div>
       </OpsShell>
@@ -72,14 +72,18 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     const overviewLink = screen.getByRole('link', { name: /Overview/i });
     expect(overviewLink).toHaveAttribute('href', '/ops');
 
-    const posLink = screen.getByRole('link', { name: /POS Terminal/i });
+    const posLink = screen.getByRole('link', { name: 'POS' });
     expect(posLink).toHaveAttribute('href', '/ops/pos');
 
-    const inventoryLink = screen.getByRole('link', { name: /Store Inventory/i });
+    const inventoryLink = screen.getByRole('link', { name: 'Inventory' });
     expect(inventoryLink).toHaveAttribute('href', '/ops/inventory');
 
-    const diagnosticsLink = screen.getByRole('link', { name: /Diagnostics/i });
+    const diagnosticsLink = screen.getByRole('link', { name: 'Activity' });
     expect(diagnosticsLink).toHaveAttribute('href', '/ops/diagnostics');
+
+    await userEvent.click(container.querySelector('summary[aria-label="Open workspace menu"]')!);
+    expect(screen.getByRole('link', { name: 'Reservations' })).toHaveAttribute('href', '/ops/reservations');
+    expect(screen.getByRole('link', { name: 'Orders' })).toHaveAttribute('href', '/ops/orders');
   });
 
   it('highlights the active navigation link based on current route', () => {
@@ -92,21 +96,21 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
       </OpsShell>
     );
 
-    const posLink = screen.getByRole('link', { name: /POS Terminal/i });
+    const posLink = screen.getByRole('link', { name: 'POS' });
     expect(posLink).toHaveAttribute('aria-current', 'page');
 
     const overviewLink = screen.getByRole('link', { name: /Overview/i });
     expect(overviewLink).not.toHaveAttribute('aria-current');
   });
 
-  it('renders Operations Overview page with quick links to all workstreams', async () => {
+  it('renders the editorial Overview and links to the operational data views', async () => {
     render(await OpsOverviewPage());
 
-    expect(screen.getByText('SmartTijori Operations Workbench')).toBeInTheDocument();
-    expect(screen.getByText('In-Store Cashier POS')).toBeInTheDocument();
-    expect(screen.getByText('Store Inventory Monitor')).toBeInTheDocument();
-    expect(screen.getByText('Pipeline Diagnostics')).toBeInTheDocument();
-    expect(screen.getByText(/Architectural Single-Stock Invariant/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /A clearer view of commerce/i })).toBeInTheDocument();
+    expect(screen.getByText('One stock ledger')).toBeInTheDocument();
+    expect(screen.getByText('Recent stock movements')).toBeInTheDocument();
+    expect(screen.getByText('Event pipeline')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/pos');
   });
 
   it('renders authoritative held and available quantities', async () => {

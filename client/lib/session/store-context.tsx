@@ -29,7 +29,7 @@ interface StoreContextValue {
 const StoreContext = createContext<StoreContextValue | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [selectedStoreId, setSelectedStoreId] = useState<string>('blr-01');
+  const [selectedStoreId, setSelectedStoreId] = useState('');
   const [availableStores, setAvailableStores] = useState<Store[]>([]);
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -52,9 +52,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return;
         setAvailableStores(storesRes.stores);
         setCart(cartRes);
-        if (cartRes.storeId) {
-          setSelectedStoreId(cartRes.storeId);
-        }
+        setSelectedStoreId(cartRes.storeId || storesRes.stores[0]?.id || '');
       } catch (err) {
         if (!mounted) return;
         console.error('Failed to initialize store context:', err);
@@ -82,14 +80,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const selectStore = useCallback((store: Store) => {
+  const selectStore = useCallback(async (store: Store) => {
     // If cart has items from another store, prompt confirmation first
     if (cart && cart.lines.length > 0 && cart.storeId !== store.id) {
       setPendingStoreSwitch(store);
       return;
     }
 
-    setSelectedStoreId(store.id);
+    if (cart?.storeId === store.id) return;
+    try {
+      setError(null);
+      const updated = await api.updateCart(store.id, []);
+      setCart(updated);
+      setSelectedStoreId(store.id);
+    } catch {
+      setError('Could not change branches. Please try again.');
+    }
   }, [cart]);
 
   const confirmStoreSwitch = useCallback(async () => {
@@ -119,7 +125,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       // Ensure store matches
       const targetStoreId = offer.storeId;
-      const currentLines = targetStoreId === cart.storeId ? [...cart.lines] : [];
+      if (targetStoreId !== selectedStoreId) throw new Error('This offer belongs to a different branch.');
+      const currentLines = targetStoreId === cart.storeId ? cart.lines.map(line => ({ ...line })) : [];
 
       const existingIndex = currentLines.findIndex((l) => l.productId === offer.productId);
       if (existingIndex >= 0) {
@@ -145,7 +152,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         throw err;
       }
     },
-    [cart]
+    [cart, selectedStoreId]
   );
 
   const updateCartQuantity = useCallback(

@@ -130,6 +130,7 @@ export class FixtureCommerceAdapter implements CommerceCommands {
     storeId: string,
     params?: {
       q?: string;
+      productId?: string;
       category?: string;
       minPricePaise?: number;
       maxPricePaise?: number;
@@ -137,7 +138,7 @@ export class FixtureCommerceAdapter implements CommerceCommands {
     }
   ): Promise<ProductOffer[]> {
     const offers = searchOffers(storeId, params);
-    return offers.map((o) => ({
+    return offers.filter(o => !params?.productId || o.productId === params.productId).map((o) => ({
       ...o,
       available: this.getEffectiveAvailable(o),
       checkedAt: new Date().toISOString(),

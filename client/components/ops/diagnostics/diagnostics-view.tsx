@@ -51,7 +51,7 @@ export function DiagnosticsView({ storeId, initialFacts }: DiagnosticsViewProps)
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="atelier-diagnostics space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E3DDD2]">
         <div>

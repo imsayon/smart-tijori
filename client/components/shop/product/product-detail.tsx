@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ProductOffer } from '@/contracts';
 import { formatPaise } from '@/lib/utils/currency';
 import { useStore } from '@/lib/session/store-context';
+import { ProductImage } from './product-image';
 import { StockBadge } from './stock-badge';
 
 export function ProductDetail({ offer }: { offer: ProductOffer }) {
@@ -29,7 +30,7 @@ export function ProductDetail({ offer }: { offer: ProductOffer }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         {/* Visual Showcase */}
         <div className="bg-stone-100 rounded-2xl aspect-square flex items-center justify-center text-7xl select-none relative overflow-hidden border border-stone-200/80">
-          <span>{offer.category === 'pantry' ? '🌾' : offer.category === 'household' ? '🧼' : '🧴'}</span>
+          <ProductImage key={offer.imageUrl} offer={offer} />
           <div className="absolute top-4 left-4">
             <StockBadge available={offer.available} />
           </div>
@@ -99,7 +100,7 @@ export function ProductDetail({ offer }: { offer: ProductOffer }) {
                   href={`/interest?storeId=${offer.storeId}&productId=${offer.productId}`}
                   className="w-full text-center block bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors shadow-xs"
                 >
-                  Save stock interest (Notify me)
+                  Save restock interest
                 </Link>
               </div>
             ) : currentQty === 0 ? (

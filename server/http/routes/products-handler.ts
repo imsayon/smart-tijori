@@ -17,11 +17,12 @@ export async function handleGetProducts(request: Request): Promise<NextResponse>
       throw new HttpError('VALIDATION_ERROR', 'Invalid query parameters', 400, parsed.error.format());
     }
 
-    const { storeId = 'blr-01', q, category, minPricePaise, maxPricePaise, city } = parsed.data;
+    const { storeId = 'blr-01', q, productId, category, minPricePaise, maxPricePaise, city, page } = parsed.data;
 
     const adapter = getCommerceCommands();
     const items = await adapter.getProductOffers(storeId, {
       q,
+      productId,
       category,
       minPricePaise,
       maxPricePaise,
@@ -31,9 +32,12 @@ export async function handleGetProducts(request: Request): Promise<NextResponse>
     // Max 24 per contract
     const offers = url.searchParams.get('includeUnavailable') === 'false'
       ? items.filter((offer) => offer.available > 0) : items;
-    const boundedItems = offers.slice(0, 24);
-
-    return NextResponse.json({ items: boundedItems });
+    const offset = (page - 1) * 24;
+    const itemsForPage = offers.slice(offset, offset + 24);
+    return NextResponse.json({
+      items: itemsForPage,
+      ...(url.searchParams.has('page') && { hasMore: page < 400 && offers.length > offset + 24 }),
+    });
   } catch (err) {
     return handleServerError(err);
   }

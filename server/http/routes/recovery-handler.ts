@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCommerceCommands } from '../adapters';
-import { resolveSession, buildSessionCookieHeader } from '../sessions/session-manager';
+import { buildSessionCookieHeader } from '../sessions/session-manager';
+import { resolveShopper } from '../auth/shopper';
 import { validateMutationOrigin } from '../security/csrf';
 import { parseBoundedJson } from '../security/payload-bounds';
 import { recoveryRequestSchema } from '../validation/schemas';
@@ -10,7 +11,7 @@ import type { RecoveryResult, RecoveryCandidate, RecoveryConstraints } from '@/c
 export async function handlePostRecovery(request: Request): Promise<NextResponse> {
   try {
     validateMutationOrigin(request);
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
 
     const rawBody = await parseBoundedJson(request);
     const parsed = recoveryRequestSchema.safeParse(rawBody);
@@ -23,7 +24,7 @@ export async function handlePostRecovery(request: Request): Promise<NextResponse
       );
     }
 
-    const { storeId, unavailableProductId, explicitConstraints } = parsed.data;
+    const { storeId, unavailableProductId, quantity, explicitConstraints } = parsed.data;
     const adapter = getCommerceCommands();
 
     // Look up current offers for this store
@@ -46,7 +47,7 @@ export async function handlePostRecovery(request: Request): Promise<NextResponse
 
     // Candidates must be from the same store, available > 0, and not the unavailable product itself
     const candidateOffers = allOffers.filter(
-      (o) => o.storeId === storeId && o.productId !== unavailableProductId && o.available > 0
+      (o) => o.storeId === storeId && o.productId !== unavailableProductId && o.available >= quantity
     );
 
     const eligibleCandidates: RecoveryCandidate[] = [];
@@ -108,6 +109,7 @@ export async function handlePostRecovery(request: Request): Promise<NextResponse
     const result: RecoveryResult = {
       mode: 'rules', // No model is called by this standalone deterministic adapter.
       constraints,
+      ...(unavailableOffer ? { unavailableOffer } : {}),
       candidates: topCandidates,
       checkedAt: new Date().toISOString(),
     };

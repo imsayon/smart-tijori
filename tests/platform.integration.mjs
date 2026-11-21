@@ -15,9 +15,9 @@ import { createEventProducer, publishEvent, runWorker } from "../server/worker.t
 import { recordingWriter } from "./fixtures/recording-writer.mjs";
 
 const storeId = "blr-01";
-const schema = "st_platform_local";
-const topic = "commerce.events.platform-local.v1";
-const groupId = "st-projector-platform-local-v1";
+const schema = process.env.ST_TEST_SCHEMA ?? "st_platform_local";
+const topic = process.env.ST_TEST_TOPIC ?? "commerce.events.platform-local.v1";
+const groupId = process.env.ST_TEST_GROUP ?? "st-projector-platform-local-v1";
 const pool = new Pool({
   connectionString: "postgres://platform:local-platform-only@127.0.0.1:15439/platform",
   max: 12, connectionTimeoutMillis: 2_000,

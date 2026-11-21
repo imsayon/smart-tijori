@@ -5,16 +5,18 @@ import Link from 'next/link';
 import type { OpsFacts } from '@/contracts';
 import { api, ApiClientError } from '@/lib/api-client';
 import { InventoryStockTable } from './inventory-stock-table';
+import { RestockForm } from './restock-form';
 import { InventoryMovementLedger } from './inventory-movement-ledger';
 
 interface InventoryViewProps {
   storeId?: string;
+  canRestock?: boolean;
   initialFacts?: OpsFacts | null;
 }
 
 type ViewState = 'loading' | 'success' | 'empty' | 'error' | 'pending_api';
 
-export function InventoryView({ storeId, initialFacts }: InventoryViewProps) {
+export function InventoryView({ storeId, initialFacts, canRestock = false }: InventoryViewProps) {
   const [facts, setFacts] = useState<OpsFacts | null>(initialFacts ?? null);
   const [state, setState] = useState<ViewState>(() => {
     if (initialFacts) {
@@ -70,7 +72,7 @@ export function InventoryView({ storeId, initialFacts }: InventoryViewProps) {
   }, [facts, searchTerm]);
 
   return (
-    <div className="space-y-6">
+    <div className="atelier-inventory space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E3DDD2]">
         <div>
@@ -87,7 +89,7 @@ export function InventoryView({ storeId, initialFacts }: InventoryViewProps) {
             Store: <strong className="text-[#276350]">{effectiveStoreId ?? 'Session Authorized'}</strong>
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-stone-100 text-[#57534E] border border-stone-200">
-            Read-Only
+            {canRestock ? "Stock management" : "Read-Only"}
           </span>
           <button
             type="button"
@@ -101,6 +103,8 @@ export function InventoryView({ storeId, initialFacts }: InventoryViewProps) {
           </button>
         </div>
       </div>
+
+      {canRestock && facts && <RestockForm products={facts.stock} onRestocked={fetchInventoryFacts} />}
 
       {/* Loading State */}
       {state === 'loading' && (

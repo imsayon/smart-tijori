@@ -8,6 +8,7 @@ import { useStore } from '@/lib/session/store-context';
 import { OperationKeyManager } from '@/lib/checkout/operation-key';
 import { formatPaise } from '@/lib/utils/currency';
 import { HoldStatusCard } from '../reservation/hold-status-card';
+import { OnlinePayment } from './online-payment';
 import { SimulatedPaymentReceipt } from './simulated-payment-receipt';
 import { ConflictRecoveryPanel } from '../recovery/conflict-recovery-panel';
 import { Alert } from '../feedback/alert';
@@ -24,10 +25,11 @@ function revision(cart: Cart) {
   return JSON.stringify([cart.id, cart.storeId, cart.totalPaise, cart.lines.map(line => [line.productId, line.quantity])]);
 }
 
-export function CheckoutView() {
+export function CheckoutView({ online, initialHold }: { online?: { testMode: boolean }; initialHold?: Hold } = {}) {
+  const [checkoutStarted, setCheckoutStarted] = useState(!online || Boolean(initialHold));
   const { cart, refreshCart, isLoading = false } = useStore();
-  const [state, setState] = useState<CheckoutState>('CREATING_HOLD');
-  const [hold, setHold] = useState<Hold | null>(null);
+  const [state, setState] = useState<CheckoutState>(initialHold ? 'HOLD_ACTIVE' : 'CREATING_HOLD');
+  const [hold, setHold] = useState<Hold | null>(initialHold ?? null);
   const [order, setOrder] = useState<Order | null>(null);
   const [unavailableProducts, setUnavailableProducts] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function CheckoutView() {
   const isReservingRef = useRef<boolean>(false);
   const holdKeyRef = useRef<string>('');
   const orderKeyRef = useRef<string>('');
-  const hasRequestedInitialRef = useRef<boolean>(false);
+  const hasRequestedInitialRef = useRef(Boolean(initialHold));
 
   // Track which cart ID the current checkout flow was started for.
   // When the cart ID changes (e.g. user completed an order and started a new cart),
@@ -101,7 +103,7 @@ export function CheckoutView() {
 
         const activeHold = await api.createReservation(reservationCart.id, holdKey);
         setHold(activeHold);
-        setState('HOLD_ACTIVE');
+        setState(activeHold.status === 'ACTIVE' ? 'HOLD_ACTIVE' : 'HOLD_EXPIRED');
         setErrorMessage(null);
       } catch (err) {
         if (err instanceof ApiClientError && err.code === 'STOCK_UNAVAILABLE') {
@@ -125,14 +127,14 @@ export function CheckoutView() {
 
   useEffect(() => {
     let active = true;
-    if (active && !hasRequestedInitialRef.current && cart && cart.lines.length > 0) {
+    if (active && checkoutStarted && !hasRequestedInitialRef.current && cart && cart.lines.length > 0) {
       hasRequestedInitialRef.current = true;
       void requestReservation();
     }
     return () => {
       active = false;
     };
-  }, [cart, requestReservation]);
+  }, [cart, requestReservation, checkoutStarted]);
 
   const handleConfirmOrder = async () => {
     if (!hold || isSubmitting) return;
@@ -226,6 +228,15 @@ export function CheckoutView() {
     );
   }
 
+  if (!checkoutStarted) {
+    return <section className="mx-auto max-w-xl space-y-5">
+      <h1 className="atelier-heading text-5xl">Checkout</h1>
+      <p>Reserve your bag for 59 seconds, then pay online.</p>
+      <p className="text-lg font-semibold">{formatPaise(cart.totalPaise)}</p>
+      <button type="button" className="atelier-action" onClick={() => setCheckoutStarted(true)}>Reserve items</button>
+    </section>;
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       {state === 'CREATING_HOLD' && (
@@ -253,6 +264,7 @@ export function CheckoutView() {
       )}
 
       {state === 'HOLD_EXPIRED' && (
+
         <div
           role="alert"
           aria-live="assertive"
@@ -271,7 +283,10 @@ export function CheckoutView() {
               Your 59-second stock hold has expired to ensure fairness for other shoppers. You can re-reserve with one click.
             </p>
           )}
-          <div className="flex justify-center gap-4">
+          {online && hold && <Link className="mb-4 block underline" href={`/checkout/status/${hold.id}`}>
+            Check the payment for this reservation
+          </Link>}
+          <div className="flex flex-wrap justify-center gap-4">
             <button
               type="button"
               onClick={handleRetryReservation}
@@ -308,6 +323,8 @@ export function CheckoutView() {
             </Alert>
           )}
 
+          {online ? <OnlinePayment key={hold.id} reservationId={hold.id} amount={hold.totalPaise}
+            expiresAt={hold.expiresAt} serverNow={hold.serverNow} testMode={online.testMode} /> :
           <div className="bg-[#F5F1E8] border border-[#275546]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
             <div className="flex items-center justify-between pb-4 border-b border-[#275546]/10 mb-4">
               <div>
@@ -342,7 +359,7 @@ export function CheckoutView() {
                 {state === 'CONFIRMING_ORDER' ? 'Confirming Order…' : 'Confirm Order (Simulated) →'}
               </button>
             </div>
-          </div>
+          </div>}
         </div>
       )}
 

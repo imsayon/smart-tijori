@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCommerceCommands } from '../adapters';
-import { resolveSession, buildSessionCookieHeader } from '../sessions/session-manager';
+import { buildSessionCookieHeader } from '../sessions/session-manager';
+import { resolveShopper } from '../auth/shopper';
 import { validateMutationOrigin } from '../security/csrf';
 import { parseBoundedJson } from '../security/payload-bounds';
 import { createHoldSchema } from '../validation/schemas';
@@ -9,7 +10,7 @@ import { handleServerError, HttpError, jsonError } from '../errors/http-errors';
 export async function handlePostReservations(request: Request): Promise<NextResponse> {
   try {
     validateMutationOrigin(request);
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
 
     const operationKey =
       request.headers.get('idempotency-key') ||
@@ -65,7 +66,7 @@ export async function handleGetReservation(
   holdId: string
 ): Promise<NextResponse> {
   try {
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
     const adapter = getCommerceCommands();
     const hold = await adapter.getHold(session.sessionId, holdId);
 
@@ -89,7 +90,7 @@ export async function handleDeleteReservation(
 ): Promise<NextResponse> {
   try {
     validateMutationOrigin(request);
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
     const adapter = getCommerceCommands();
     const hold = await adapter.releaseHold(session.sessionId, holdId);
 

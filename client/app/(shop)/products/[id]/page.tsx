@@ -13,6 +13,8 @@ function ProductDetailContent() {
   const productId = params?.id as string;
   const { selectedStoreId } = useStore();
 
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [offer, setOffer] = useState<ProductOffer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,13 +23,14 @@ function ProductDetailContent() {
     async function loadOffer() {
       try {
         setIsLoading(true);
-        const res = await api.getProducts({ storeId: selectedStoreId, includeUnavailable: true });
+        setFailed(false);
+        const res = await api.getProducts({ storeId: selectedStoreId, productId, includeUnavailable: true });
         const match = res.items.find((p) => p.productId === productId);
         if (active) {
           setOffer(match ?? null);
         }
-      } catch (err) {
-        console.error('Failed to load product details', err);
+      } catch {
+        if (active) setFailed(true);
       } finally {
         if (active) setIsLoading(false);
       }
@@ -39,7 +42,7 @@ function ProductDetailContent() {
     return () => {
       active = false;
     };
-  }, [selectedStoreId, productId]);
+  }, [selectedStoreId, productId, retry]);
 
   if (isLoading) {
     return (
@@ -47,6 +50,14 @@ function ProductDetailContent() {
         Loading product facts from store authority…
       </div>
     );
+  }
+
+  if (failed) {
+    return <section className="space-y-4">
+      <h1 className="atelier-heading text-4xl">Product temporarily unavailable</h1>
+      <p role="alert">We couldn’t load the product details from this branch.</p>
+      <button className="atelier-action" type="button" onClick={() => setRetry(value => value + 1)}>Try again</button>
+    </section>;
   }
 
   if (!offer) {

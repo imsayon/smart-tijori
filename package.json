@@ -35,16 +35,21 @@
     "test:shopping": "vitest run tests/unit tests/http tests/security tests/browser"
   },
   "dependencies": {
-    "cookie": "^2.0.2",
-    "next": "16.4.6",
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "uuid": "^14.0.3",
-    "zod": "^4.6.7",
     "@confluentinc/kafka-javascript": "1.11.0",
     "@opensearch-project/opensearch": "3.10.0",
+    "@react-three/fiber": "9.8.2",
+    "animejs": "4.5.0",
+    "cookie": "^2.0.2",
+    "firebase": "13.4.0",
+    "firebase-admin": "14.5.1",
+    "next": "16.4.6",
     "pg": "8.23.1",
-    "server-only": "0.0.1"
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "three": "0.187.0",
+    "uuid": "^14.0.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
@@ -54,8 +59,10 @@
     "@testing-library/user-event": "^14.6.13",
     "@types/cookie": "^1.0.0",
     "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.187.0",
     "@types/uuid": "^11.0.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.6",
@@ -63,9 +70,8 @@
     "jsdom": "^31.0.1",
     "msw": "^3.0.7",
     "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "vitest": "^5.1.1",
-    "@types/pg": "8.23.1",
-    "tsx": "4.23.15"
+    "vitest": "^5.1.1"
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCommerceCommands } from '../adapters';
-import { resolveSession, buildSessionCookieHeader } from '../sessions/session-manager';
+import { buildSessionCookieHeader } from '../sessions/session-manager';
+import { resolveShopper } from '../auth/shopper';
 import { validateMutationOrigin } from '../security/csrf';
 import { parseBoundedJson } from '../security/payload-bounds';
 import { updateCartSchema } from '../validation/schemas';
@@ -8,7 +9,7 @@ import { handleServerError, HttpError } from '../errors/http-errors';
 
 export async function handleGetCart(request: Request): Promise<NextResponse> {
   try {
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
     const adapter = getCommerceCommands();
     const cart = await adapter.getCart(session.sessionId);
 
@@ -25,7 +26,7 @@ export async function handleGetCart(request: Request): Promise<NextResponse> {
 export async function handlePutCart(request: Request): Promise<NextResponse> {
   try {
     validateMutationOrigin(request);
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
     const rawBody = await parseBoundedJson(request);
 
     const parsed = updateCartSchema.safeParse(rawBody);

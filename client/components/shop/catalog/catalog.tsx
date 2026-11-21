@@ -11,7 +11,7 @@ import { ProductGrid } from '@/components/shop/catalog/product-grid';
 import { CatalogSkeleton } from '@/components/shop/feedback/loading-skeleton';
 
 export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
-  const { selectedStoreId } = useStore();
+  const { selectedStoreId, error: branchError, isLoading: branchLoading } = useStore();
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
   const [products, setProducts] = useState<ProductOffer[]>([]);
@@ -23,12 +23,16 @@ export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
   const [maxPrice, setMaxPrice] = useState('');
   const minPricePaise = minPrice ? parseRupeesToPaise(minPrice) : undefined;
   const maxPricePaise = maxPrice ? parseRupeesToPaise(maxPrice) : undefined;
+  const [pagination, setPagination] = useState({ query: '', page: 1 });
+  const [hasMore, setHasMore] = useState(false);
+  const queryKey = JSON.stringify([selectedStoreId, searchQuery, category, inStockOnly, minPrice, maxPrice]);
+  const page = pagination.query === queryKey ? pagination.page : 1;
   const priceError = Number(minPrice) < 0 || Number(maxPrice) < 0
     || !Number.isSafeInteger(minPricePaise ?? 0) || !Number.isSafeInteger(maxPricePaise ?? 0)
     || (minPricePaise ?? 0) > (maxPricePaise ?? Infinity);
 
   useEffect(() => {
-    if (priceError) return;
+    if (priceError || !selectedStoreId) return;
     let active = true;
     async function loadProducts() {
       try {
@@ -36,6 +40,7 @@ export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
         setFailed(false);
         const res = await api.getProducts({
           storeId: selectedStoreId,
+          page,
           q: searchQuery || undefined,
           category: category !== 'all' ? category : undefined,
           minPricePaise,
@@ -44,6 +49,7 @@ export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
         });
         if (active) {
           setProducts(res.items);
+          setHasMore(Boolean(res.hasMore));
         }
       } catch {
         if (active) setFailed(true);
@@ -57,7 +63,7 @@ export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
       window.clearTimeout(timer);
       active = false;
     };
-  }, [selectedStoreId, searchQuery, category, retry, inStockOnly, minPricePaise, maxPricePaise, priceError]);
+  }, [selectedStoreId, searchQuery, category, retry, inStockOnly, minPricePaise, maxPricePaise, priceError, page]);
 
   return (
     <>
@@ -81,17 +87,27 @@ export function Catalog({ initialQuery = '' }: { initialQuery?: string }) {
         totalCount={priceError || failed || isLoading ? undefined : products.length}
       />
 
-      {priceError ? (
+      {branchError && !selectedStoreId ? (
+        <p role="alert" className="py-8">{branchError}</p>
+      ) : !selectedStoreId && !branchLoading ? (
+        <p className="py-8">No participating branches are available.</p>
+      ) : priceError ? (
         <p role="alert" className="py-8">Enter nonnegative prices with the minimum at or below the maximum.</p>
       ) : isLoading ? (
         <CatalogSkeleton />
       ) : failed ? (
         <div role="alert" className="py-8">The catalog is unavailable. <button className="underline" onClick={() => setRetry(n => n + 1)}>Try again</button></div>
       ) : (
+        <>
         <ProductGrid
           products={products}
           emptyMessage="No products match your search or filter. Try clearing filters or searching for something else."
         />
+        {(page > 1 || hasMore) && <nav aria-label="Catalog pages" className="mt-6 flex gap-3">
+          {page > 1 && <button className="atelier-secondary" type="button" onClick={() => setPagination({ query: queryKey, page: page - 1 })}>Previous page</button>}
+          {hasMore && <button className="atelier-action" type="button" onClick={() => setPagination({ query: queryKey, page: page + 1 })}>Next page</button>}
+        </nav>}
+        </>
       )}
     </>
   );

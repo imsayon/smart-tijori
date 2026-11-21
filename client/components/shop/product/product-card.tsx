@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ProductOffer } from '@/contracts';
 import { formatPaise } from '@/lib/utils/currency';
 import { useStore } from '@/lib/session/store-context';
+import { ProductImage } from './product-image';
 import { StockBadge } from './stock-badge';
 
 interface ProductCardProps {
@@ -50,16 +51,15 @@ export function ProductCard({ offer }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/90 hover:border-[#275546]/40 p-4 flex flex-col justify-between transition-all duration-200 hover:shadow-md group">
+    <div className="bg-[#faf7f0] border border-[#dcd6c9] p-2.5 sm:p-4 flex flex-col justify-between group">
       <div>
         {/* Image / Placeholder */}
         <Link
           href={`/products/${offer.productId}`}
-          className="block bg-stone-100 rounded-xl overflow-hidden mb-3.5 relative aspect-square flex items-center justify-center group-hover:opacity-95 transition-opacity"
+          aria-label={`View ${offer.name}`}
+          className="bg-[#eae8dc] rounded-sm overflow-hidden mb-3.5 relative aspect-square flex items-center justify-center group-hover:opacity-95 transition-opacity"
         >
-          <div className="text-4xl select-none">
-            {offer.category === 'pantry' ? '🌾' : offer.category === 'household' ? '🧼' : '🧴'}
-          </div>
+          <ProductImage key={offer.imageUrl} offer={offer} />
           <div className="absolute top-2 left-2">
             <StockBadge available={offer.available} />
           </div>
@@ -96,12 +96,12 @@ export function ProductCard({ offer }: ProductCardProps) {
       </div>
 
       {/* Pricing & Add to Cart */}
-      <div className="pt-4 mt-3 border-t border-stone-100 flex items-center justify-between gap-3">
+      <div className="pt-4 mt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-lg font-extrabold text-[#173F35]">
             {formatPaise(offer.pricePaise)}
           </div>
-          <div className="text-[11px] text-stone-400">Server verified</div>
+
         </div>
 
         {isOutOfStock ? (
@@ -109,7 +109,7 @@ export function ProductCard({ offer }: ProductCardProps) {
             href={`/interest?storeId=${offer.storeId}&productId=${offer.productId}`}
             className="text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-2 rounded-xl transition-colors"
           >
-            Notify me
+            Save restock interest
           </Link>
         ) : currentQty === 0 ? (
           <button

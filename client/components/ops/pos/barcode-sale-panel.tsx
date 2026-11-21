@@ -180,10 +180,10 @@ export function BarcodeSalePanel({
     void handleAuthorizeSale(barcodeInput);
   };
 
-  const previewProductId = resolveBarcodeToProductId(barcodeInput);
+  const previewProductId = fixture ? resolveBarcodeToProductId(barcodeInput) : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="atelier-pos space-y-6">
       {/* Header & Server-Verified Authority Notice */}
       <div className="bg-gradient-to-r from-[#0E2A22] to-[#163D31] text-[#FAF8F5] p-6 rounded-3xl border border-[#276350] shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -279,7 +279,7 @@ export function BarcodeSalePanel({
             </div>
 
             {/* Quick Test Barcode Buttons for Cashier Evaluation */}
-            <div className="border-t border-[#E3DDD2] pt-4">
+            {fixture && <div className="border-t border-[#E3DDD2] pt-4">
               <span className="text-[11px] font-bold text-[#78716C] block mb-2">
                 Load an example barcode
               </span>
@@ -302,7 +302,7 @@ export function BarcodeSalePanel({
                     </button>
                   ))}
               </div>
-            </div>
+            </div>}
           </form>
 
           {/* Conflict & Error Alerts */}

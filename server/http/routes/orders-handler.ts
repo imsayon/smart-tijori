@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCommerceCommands } from '../adapters';
-import { resolveSession, buildSessionCookieHeader } from '../sessions/session-manager';
+import { buildSessionCookieHeader } from '../sessions/session-manager';
+import { resolveShopper } from '../auth/shopper';
 import { validateMutationOrigin } from '../security/csrf';
 import { parseBoundedJson } from '../security/payload-bounds';
 import { confirmOrderSchema } from '../validation/schemas';
@@ -9,7 +10,10 @@ import { handleServerError, HttpError } from '../errors/http-errors';
 export async function handlePostOrders(request: Request): Promise<NextResponse> {
   try {
     validateMutationOrigin(request);
-    const session = resolveSession(request.headers.get('cookie'));
+    if (process.env.NODE_ENV !== 'test' && process.env.SMARTTIJORI_DEMO_MODE !== 'true') {
+      throw new HttpError('FORBIDDEN', 'Order confirmation requires verified payment.', 403);
+    }
+    const session = await resolveShopper(request.headers.get('cookie'));
 
     const operationKey =
       request.headers.get('idempotency-key') ||
@@ -56,7 +60,7 @@ export async function handleGetOrder(
   orderId: string
 ): Promise<NextResponse> {
   try {
-    const session = resolveSession(request.headers.get('cookie'));
+    const session = await resolveShopper(request.headers.get('cookie'));
     const adapter = getCommerceCommands();
     const order = await adapter.getOrder(session.sessionId, orderId);
 

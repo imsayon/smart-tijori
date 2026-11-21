@@ -20,6 +20,7 @@ it('combines the search text with category, price and stock filters', async () =
 
   await waitFor(() => expect(api.getProducts).toHaveBeenLastCalledWith({
     storeId: 'mys-01',
+    page: 1,
     q: 'Frnt Lod',
     category: 'household',
     minPricePaise: 14900,

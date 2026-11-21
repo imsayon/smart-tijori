@@ -54,3 +54,26 @@ TEST_BASE_URL=https://smart-tijori.onrender.com pnpm test
 
 The final smoke command verifies the deployed storefront response. Use the
 walkthrough to verify checkout and recovery against the deployed database.
+
+## Atelier integration
+
+Run the app with the server environment documented in `.env.example` and apply
+the PostgreSQL migrations to the target schema. Use a separate database schema,
+Firebase test users, and Razorpay Test Mode for staging. Test payment rows stay
+in staging.
+
+- Firebase uses the `cents-lab-32d71` project. Register the SmartTijori web app,
+  enable Email/Password and configure its authorized domains. Set the public
+  web configuration at build time and use Application Default Credentials on
+  the server. Keep the service account credential file outside the repository.
+- Grant merchant access explicitly in `operator_memberships` using the verified
+  Firebase UID and its branch ID. Set `active = false` to revoke branch access.
+  Use a separate, random `SESSION_SECRET` per deployment. Legacy unsigned guest
+  cookies are replaced once the secret is configured.
+- Set the Razorpay key pair and a distinct webhook secret. Enable automatic
+  capture and subscribe to `payment.captured` on `/api/payments/webhook`.
+  Keep the worker running to reconcile captures and late-payment refunds.
+  Leave `ST_ENABLE_LIVE_PAYMENTS` disabled for staging.
+- Run `node --conditions=react-server --import tsx tests/platform.payments.mts`
+  against the local platform Compose PostgreSQL service. The test creates its
+  own schema and validates replay, amount matching and late capture.

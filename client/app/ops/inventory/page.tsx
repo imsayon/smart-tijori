@@ -11,5 +11,5 @@ export default async function Page() {
   if (fixture) return <p>Inventory requires a PostgreSQL connection.</p>;
   const db = getCommerceDatabase();
   const facts = await createCommerceFacts(db).readOpsFacts(actor.storeId);
-  return <InventoryView storeId={actor.storeId} initialFacts={facts} />;
+  return <InventoryView storeId={actor.storeId} initialFacts={facts} canRestock />;
 }

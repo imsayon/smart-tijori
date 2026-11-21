@@ -199,6 +199,55 @@ async function finishHold(client: PoolClient, row: HoldRow, lines: Line[], now: 
   await advanceVersions(client, row.storeId, productIds(lines), now);
 }
 
+async function persistOrder(
+  client: PoolClient, hold: HoldRow, lines: Line[], now: Date, paymentMode: Order["paymentMode"],
+): Promise<Order> {
+  await transition(client, hold, "CONSUMED");
+  const { rows: [{ id }] } = await client.query<{ id: string }>(`
+    INSERT INTO orders (reservation_id, created_at, total_paise, payment_mode)
+    VALUES ($1, $2, $3, $4) RETURNING id`, [hold.id, now, hold.totalPaise, paymentMode]);
+  await client.query(`
+    INSERT INTO order_lines (order_id, product_id, quantity, name, unit_price_paise)
+    SELECT $1, product_id, quantity, name, unit_price_paise FROM reservation_lines WHERE reservation_id = $2`, [id, hold.id]);
+  await moveStock(client, hold.storeId, "ORDER", id, lines, now);
+  await client.query("DELETE FROM cart_lines WHERE cart_id = $1", [hold.cartId]);
+  await client.query(`
+    INSERT INTO outbox (type, store_id, occurred_at, payload)
+    VALUES ('order.placed', $1, $2, jsonb_build_object('storeId', $1::text, 'orderId', $3::text, 'productIds', $4::text[]))`,
+  [hold.storeId, now, id, productIds(lines)]);
+  return { id, reservationId: hold.id, storeId: hold.storeId, status: "CONFIRMED", createdAt: now.toISOString(),
+    lines, totalPaise: hold.totalPaise, paymentMode };
+}
+
+export async function recordCapturedPayment(db: Database, payment: {
+  id: string; providerOrderId: string; amountPaise: number; currency: string;
+}) {
+  await db.transact(async client => {
+    const { rows: [attempt] } = await client.query<{
+      reservation_id: string; owner_id: string; amount_paise: number;
+    }>(`SELECT reservation_id, owner_id, amount_paise FROM payment_attempts
+        WHERE provider_order_id = $1`, [payment.providerOrderId]);
+    if (!attempt) return;
+    if (attempt.amount_paise !== payment.amountPaise || payment.currency !== "INR") {
+      throw new Error("Provider payment does not match the checkout amount or currency");
+    }
+    const hold = await ownedHold(client, attempt.owner_id, attempt.reservation_id, true);
+    const exists = await client.query("SELECT 1 FROM payment_captures WHERE provider_payment_id = $1", [payment.id]);
+    if (exists.rowCount) return;
+    let orderId: string | null = null;
+    if (hold.status === "ACTIVE") {
+      const lines = await holdLines(client, hold.id);
+      await lockInventory(client, hold.storeId, productIds(lines));
+      const now = await databaseTime(client);
+      if (hold.expiresAt > now) orderId = (await persistOrder(client, hold, lines, now, "RAZORPAY")).id;
+    }
+    await client.query(`INSERT INTO payment_captures
+      (provider_payment_id, reservation_id, amount_paise, order_id, refund_status)
+      VALUES ($1, $2, $3, $4, $5)`,
+    [payment.id, hold.id, payment.amountPaise, orderId, orderId ? null : "pending"]);
+  });
+}
+
 async function finalizePosSale(
   client: PoolClient, operatorId: string, storeId: string, lines: readonly LineInput[],
 ): Promise<PosSale> {
@@ -314,21 +363,7 @@ export function createCommerceCommands(db: Database): CommerceCommands {
         await lockInventory(client, hold.storeId, productIds(lines));
         const now = await databaseTime(client);
         if (hold.status === "EXPIRED" || hold.expiresAt <= now) throw new Rejected("HOLD_EXPIRED", "This hold has expired.");
-        await transition(client, hold, "CONSUMED");
-        const { rows: [{ id }] } = await client.query<{ id: string }>(`
-          INSERT INTO orders (reservation_id, created_at, total_paise, payment_mode)
-          VALUES ($1, $2, $3, 'SIMULATED') RETURNING id`, [hold.id, now, hold.totalPaise]);
-        await client.query(`
-          INSERT INTO order_lines (order_id, product_id, quantity, name, unit_price_paise)
-          SELECT $1, product_id, quantity, name, unit_price_paise FROM reservation_lines WHERE reservation_id = $2`, [id, hold.id]);
-        await moveStock(client, hold.storeId, "ORDER", id, lines, now);
-        await client.query("DELETE FROM cart_lines WHERE cart_id = $1", [hold.cartId]);
-        await client.query(`
-          INSERT INTO outbox (type, store_id, occurred_at, payload)
-          VALUES ('order.placed', $1, $2, jsonb_build_object('storeId', $1::text, 'orderId', $3::text, 'productIds', $4::text[]))`,
-        [hold.storeId, now, id, productIds(lines)]);
-        return { id, reservationId: hold.id, storeId: hold.storeId, status: "CONFIRMED", createdAt: now.toISOString(),
-          lines, totalPaise: hold.totalPaise, paymentMode: "SIMULATED" };
+        return persistOrder(client, hold, lines, now, "SIMULATED");
       });
     }),
     getOrder: (actor, id) => command<Order>(db, async (client) => {

@@ -2,7 +2,7 @@
 export interface Store {
   id: string;        // 'blr-01', 'blr-02', 'mys-01', etc.
   name: string;
-  city: 'Bengaluru' | 'Mysuru';
+  city: string;
   area?: string;     // e.g. 'Koramangala', 'Indiranagar', 'Jayanagar', 'Whitefield', etc.
   address?: string;  // neighborhood street address
 }
@@ -83,7 +83,7 @@ export interface Order {
   createdAt: string;
   lines: OrderLine[];
   totalPaise: number;
-  paymentMode: 'SIMULATED';
+  paymentMode: 'SIMULATED' | 'RAZORPAY';
 }
 
 // === Recovery ===
@@ -102,6 +102,7 @@ export interface RecoveryCandidate {
 
 export interface RecoveryResult {
   mode: 'ai' | 'rules';
+  unavailableOffer?: ProductOffer;
   constraints: RecoveryConstraints;
   candidates: RecoveryCandidate[];
   checkedAt: string;

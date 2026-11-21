@@ -27,7 +27,9 @@ export const saveInterestSchema = z.object({
 });
 
 export const productFilterSchema = z.object({
+  page: z.coerce.number().int().min(1).max(400).default(1),
   q: z.string().max(100).optional(),
+  productId: z.string().regex(/^[a-z0-9][a-z0-9-]*$/).max(64).optional(),
   category: z.enum(['pantry', 'household', 'essentials']).optional(),
   minPricePaise: z.coerce.number().int().min(0).optional(),
   maxPricePaise: z.coerce.number().int().min(0).optional(),
@@ -38,6 +40,7 @@ export const productFilterSchema = z.object({
 export const recoveryRequestSchema = z.object({
   storeId: z.string().min(1, 'storeId is required').max(64),
   unavailableProductId: z.string().min(1, 'unavailableProductId is required').max(128),
+  quantity: z.number().int().min(1).max(99).default(1),
   text: z.string().max(500).optional(),
   explicitConstraints: z
     .object({

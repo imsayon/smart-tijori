@@ -60,7 +60,7 @@ export interface Order {
   createdAt: string;
   lines: Line[];
   totalPaise: number;
-  paymentMode: "SIMULATED";
+  paymentMode: "SIMULATED" | "RAZORPAY";
 }
 
 export interface PosSaleInput {

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import type { Pool } from "pg";
 import { createDatabase } from "./database.ts";
 
-const migrations = ["001_commerce.sql", "002_delivery.sql", "003_cartlock.sql", "004_pos_barcode.sql"];
+const migrations = ["001_commerce.sql", "002_delivery.sql", "003_cartlock.sql", "004_pos_barcode.sql", "005_operator_memberships.sql", "006_payments.sql"];
 
 export async function migrate(pool: Pool, schema: string, seed = false): Promise<void> {
   const db = createDatabase(pool, schema);

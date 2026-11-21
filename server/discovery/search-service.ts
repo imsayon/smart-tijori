@@ -22,6 +22,7 @@ export interface SearchOptions {
   city?: string;
   storeId?: string;
   limit?: number;
+  page?: number;
   includeUnavailable?: boolean;
   factsReader?: ProductFactsReader;
   client?: Client;
@@ -31,6 +32,7 @@ export interface SearchOptions {
 export interface SearchResult {
   items: ProductOffer[];
   total: number;
+  hasMore?: boolean;
 }
 
 export class ValidationError extends Error {
@@ -277,6 +279,10 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
   const limit = Math.min(Math.max(options.limit ?? 24, 1), 24);
 
   const query = buildOpenSearchQuery(options);
+  const page = options.page;
+  if (page !== undefined && (!Number.isInteger(page) || page < 1 || page > 400)) {
+    throw new ValidationError("Query parameter 'page' must be between 1 and 400");
+  }
 
   let searchRes: unknown;
   try {
@@ -284,8 +290,11 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
       index,
       body: {
         query,
-        // shortcut: examine the top 48 candidates; add paging if the catalog needs deeper results.
-        size: 48,
+        ...(page === undefined ? { size: 48 } : {
+          from: (page - 1) * limit,
+          size: limit + 1,
+          sort: [{ _score: "desc" }, { storeId: "asc" }, { productId: "asc" }],
+        }),
       },
     });
   } catch (error: unknown) {
@@ -302,7 +311,8 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
   const hits = resBody?.hits?.hits || [];
   const candidateKeys: { storeId: string; productId: string }[] = [];
 
-  for (const hit of hits) {
+  const hasMore = page !== undefined && page < 400 && hits.length > limit;
+  for (const hit of page === undefined ? hits : hits.slice(0, limit)) {
     const source = hit._source as Record<string, unknown> | undefined;
     if (source && typeof source.storeId === "string" && typeof source.productId === "string") {
       candidateKeys.push({
@@ -313,7 +323,7 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
   }
 
   if (candidateKeys.length === 0) {
-    return { items: [], total: 0 };
+    return { items: [], total: 0, ...(page !== undefined && { hasMore }) };
   }
 
   // Group candidate product IDs by storeId for batch coherent reading
@@ -372,5 +382,6 @@ export async function searchProducts(options: SearchOptions = {}): Promise<Searc
   return {
     items: hydratedOffers,
     total: hydratedOffers.length,
+    ...(page !== undefined && { hasMore }),
   };
 }

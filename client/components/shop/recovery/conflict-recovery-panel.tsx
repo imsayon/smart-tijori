@@ -48,43 +48,11 @@ export function ConflictRecoveryPanel({
   }, [cart, activeUnavailableId]);
 
   // Resolve the original unavailable offer for price comparison
-  const unavailableOfferForCard: ProductOffer | null = useMemo(() => {
-    // 1. Prefer recovery response unavailableOffer if available and matching active item
-    const fromRecovery = (recoveryResult as { unavailableOffer?: ProductOffer } | null)?.unavailableOffer;
-    if (
-      fromRecovery &&
-      fromRecovery.productId === activeUnavailableId &&
-      typeof fromRecovery.pricePaise === 'number' &&
-      Number.isFinite(fromRecovery.pricePaise)
-    ) {
-      return fromRecovery;
-    }
-
-    // 2. Derive from active cart line if price is present and finite
-    if (
-      activeCartLine &&
-      typeof activeCartLine.unitPricePaise === 'number' &&
-      Number.isFinite(activeCartLine.unitPricePaise)
-    ) {
-      return {
-        productId: activeCartLine.productId,
-        storeId,
-        city: 'Bengaluru',
-        name: activeCartLine.name,
-        category: 'pantry',
-        purpose: 'general',
-        pricePaise: activeCartLine.unitPricePaise,
-        imageUrl: '',
-        pack: { quantity: 1, unit: 'count' },
-        attributes: {},
-        available: 0,
-        inventoryVersion: 1,
-        checkedAt: new Date().toISOString(),
-      };
-    }
-
-    return null;
-  }, [recoveryResult, activeUnavailableId, activeCartLine, storeId]);
+  const activeQuantity = activeCartLine?.quantity ?? 1;
+  const original = recoveryResult?.unavailableOffer;
+  const unavailableOfferForCard = original?.productId === activeUnavailableId
+    ? original
+    : activeCartLine ? { pricePaise: activeCartLine.unitPricePaise } : null;
 
   const fetchAlternatives = useCallback(
     async (customConstraints?: Partial<RecoveryConstraints>) => {
@@ -95,6 +63,7 @@ export function ConflictRecoveryPanel({
         const result = await api.getRecovery({
           storeId,
           unavailableProductId: activeUnavailableId,
+          quantity: activeQuantity,
           explicitConstraints: customConstraints,
         });
         setRecoveryResult(result);
@@ -104,7 +73,7 @@ export function ConflictRecoveryPanel({
         setIsLoading(false);
       }
     },
-    [storeId, activeUnavailableId]
+    [storeId, activeUnavailableId, activeQuantity]
   );
 
   useEffect(() => {
@@ -121,6 +90,7 @@ export function ConflictRecoveryPanel({
         const result = await api.getRecovery({
           storeId,
           unavailableProductId: activeUnavailableId,
+          quantity: activeQuantity,
         });
         if (active) {
           setRecoveryResult(result);
@@ -138,7 +108,7 @@ export function ConflictRecoveryPanel({
     return () => {
       active = false;
     };
-  }, [storeId, activeUnavailableId]);
+  }, [storeId, activeUnavailableId, activeQuantity]);
 
   // Resolves a single conflict with an approved alternative while preserving all other items
   const handleApproveReplacement = async (replacement: ProductOffer) => {

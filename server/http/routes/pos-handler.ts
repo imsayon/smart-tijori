@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCommerceCommands } from '../adapters';
-import { verifyOperatorSession } from '../auth/operator-guard';
+import { requireMerchant } from '../auth/merchant';
 import { handleServerError, HttpError, jsonError } from '../errors/http-errors';
 import { validateMutationOrigin } from '../security/csrf';
 import { parseBoundedJson } from '../security/payload-bounds';
@@ -9,7 +9,7 @@ import { posSaleRequestSchema } from '../validation/schemas';
 export async function handlePostPosSale(request: Request): Promise<NextResponse> {
   try {
     validateMutationOrigin(request);
-    const operator = verifyOperatorSession(request);
+    const operator = await requireMerchant(request);
     const key = request.headers.get('idempotency-key')?.trim();
     if (!key) throw new HttpError('VALIDATION_ERROR', 'Idempotency-Key is required.');
 

@@ -9,7 +9,7 @@ import {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Explicitly opted-in local fixture mode; live discovery stays OpenSearch-based.
-  if (process.env.SMARTTIJORI_DEMO_MODE === "true" || process.env.ST_CATALOG_SOURCE === "postgres") {
+  if (new URL(request.url).searchParams.has("productId") || process.env.SMARTTIJORI_DEMO_MODE === "true" || process.env.ST_CATALOG_SOURCE === "postgres") {
     return handleCommerceProducts(request);
   }
 
@@ -31,6 +31,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       city,
       storeId,
     };
+    if (searchParams.has("page")) searchOptions.page = Number(searchParams.get("page"));
 
     if (rawLimit !== null) {
       const parsedLimit = Number(rawLimit);
@@ -87,6 +88,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const result = await searchProducts(searchOptions);
 
     return NextResponse.json({
+      ...(result.hasMore !== undefined && { hasMore: result.hasMore }),
       items: result.items.map(({ available, availableStock, knownAttributes, ...offer }) => ({
         ...offer,
         available: availableStock ?? Number(available),

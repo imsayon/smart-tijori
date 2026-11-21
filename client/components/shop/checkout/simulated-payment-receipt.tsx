@@ -10,6 +10,7 @@ interface SimulatedPaymentReceiptProps {
 }
 
 export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps) {
+  const simulated = order.paymentMode === 'SIMULATED';
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-stone-200 p-6 sm:p-10 shadow-lg text-stone-900 animate-in fade-in zoom-in-95">
       {/* Success banner */}
@@ -27,7 +28,7 @@ export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps)
       </div>
 
       {/* Simulated Payment Notice (Mandatory per Master Plan) */}
-      <div className="my-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm">
+      {simulated && <div className="my-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm">
         <div className="flex items-center gap-2 font-bold mb-1">
           <span>⚠️ SIMULATED PAYMENT</span>
           <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md font-mono uppercase">
@@ -37,7 +38,7 @@ export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps)
         <p className="text-stone-700 text-xs leading-relaxed">
           This prototype simulates the payment gateway. No real credit card or bank account was debited. Stock was decremented from the store inventory authority.
         </p>
-      </div>
+      </div>}
 
       {/* Order Details */}
       <div className="space-y-4 mb-8">
@@ -81,7 +82,7 @@ export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps)
 
         {/* Total */}
         <div className="pt-4 border-t-2 border-stone-200 flex justify-between items-center">
-          <span className="text-lg font-bold text-stone-800">Total Paid (Simulated)</span>
+          <span className="text-lg font-bold text-stone-800">{simulated ? 'Total Paid (Simulated)' : 'Total Paid'}</span>
           <span className="text-2xl font-black text-[#173F35]">
             {formatPaise(order.totalPaise)}
           </span>

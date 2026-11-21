@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   resolveSession,
   buildSessionCookieHeader,
@@ -44,6 +44,19 @@ describe('Session Manager Unit Tests', () => {
     expect(header).toContain('SameSite=Lax');
     expect(header).toContain('Path=/');
     expect(header).toContain('Max-Age=604800'); // 7 days
+  });
+
+  it('rejects unsigned and modified guest credentials when signing is configured', () => {
+    vi.stubEnv('SESSION_SECRET', 'only-for-tests-'.repeat(3));
+    try {
+      const session = resolveSession();
+      const cookie = buildSessionCookieHeader(session.sessionId).split(';')[0];
+      expect(resolveSession(cookie)).toEqual({ sessionId: session.sessionId, isNew: false });
+      expect(resolveSession(`${cookie}0`).isNew).toBe(true);
+      expect(resolveSession(`${SESSION_COOKIE_NAME}=${session.sessionId}`).isNew).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('parses cookies accurately from complex header', () => {

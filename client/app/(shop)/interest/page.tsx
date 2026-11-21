@@ -8,7 +8,7 @@ import { Alert } from '@/components/shop/feedback/alert';
 
 function InterestContent() {
   const searchParams = useSearchParams();
-  const storeId = searchParams.get('storeId') ?? 'blr-01';
+  const storeId = searchParams.get('storeId') ?? '';
   const productId = searchParams.get('productId') ?? '';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +17,7 @@ function InterestContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productId) return;
+    if (!storeId || !productId) return;
 
     try {
       setIsSubmitting(true);
@@ -89,7 +89,7 @@ function InterestContent() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isSubmitting || !productId}
+                disabled={isSubmitting || !storeId || !productId}
                 className="w-full bg-[#173F35] hover:bg-[#275546] text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? 'Recording…' : 'Confirm & Save Interest'}

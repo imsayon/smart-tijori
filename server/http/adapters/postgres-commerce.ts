@@ -19,10 +19,7 @@ export function postgresCommerce(): CommerceCommands {
   return {
     authorizePosSale: commands.authorizePosSale,
     async listStores() {
-      return value(await commands.listStores()).filter(s => s.id === "blr-01" || s.id === "mys-01").map(s => {
-        if (s.city !== "Bengaluru" && s.city !== "Mysuru") throw new Error("Unknown branch city");
-        return { ...s, city: s.city };
-      });
+      return value(await commands.listStores());
     },
     async getCart(id) {
       const cart = value(await commands.getCart(guest(id)));
@@ -51,17 +48,16 @@ export function postgresCommerce(): CommerceCommands {
       return { id: [id,storeId,productId].join(":"), sessionId: id, storeId, productId, createdAt: createdAt.toISOString() };
     },
     async getProductOffers(storeId, filter = {}) {
-      if (storeId !== "blr-01" && storeId !== "mys-01") return [];
       return db.transact(async c => {
         await c.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
         const now = await databaseTime(c);
-        const rows = await inventoryFacts(c, storeId, null, now);
+        const rows = await inventoryFacts(c, storeId, filter.productId ? [filter.productId] : null, now);
         return rows.filter(row =>
           (!filter.category || row.category === filter.category)
           && (!filter.city || row.city === filter.city)
           && (!filter.q || (row.name + " " + row.purpose).toLowerCase().includes(filter.q.toLowerCase()))
           && row.pricePaise >= (filter.minPricePaise ?? 0) && row.pricePaise <= (filter.maxPricePaise ?? Infinity)
-        ).slice(0,24).map(row => {
+        ).map(row => {
           const category = row.category;
           if (category !== "household" && category !== "pantry" && category !== "essentials") throw new Error("Unknown catalog category");
           return { productId: row.productId, storeId, city: row.city, name: row.name, category,

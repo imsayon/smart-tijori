@@ -1,9 +1,11 @@
+import Link from 'next/link';
+
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-stone-200 bg-[#F5F1E8] px-6 py-5 text-sm text-stone-700">
-      <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-2">
-        <span>SmartTijori · Bengaluru and Mysuru</span>
-        <span>Demo store · Simulated payments</span>
+    <footer className="mt-auto border-t border-[#dcd6c9] bg-[#f3eee5] px-6 py-5 text-sm text-[#152a21]">
+      <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-3">
+        <span className="font-semibold">SmartTijori</span>
+        <Link href="/ops" className="underline underline-offset-4">Merchant workspace</Link>
       </div>
     </footer>
   );

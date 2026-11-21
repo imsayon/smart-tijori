@@ -53,6 +53,7 @@ export interface CommerceCommands {
     storeId: string,
     params?: {
       q?: string;
+      productId?: string;
       category?: string;
       minPricePaise?: number;
       maxPricePaise?: number;
