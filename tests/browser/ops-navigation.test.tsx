@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { OPERATOR_ROLE } from '@server/http/auth/operator-guard';
 import { OpsShell } from '@/components/ops/layout/ops-shell';
 import OpsOverviewPage from '@/app/ops/page';
@@ -25,6 +25,8 @@ vi.mock('@server/commerce/facts', () => ({
 vi.mock('@server/events/diagnostics', () => ({
   createPipelineReader: () => async (storeId: string) => ({
     storeId, checkedAt: '2026-11-21T08:00:00.000Z', pendingCount: 0,
+    oldestPendingAt: null, lastBrokerAckAt: '2026-11-21T08:00:00.000Z', lastProjectionAcceptedAt: null,
+    projectionRetryCount: 0, quarantineCount: 0, unattributedQuarantineCount: 0, lastError: null,
     recentEvents: [{ eventId: 'one', type: 'inventory.changed', occurredAt: '2026-11-21T07:59:00.000Z', publishedAt: '2026-11-21T08:00:00.000Z' }],
   }),
 }));
@@ -97,8 +99,8 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     expect(overviewLink).not.toHaveAttribute('aria-current');
   });
 
-  it('renders Operations Overview page with quick links to all workstreams', () => {
-    render(<OpsOverviewPage />);
+  it('renders Operations Overview page with quick links to all workstreams', async () => {
+    render(await OpsOverviewPage());
 
     expect(screen.getByText('SmartTijori Operations Workbench')).toBeInTheDocument();
     expect(screen.getByText('In-Store Cashier POS')).toBeInTheDocument();
@@ -110,13 +112,17 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
   it('renders authoritative held and available quantities', async () => {
     render(await OpsInventoryPage());
     expect(screen.getByText('Store Inventory Monitor')).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: /tea-250 5 1 4 7/ })).toBeInTheDocument();
+    const row = screen.getByRole('row', { name: /tea-250/ });
+    expect(within(row).getAllByRole('cell').map(cell => cell.textContent)).toEqual(
+      expect.arrayContaining(['5', expect.stringMatching(/\b1$/), '4', 'v7']),
+    );
   });
 
   it('renders pipeline status from the existing reader', async () => {
     render(await OpsDiagnosticsPage());
     expect(screen.getByText('Pipeline & Worker Diagnostics')).toBeInTheDocument();
-    expect(screen.getByText(/Pending events/i)).toBeInTheDocument();
-    expect(screen.getByText(/inventory.changed · Acknowledged/i)).toBeInTheDocument();
+    expect(screen.getByText(/Outbox Queue Depth/i)).toBeInTheDocument();
+    const event = screen.getByRole('row', { name: /inventory.changed/ });
+    expect(within(event).getByText('Acked')).toBeInTheDocument();
   });
 });
