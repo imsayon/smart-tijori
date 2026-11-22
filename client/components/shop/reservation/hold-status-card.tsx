@@ -1,5 +1,5 @@
-import React from 'react';
 import type { Hold } from '@/contracts';
+import { Icon } from '@/components/ui/atelier';
 import { formatPaise } from '@/lib/utils/currency';
 import { HoldTimer } from '../checkout/hold-timer';
 
@@ -10,51 +10,29 @@ interface HoldStatusCardProps {
 
 export function HoldStatusCard({ hold, onExpire }: HoldStatusCardProps) {
   return (
-    <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-sm mb-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-stone-100 gap-3">
+    <section className="st-hold-card" aria-label="Current checkout reservation">
+      <div className="st-hold-top">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-stone-900 text-lg">CartLock Reservation</span>
-            <span className="text-xs bg-emerald-100 text-emerald-800 font-mono px-2 py-0.5 rounded-md">
-              {hold.id}
-            </span>
-          </div>
-          <p className="text-xs text-stone-500 mt-0.5">
-            Store: <span className="font-semibold">{hold.storeId}</span> · Status: {hold.status}
-          </p>
+          <p className="st-kicker"><span className="st-live-dot" /> SECURE CHECKOUT / STOCK ALLOCATION</p>
+          <h2>CartLock Reservation</h2>
+          <span className="st-hold-id">{hold.id}</span>
         </div>
-
-        {hold.status === 'ACTIVE' && (
-          <HoldTimer
-            expiresAt={hold.expiresAt}
-            serverNow={hold.serverNow}
-            onExpire={onExpire}
-          />
-        )}
+        <span className="st-hold-status"><Icon name="lock" size={13}/> {hold.status === 'ACTIVE' ? 'HOLD ACTIVE' : hold.status}</span>
       </div>
-
-      <div className="py-4 space-y-2">
-        <div className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
-          Locked Quantities (Atomic Hold)
-        </div>
-        {hold.lines.map((l) => (
-          <div key={l.productId} className="flex justify-between text-sm py-1 border-b border-stone-50">
-            <span className="text-stone-800">
-              {l.name} <span className="text-stone-400">× {l.quantity}</span>
-            </span>
-            <span className="font-semibold text-stone-900">
-              {formatPaise(l.unitPricePaise * l.quantity)}
-            </span>
-          </div>
-        ))}
+      {hold.status === 'ACTIVE' && <div className="st-hold-timer-panel">
+        <HoldTimer expiresAt={hold.expiresAt} serverNow={hold.serverNow} onExpire={onExpire}/>
+      </div>}
+      <div className="st-hold-items">
+        <div className="st-hold-items-header"><span className="st-kicker">ITEMS IN THIS RESERVATION</span><span>{hold.lines.length} LINES</span></div>
+        {hold.lines.map(line => <div className="st-hold-item" key={line.productId}>
+          <span>{line.name} <small>× {line.quantity}</small></span>
+          <strong>{formatPaise(line.unitPricePaise * line.quantity)}</strong>
+        </div>)}
       </div>
-
-      <div className="pt-3 flex justify-between items-center text-sm">
-        <span className="font-bold text-stone-700">Hold Total</span>
-        <span className="text-xl font-black text-[#173F35]">
-          {formatPaise(hold.totalPaise)}
-        </span>
-      </div>
-    </div>
+      <footer className="st-hold-total">
+        <span>Amount to confirm</span>
+        <strong>{formatPaise(hold.totalPaise)}</strong>
+      </footer>
+    </section>
   );
 }
