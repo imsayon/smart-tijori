@@ -65,7 +65,7 @@ export function CartLockShowcase() {
           <Link href="/checkout">Start a real checkout to receive a verified order QR</Link>
         </> : <>
           <span>STARTS WHEN THIS SECTION ENTERS VIEW</span>
-          <span>REAL RESERVATIONS EXPIRE ON THE SERVER</span>
+          <span>ILLUSTRATIVE CLOCK · NOT A LIVE RESERVATION COUNTDOWN</span>
         </>}
       </div>
     </div>
