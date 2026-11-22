@@ -57,7 +57,7 @@ describe('existing guest cart reconciliation on account sign-in', () => {
     const sql = query.mock.calls.map(call => call[0] as string);
     expect(sql.some(statement => /UPDATE\s+cart_lines/i.test(statement))).toBe(false);
     const copy = sql.findIndex(statement => statement.startsWith('INSERT INTO cart_lines'));
-    const removeGuest = sql.findIndex(statement => statement === 'DELETE FROM cart_lines WHERE cart_id = $1');
+    const removeGuest = sql.findLastIndex(statement => statement === 'DELETE FROM cart_lines WHERE cart_id = $1');
     expect(copy).toBeGreaterThan(-1);
     expect(removeGuest).toBeGreaterThan(copy);
     expect(query.mock.calls[copy][1]).toEqual([guestCartId, accountCartId]);
