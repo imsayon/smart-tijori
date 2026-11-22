@@ -1,102 +1,89 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { useStore } from '@/lib/session/store-context';
 import { formatPaise } from '@/lib/utils/currency';
+import { Icon } from '@/components/ui/atelier';
 import { CartLineItem } from './cart-line-item';
-import { Alert } from '../feedback/alert';
+import { CartLockPreview, PurchaseTrail } from '../atelier/purchase-details';
 
 export function CartView() {
   const { cart, selectedStore, updateCartQuantity, removeFromCart, isLoading } = useStore();
 
   if (isLoading && !cart) {
-    return (
-      <div className="max-w-4xl mx-auto py-12 text-center text-stone-500 animate-pulse">
-        Loading cart details…
-      </div>
-    );
+    return <section className="st-purchase-page st-purchase-loading" role="status" aria-live="polite">
+      <div className="st-purchase-loading-line"/>
+      <h2 className="atelier-heading">Gathering your finds.</h2>
+      <p>Loading cart details…</p>
+    </section>;
   }
 
   if (!cart || cart.lines.length === 0) {
-    return (
-      <div className="max-w-3xl mx-auto py-16 px-4 text-center">
-        <div className="w-20 h-20 bg-[#F5F1E8] rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 border border-stone-200">
-          🛒
-        </div>
-        <h2 className="text-2xl font-black text-stone-900 mb-2">Your cart is empty</h2>
-        <p className="text-sm text-stone-500 mb-6 max-w-sm mx-auto">
-          Explore our fresh local inventory at{' '}
-          <strong className="text-stone-700">{selectedStore?.name ?? 'your local branch'}</strong>.
-        </p>
-        <Link
-          href="/"
-          className="inline-block bg-[#173F35] hover:bg-[#275546] text-white font-bold px-6 py-3 rounded-xl transition-all shadow-xs"
-        >
-          Explore Catalog →
-        </Link>
-      </div>
-    );
+    return <section className="st-purchase-page st-empty-bag">
+      <span className="st-overline">YOUR BAG / 00</span>
+      <div className="st-empty-bag-art" aria-hidden="true"><Icon name="shop" size={65}/></div>
+      <h1 className="atelier-heading">Good things <em>start here.</em></h1>
+      <p>Your bag is empty. Explore what’s on the shelves at {selectedStore?.name ?? 'your local branch'}.</p>
+      <Link className="st-button-primary" href="/search">Explore the collection <Icon name="upRight" size={17}/></Link>
+      <CartLockPreview compact/>
+    </section>;
   }
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-stone-200 mb-6 gap-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Shopping Cart</h1>
-          <p className="text-xs text-stone-500 mt-1">
-            Fulfilling from <span className="font-semibold text-emerald-900">{selectedStore?.name}</span> ({cart.storeId})
-          </p>
-        </div>
-        <Link
-          href="/"
-          className="text-xs sm:text-sm font-semibold text-[#173F35] hover:underline"
-        >
-          ← Continue shopping
-        </Link>
+  const units = cart.lines.reduce((sum, line) => sum + line.quantity, 0);
+  return <section className="st-purchase-page st-cart-page">
+    <div className="st-purchase-heading">
+      <div className="st-purchase-heading-copy">
+        <p className="st-overline"><span className="st-mini-dot"/> THE NEIGHBOURHOOD EDITION / YOUR BAG</p>
+        <h1 className="atelier-heading">A little closer <em>to yours.</em></h1>
+        <p>Thoughtful finds from <strong>{selectedStore?.name ?? cart.storeId}</strong>. All in one place, ready when you are.</p>
       </div>
-
-      {/* CartLock stock guarantee rule */}
-      <Alert type="info" className="mb-6">
-        Checkout holds your items for 59 seconds.
-      </Alert>
-
-      {/* Line Items */}
-      <div className="space-y-3 mb-8">
-        {cart.lines.map((line) => (
-          <CartLineItem
-            key={line.productId}
-            line={line}
-            onUpdateQuantity={(qty) => updateCartQuantity(line.productId, qty)}
-            onRemove={() => removeFromCart(line.productId)}
-          />
-        ))}
-      </div>
-
-      {/* Cart Summary & Checkout Action */}
-      <div className="bg-[#F5F1E8] border border-[#275546]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex items-center justify-between pb-4 border-b border-[#275546]/10 text-sm">
-          <span className="text-stone-600">Total lines</span>
-          <span className="font-bold text-stone-800">{cart.lines.length} items</span>
-        </div>
-        <div className="flex items-center justify-between py-4 border-b border-[#275546]/10">
-          <div>
-            <span className="text-base sm:text-lg font-bold text-stone-900">Total Order Amount</span>
-          </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#173F35]">
-            {formatPaise(cart.totalPaise)}
-          </span>
-        </div>
-
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link
-            href="/checkout"
-            className="w-full sm:w-auto text-center bg-lime-400 hover:bg-lime-300 text-[#173F35] font-black text-base px-8 py-3.5 rounded-xl shadow-sm transition-transform active:scale-95 focus:ring-2 focus:ring-[#173F35]"
-          >
-            Proceed to Checkout →
-          </Link>
-        </div>
+      <div className="st-bag-count" aria-label={`${units} units in your bag`}>
+        <span>IN YOUR BAG</span><strong>{String(units).padStart(2,'0')}</strong><small>{units === 1 ? 'ITEM' : 'ITEMS'}</small>
       </div>
     </div>
-  );
+
+    <PurchaseTrail current={1}/>
+    <div className="st-cart-layout">
+      <div className="st-cart-main">
+        <div className="st-cart-section-head">
+          <div><span className="st-overline">01 / YOUR SELECTION</span>
+            <h2>Good things, <em>gathered.</em></h2></div>
+          <Link href="/search" className="st-quiet-link">Continue shopping <Icon name="upRight" size={15}/></Link>
+        </div>
+
+        <div className="st-cart-lines">
+          {cart.lines.map((line, index) =>
+            <CartLineItem key={line.productId} line={line} index={index + 1}
+              onUpdateQuantity={qty => updateCartQuantity(line.productId, qty)}
+              onRemove={() => removeFromCart(line.productId)}/>)}
+        </div>
+
+        <div className="st-cart-information">
+          <Icon name="pulse" size={18}/>
+          <p><strong>Real shelves. Real choices.</strong> Your bag remembers your picks, but does not reserve stock. Availability is checked again when checkout begins.</p>
+        </div>
+        <CartLockPreview/>
+      </div>
+
+      <aside className="st-cart-summary" aria-label="Bag summary">
+        <div className="st-cart-summary-top">
+          <p className="st-overline">YOUR ORDER / AT A GLANCE</p>
+          <h2>Almost <em>there.</em></h2>
+          <p>One store. One bag. No surprises about when your stock is held.</p>
+        </div>
+        <div className="st-cart-summary-grid">
+          <div><span>Selected products</span><strong>{cart.lines.length} {cart.lines.length === 1 ? 'line' : 'lines'}</strong></div>
+          <div><span>Total quantity</span><strong>{units} {units === 1 ? 'unit' : 'units'}</strong></div>
+          <div><span>Your store</span><strong>{selectedStore?.city ?? 'Local branch'}</strong></div>
+        </div>
+        <div className="st-cart-total"><span>Total today</span><strong>{formatPaise(cart.totalPaise)}</strong>
+          <small>Final stock confirmed at checkout</small></div>
+        <Link href="/checkout" className="st-button-primary st-cart-checkout">
+          Proceed to checkout <Icon name="arrow" size={19}/>
+        </Link>
+        <div className="st-cart-summary-promise"><Icon name="lock" size={17}/><p>CartLock starts only once your checkout reservation is accepted.</p></div>
+        <div className="st-cart-summary-seal" aria-hidden="true">S · T <span>LOCAL FIRST / ALWAYS</span></div>
+      </aside>
+    </div>
+  </section>;
 }
