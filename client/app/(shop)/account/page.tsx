@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { AccessLayout } from '@/components/ops/layout/access-layout';
 import { AccountAccess } from '@/components/account/account-access';
-import { readAccount } from '@server/http/auth/firebase-session';
+import { readAccount } from '@server/http/auth/email-session';
 
 export default async function AccountPage({ searchParams }: PageProps<'/account'>) {
   const user = await readAccount((await cookies()).toString());
