@@ -54,11 +54,10 @@ describe('Editorial commerce journey', () => {
     expect(screen.getByText('RESERVED FOR')).toBeInTheDocument();
   });
 
-  it('keeps auth and payment unavailable gates actionable without claiming a reservation', () => {
-    const { rerender } = render(<CheckoutGate reason="signin" />);
-    expect(screen.getByRole('link', { name: /Sign in to continue/i })).toHaveAttribute('href', '/account?next=checkout');
-    rerender(<CheckoutGate reason="payment" />);
-    expect(screen.getByText(/nothing has been charged/i)).toBeInTheDocument();
+  it('keeps the new checkout preview actionable without claiming a reservation', () => {
+    render(<CheckoutGate />);
+    expect(screen.getByText('00:59')).toBeInTheDocument();
+    expect(screen.getByText(/This is a demonstration only/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Return to your bag/i })).toHaveAttribute('href', '/cart');
   });
 });
