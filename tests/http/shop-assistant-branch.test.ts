@@ -10,7 +10,7 @@ function question(text:string,storeId:string) {
   });
 }
 const createOffer = (productId:string,storeId:string,name:string,available:number) => ({
-  productId,storeId,name,available,pricePaise:9500,purpose:'toor-dal',
+  productId,storeId,name,available,pricePaise:9500,purpose:name.toLowerCase().includes('salt') ? 'table-salt' : 'toor-dal',
   category:'pantry',pack:{quantity:500,unit:'g'},attributes:{},city:'Bengaluru',
   imageUrl:'',inventoryVersion:1,checkedAt:new Date().toISOString(),
 });
