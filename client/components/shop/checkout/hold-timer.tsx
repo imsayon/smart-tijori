@@ -69,23 +69,30 @@ export function HoldTimer({ expiresAt, serverNow, onExpire, className = '' }: Ho
   }, [timerState.isExpired, currentHoldKey, onExpire]);
 
   const isLowTime = timerState.remainingSeconds <= 15 && !timerState.isExpired;
+  const durationSeconds = Math.max(1, (Date.parse(expiresAt) - Date.parse(serverNow)) / 1000);
+  const progress = Math.max(0, Math.min(1, timerState.remainingSeconds / durationSeconds));
+  const circumference = 2 * Math.PI * 82;
 
-  return (
-    <div
-      role="timer"
-      aria-live="off"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border font-mono text-sm font-bold shadow-2xs ${
-        timerState.isExpired
-          ? 'bg-red-100 text-red-800 border-red-300'
-          : isLowTime
-          ? 'bg-amber-100 text-amber-900 border-amber-300'
-          : 'bg-[#F5F1E8] text-[#173F35] border-[#275546]/30'
-      } ${className}`}
-    >
-      <span aria-hidden="true" className="text-base select-none">⏱️</span>
-      <span>
-        {timerState.isExpired ? 'Hold Expired' : `Stock reserved: ${timerState.formattedTime}`}
-      </span>
+  return <div role="timer" aria-live="off"
+    data-low-time={isLowTime} data-expired={timerState.isExpired}
+    className={`st-hold-timer ${className}`}>
+    <div className="st-hold-clockface">
+      <svg viewBox="0 0 220 220" aria-hidden="true">
+        <circle className="st-hold-track" cx="110" cy="110" r="82"/>
+        <circle className="st-hold-ticks" cx="110" cy="110" r="98"/>
+        <circle className="st-hold-progress" cx="110" cy="110" r="82"
+          strokeDasharray={circumference} strokeDashoffset={circumference * (1 - progress)}/>
+        <circle cx="110" cy="12" r="3" className="st-hold-pip"/>
+      </svg>
+      <div className="st-hold-clockface-inner" aria-hidden="true">
+        <span className="st-hold-number">{timerState.formattedTime}</span>
+        <small>{timerState.isExpired ? 'TIME ELAPSED' : 'REMAINING'}</small>
+      </div>
     </div>
-  );
+    <div className="st-hold-time-copy">
+      <span className="st-overline">{timerState.isExpired ? 'CARTLOCK / EXPIRED' : 'CARTLOCK / ACTIVE'}</span>
+      <strong>{timerState.isExpired ? 'Hold Expired' : `Stock reserved: ${timerState.formattedTime}`}</strong>
+      <p>{timerState.isExpired ? 'Recheck stock to continue.' : 'Your stock is protected until the deadline shown.'}</p>
+    </div>
+  </div>;
 }
