@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '@/app/api/shop-assistant/route';
-import { setCommerceCommands } from '@/server/http/adapters';
-import type { CommerceCommands } from '@/server/http/adapters/commerce-commands';
+import { setCommerceCommands } from '@server/http/adapters';
+import type { CommerceCommands } from '@server/http/adapters/commerce-commands';
 
 function question(text:string,storeId:string) {
   return new Request('https://shop.example/api/shop-assistant', {
