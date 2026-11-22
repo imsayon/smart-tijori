@@ -18,7 +18,7 @@ export function CartLockShowcase() {
   useEffect(() => {
     const element = root.current;
     if (!element) return;
-    if (!('IntersectionObserver' in window)) {
+    if (typeof IntersectionObserver === 'undefined') {
       const trigger = window.setTimeout(() => setStarted(true), 0);
       return () => window.clearTimeout(trigger);
     }
