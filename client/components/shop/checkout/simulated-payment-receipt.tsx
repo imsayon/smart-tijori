@@ -50,7 +50,7 @@ export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps)
           <p className="st-handoff-restriction">Order verification only. Scanning does not mark the goods handed over or enable delivery-partner access.</p>
         </div>
         <div className="st-handoff-qr-surface">
-          <QrCode value={`${(process.env.NEXT_PUBLIC_ST_SITE_ORIGIN || 'https://smart-tijori.onrender.com').replace(/\\/$/, '')}/ops/verify/${encodeURIComponent(order.id)}`}
+          <QrCode value={`${(process.env.NEXT_PUBLIC_ST_SITE_ORIGIN || 'https://smart-tijori.onrender.com').replace(/[/]$/, '')}/ops/verify/${encodeURIComponent(order.id)}`}
             label={`QR code to verify confirmed order ${order.id} with an authorized branch operator`} size={214} />
           <small>SCAN TO VERIFY · STAFF SIGN-IN REQUIRED</small>
         </div>
