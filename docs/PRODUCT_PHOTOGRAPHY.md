@@ -10,40 +10,43 @@ For **CC BY-SA 4.0** photos: attribution to Gaurav Dhwaj Khadka, with source lin
 
 ## Representative image sources
 
-| Wikimedia Commons source | Creator / source | License |
-|---|---|---|
-| [Vegetable_tomatoes.jpg](https://commons.wikimedia.org/wiki/File:Vegetable_tomatoes.jpg) | Leon Brooks | Public domain |
-| [Red_onion.jpg](https://commons.wikimedia.org/wiki/File:Red_onion.jpg) | Eoin Kilfeather | Public domain |
-| [Potato1.jpg](https://commons.wikimedia.org/wiki/File:Potato1.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Whole-Lemon.jpg](https://commons.wikimedia.org/wiki/File:Whole-Lemon.jpg) | Evan-Amos | CC0 1.0 |
-| [Gfp-bananas.jpg](https://commons.wikimedia.org/wiki/File:Gfp-bananas.jpg) | Good Free Photos | Public domain |
-| [Apple15112024.jpg](https://commons.wikimedia.org/wiki/File:Apple15112024.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Coconut.png](https://commons.wikimedia.org/wiki/File:Coconut.png) | EJavanainen | Public domain |
-| [Spinach_bunches_in_a_stack.jpg](https://commons.wikimedia.org/wiki/File:Spinach_bunches_in_a_stack.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Milk_2.jpg](https://commons.wikimedia.org/wiki/File:Milk_2.jpg) | Wikimedia contributor | CC0 1.0 |
-| [GroceryStoreEggs.JPG](https://commons.wikimedia.org/wiki/File:GroceryStoreEggs.JPG) | Wikimedia contributor | CC0 1.0 |
-| [Bread_1.jpg](https://commons.wikimedia.org/wiki/File:Bread_1.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Ginger_roots_in_a_bin.jpg](https://commons.wikimedia.org/wiki/File:Ginger_roots_in_a_bin.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Turmeric_Powder.jpg](https://commons.wikimedia.org/wiki/File:Turmeric_Powder.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Whole_Cumin_Seeds.jpg](https://commons.wikimedia.org/wiki/File:Whole_Cumin_Seeds.jpg) | Misterneedlemouse | CC0 1.0 |
-| [Green_Cardamom_Pods.jpg](https://commons.wikimedia.org/wiki/File:Green_Cardamom_Pods.jpg) | Misterneedlemouse | CC0 1.0 |
-| [Steaming_tea_leaves.jpg](https://commons.wikimedia.org/wiki/File:Steaming_tea_leaves.jpg) | Wikimedia contributor | Public domain |
-| [Raisins_02.jpg](https://commons.wikimedia.org/wiki/File:Raisins_02.jpg) | Shams948 | CC0 1.0 |
-| [KASHMIRI_MAMRA_ALMONDS.jpg](https://commons.wikimedia.org/wiki/File:KASHMIRI_MAMRA_ALMONDS.jpg) | Ranjithkumar Murugesan | CC0 1.0 |
-| [Rice_Grains_1.jpg](https://commons.wikimedia.org/wiki/File:Rice_Grains_1.jpg) | Gaurav Dhwaj Khadka | CC BY-SA 4.0 |
-| [Rohu_(Lebeo_rohita)_fish_demo.jpg](https://commons.wikimedia.org/wiki/File:Rohu_(Lebeo_rohita)_fish_demo.jpg) | Wikimedia contributor | CC0 1.0 |
-| [White_prawn_(Litopenaeus_vannamei).jpg](https://commons.wikimedia.org/wiki/File:White_prawn_(Litopenaeus_vannamei).jpg) | Wikimedia contributor | CC0 1.0 |
-| [Coffee-Beans.jpg](https://commons.wikimedia.org/wiki/File:Coffee-Beans.jpg) | Evan-Amos | CC0 1.0 |
-| [The_Grains.jpg](https://commons.wikimedia.org/wiki/File:The_Grains.jpg) | Peggy Greb / USDA | Public domain (USDA) |
-| [Coriander_bunches_-_Wellington,_New_Zealand.jpg](https://commons.wikimedia.org/wiki/File:Coriander_bunches_-_Wellington%2C_New_Zealand.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Plain_Yogurt.jpg](https://commons.wikimedia.org/wiki/File:Plain_Yogurt.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Wheat_flour_01.jpg](https://commons.wikimedia.org/wiki/File:Wheat_flour_01.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Chana_Ko_Dal.jpg](https://commons.wikimedia.org/wiki/File:Chana_Ko_Dal.jpg) | Gaurav Dhwaj Khadka | CC BY-SA 4.0 |
-| [Poha_(Rice_Flakes).jpg](https://commons.wikimedia.org/wiki/File:Poha_(Rice_Flakes).jpg) | Wikimedia contributor | CC0 1.0 |
-| [Marayoor_Jaggery_in_bar_form.jpg](https://commons.wikimedia.org/wiki/File:Marayoor_Jaggery_in_bar_form.jpg) | Wikimedia contributor | CC0 1.0 |
-| [Cayenne_and_other_chilli_powders.JPG](https://commons.wikimedia.org/wiki/File:Cayenne_and_other_chilli_powders.JPG) | Andrew Dalby | CC0 1.0 |
-| [Bajra.JPG](https://commons.wikimedia.org/wiki/File:Bajra.JPG) | Wikimedia contributor | CC0 1.0 |
-| [Dried_Apricots.jpg](https://commons.wikimedia.org/wiki/File:Dried_Apricots.jpg) | Kuwanishbek | CC0 1.0 |
+The Commons file pages linked below provide original creator, license and image history. Only a subset have been independently checked for author/license in this rollout. **Do not infer CC0 or public-domain status from hosting on Commons.** The live image may be resized/cropped in the product card. If a source is absent, incorrect or not eligible for reuse, remove that mapping in `representative-photography.ts` and retain the neutral vector fallback.
+
+- Verified example: [Vegetable tomatoes.jpg](https://commons.wikimedia.org/wiki/File:Vegetable_tomatoes.jpg), Leon Brooks, public domain.
+- Verified example: [Rice Grains 1.jpg](https://commons.wikimedia.org/wiki/File:Rice_Grains_1.jpg), Gaurav Dhwaj Khadka, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (photo may be cropped).
+
+- [Vegetable tomatoes.jpg](https://commons.wikimedia.org/wiki/File:Vegetable_tomatoes.jpg)
+- [Red onion.jpg](https://commons.wikimedia.org/wiki/File:Red_onion.jpg)
+- [Potato1.jpg](https://commons.wikimedia.org/wiki/File:Potato1.jpg)
+- [Whole-Lemon.jpg](https://commons.wikimedia.org/wiki/File:Whole-Lemon.jpg)
+- [Gfp-bananas.jpg](https://commons.wikimedia.org/wiki/File:Gfp-bananas.jpg)
+- [Apple15112024.jpg](https://commons.wikimedia.org/wiki/File:Apple15112024.jpg)
+- [Coconut.png](https://commons.wikimedia.org/wiki/File:Coconut.png)
+- [Spinach bunches in a stack.jpg](https://commons.wikimedia.org/wiki/File:Spinach_bunches_in_a_stack.jpg)
+- [Milk 2.jpg](https://commons.wikimedia.org/wiki/File:Milk_2.jpg)
+- [GroceryStoreEggs.JPG](https://commons.wikimedia.org/wiki/File:GroceryStoreEggs.JPG)
+- [Bread 1.jpg](https://commons.wikimedia.org/wiki/File:Bread_1.jpg)
+- [Ginger roots in a bin.jpg](https://commons.wikimedia.org/wiki/File:Ginger_roots_in_a_bin.jpg)
+- [Turmeric Powder.jpg](https://commons.wikimedia.org/wiki/File:Turmeric_Powder.jpg)
+- [Whole Cumin Seeds.jpg](https://commons.wikimedia.org/wiki/File:Whole_Cumin_Seeds.jpg)
+- [Green Cardamom Pods.jpg](https://commons.wikimedia.org/wiki/File:Green_Cardamom_Pods.jpg)
+- [Steaming tea leaves.jpg](https://commons.wikimedia.org/wiki/File:Steaming_tea_leaves.jpg)
+- [Raisins 02.jpg](https://commons.wikimedia.org/wiki/File:Raisins_02.jpg)
+- [KASHMIRI MAMRA ALMONDS.jpg](https://commons.wikimedia.org/wiki/File:KASHMIRI_MAMRA_ALMONDS.jpg)
+- [Rice Grains 1.jpg](https://commons.wikimedia.org/wiki/File:Rice_Grains_1.jpg)
+- [Rohu (Lebeo rohita) fish demo.jpg](https://commons.wikimedia.org/wiki/File:Rohu_(Lebeo_rohita)_fish_demo.jpg)
+- [White prawn (Litopenaeus vannamei).jpg](https://commons.wikimedia.org/wiki/File:White_prawn_(Litopenaeus_vannamei).jpg)
+- [Coffee-Beans.jpg](https://commons.wikimedia.org/wiki/File:Coffee-Beans.jpg)
+- [The Grains.jpg](https://commons.wikimedia.org/wiki/File:The_Grains.jpg)
+- [Coriander bunches - Wellington, New Zealand.jpg](https://commons.wikimedia.org/wiki/File:Coriander_bunches_-_Wellington%2C_New_Zealand.jpg)
+- [Plain Yogurt.jpg](https://commons.wikimedia.org/wiki/File:Plain_Yogurt.jpg)
+- [Wheat flour 01.jpg](https://commons.wikimedia.org/wiki/File:Wheat_flour_01.jpg)
+- [Chana Ko Dal.jpg](https://commons.wikimedia.org/wiki/File:Chana_Ko_Dal.jpg)
+- [Poha (Rice Flakes).jpg](https://commons.wikimedia.org/wiki/File:Poha_(Rice_Flakes).jpg)
+- [Marayoor Jaggery in bar form.jpg](https://commons.wikimedia.org/wiki/File:Marayoor_Jaggery_in_bar_form.jpg)
+- [Cayenne and other chilli powders.JPG](https://commons.wikimedia.org/wiki/File:Cayenne_and_other_chilli_powders.JPG)
+- [Bajra.JPG](https://commons.wikimedia.org/wiki/File:Bajra.JPG)
+- [Dried Apricots.jpg](https://commons.wikimedia.org/wiki/File:Dried_Apricots.jpg)
 
 The existing two manufacturer product images are separately sourced from their respective publishers. Those assets should be used only for the named matching branded products. No photo replaces a verified manufacturer listing or changes database price, stock or identity.
 
