@@ -45,18 +45,22 @@ export function GreenAtelierLanding() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!selectedStoreId) {
-      setOffers([]);
-      return;
-    }
     let mounted = true;
-    setProductsLoading(true);
-    setProductsError(false);
-    void api.getProducts({ storeId: selectedStoreId, page: 1, includeUnavailable: false })
-      .then(result => { if (mounted) setOffers(result.items.slice(0, 4)); })
-      .catch(() => { if (mounted) { setProductsError(true); setOffers([]); } })
-      .finally(() => { if (mounted) setProductsLoading(false); });
-    return () => { mounted = false; };
+    // Schedule the fetch as an async effect transition, not a synchronous render cascade.
+    const timer = window.setTimeout(() => {
+      if (!selectedStoreId) {
+        setOffers([]);
+        setProductsLoading(false);
+        return;
+      }
+      setProductsLoading(true);
+      setProductsError(false);
+      void api.getProducts({ storeId: selectedStoreId, page: 1, includeUnavailable: false })
+        .then(result => { if (mounted) setOffers(result.items.slice(0, 4)); })
+        .catch(() => { if (mounted) { setProductsError(true); setOffers([]); } })
+        .finally(() => { if (mounted) setProductsLoading(false); });
+    }, 0);
+    return () => { mounted = false; window.clearTimeout(timer); };
   }, [selectedStoreId]);
 
   useEffect(() => {
