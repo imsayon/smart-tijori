@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     const storeId = parsed.success ? parsed.data.storeId : undefined;
     const question = turns.at(-1)?.text ?? '';
     let catalogueContext: string | undefined;
-    let matchedProducts: Array<{name:string;pricePaise:number;pack:{quantity:number;unit:string};available:number}> = [];
+    let matchedProducts: Array<{name:string;purpose:string;pricePaise:number;pack:{quantity:number;unit:string};available:number}> = [];
     if (storeId) {
       const offers = (await getCommerceCommands().getProductOffers(storeId))
         .filter(offer => offer.storeId === storeId && offer.available > 0);
