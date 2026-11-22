@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { Order } from '@/contracts';
 import { Icon } from '@/components/ui/atelier';
+import { QrCode } from '@/components/ui/qr-code';
 import { formatPaise } from '@/lib/utils/currency';
 
 interface SimulatedPaymentReceiptProps { order: Order }
@@ -39,6 +40,21 @@ export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps)
           <b>{formatPaise(line.unitPricePaise * line.quantity)}</b>
         </div>)}
       </div>
+      <section className="st-handoff-qr" aria-labelledby="st-handoff-title">
+        <div className="st-handoff-qr-copy">
+          <p className="st-kicker">03 / READY FOR COLLECTION</p>
+          <h2 id="st-handoff-title">Your <em>order code.</em></h2>
+          <p>Show this code to a cashier or authorized store partner. Scanning opens a branch-protected verification page where the staff member can confirm the order against SmartTijori.</p>
+          <span className="st-handoff-code">{order.id}</span>
+          {simulated && <p className="st-handoff-demo">DEMONSTRATION ORDER · NO REAL PAYMENT</p>}
+          <p className="st-handoff-restriction">Order verification only. Scanning does not mark the goods handed over or enable delivery-partner access.</p>
+        </div>
+        <div className="st-handoff-qr-surface">
+          <QrCode value={`${(process.env.NEXT_PUBLIC_ST_SITE_ORIGIN || 'https://smart-tijori.onrender.com').replace(/\\/$/, '')}/ops/verify/${encodeURIComponent(order.id)}`}
+            label={`QR code to verify confirmed order ${order.id} with an authorized branch operator`} size={214} />
+          <small>SCAN TO VERIFY · STAFF SIGN-IN REQUIRED</small>
+        </div>
+      </section>
       <div className="st-receipt-total">
         <span>{simulated ? 'Total Paid (Simulated)' : 'Total Paid'}</span>
         <strong>{formatPaise(order.totalPaise)}</strong>
