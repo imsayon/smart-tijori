@@ -208,7 +208,7 @@ export function GreenAtelierLanding() {
           <div className="ga-clock ga-reveal" aria-label="An illustrative clock representing the 59-second checkout reservation">
             <span className="ga-clock-top">THE RESERVATION WINDOW</span>
             <div className="ga-clock-rings"><i/><i/><i/><div><strong>59</strong><span>SECONDS</span></div></div>
-            <span className="ga-clock-caption">EXPLICIT HOLD · NEVER RENEWED BY RETRIES</span>
+            <span className="ga-clock-caption">EXPLICIT HOLD · NEVER RENEWED BY RETRIES<br />ILLUSTRATIVE CLOCK · NOT A LIVE RESERVATION COUNTDOWN</span>
           </div>
         </div>
       </section>
