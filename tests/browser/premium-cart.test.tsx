@@ -30,7 +30,7 @@ describe('premium cart presentation contracts',()=>{
     expect(screen.getByText(/does not reserve stock/)).toBeInTheDocument();
     expect(screen.queryByRole('timer')).not.toBeInTheDocument();
     expect(screen.getByRole('link',{name:/Proceed to checkout/i})).toHaveAttribute('href','/checkout');
-    expect(screen.getByText('₹490')).toBeInTheDocument();
+    expect(screen.getAllByText('₹490').length).toBeGreaterThan(0);
   });
   it('preserves increase, decrease, and removal actions',async()=>{
     const user=userEvent.setup();
