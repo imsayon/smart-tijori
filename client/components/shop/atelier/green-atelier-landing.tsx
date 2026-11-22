@@ -63,7 +63,8 @@ export function GreenAtelierLanding() {
     const root = sectionRef.current;
     if (!root) return;
     const elements = [...root.querySelectorAll<HTMLElement>('.ga-reveal')];
-    if (!('IntersectionObserver' in window)) return;
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    root.classList.add('ga-motion');
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         if (entry.isIntersecting) {
