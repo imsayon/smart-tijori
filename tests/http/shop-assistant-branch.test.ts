@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '@/app/api/shop-assistant/route';
-import { setCommerceCommands } from '@server/http/adapters';
-import type { CommerceCommands } from '@server/http/adapters/commerce-commands';
+const reader = vi.hoisted(() => vi.fn());
+vi.mock('@server/http/adapters', () => ({ getCommerceCommands: () => ({ getProductOffers: reader }) }));
 
 function question(text:string,storeId:string) {
   return new Request('https://shop.example/api/shop-assistant', {
@@ -14,17 +14,16 @@ const createOffer = (productId:string,storeId:string,name:string,available:numbe
   category:'pantry',pack:{quantity:500,unit:'g'},attributes:{},city:'Bengaluru',
   imageUrl:'',inventoryVersion:1,checkedAt:new Date().toISOString(),
 });
-afterEach(() => { setCommerceCommands(null);vi.unstubAllGlobals(); });
+afterEach(() => { reader.mockReset();vi.unstubAllGlobals(); });
 
 describe('branch-grounded shopping assistant', () => {
   it('supplies in-stock products only from the selected store to Gemini', async () => {
-    const reader = vi.fn(async () => [
+    reader.mockResolvedValue([
       createOffer('dal-1','dm-blr-01','Toor Dal 500g',8),
       createOffer('dal-2','dm-blr-01','Sold Out Dal',0),
       createOffer('dal-3','dm-mum-01','Another Branch Dal',10),
       createOffer('salt-1','dm-blr-01','Salt 1kg',20),
     ]);
-    setCommerceCommands({getProductOffers:reader} as unknown as CommerceCommands);
     const before = process.env.GEMINI_API_KEY;
     process.env.GEMINI_API_KEY='test-key';
     const provider = vi.fn(async (_url:unknown, init?:RequestInit) => {
@@ -49,10 +48,10 @@ describe('branch-grounded shopping assistant', () => {
     }
   });
   it('falls back to factual in-stock branch suggestions when model is not configured',async()=>{
-    setCommerceCommands({getProductOffers:async()=>[
+    reader.mockResolvedValue([
       createOffer('dal-1','dm-blr-01','Toor Dal 500g',4),
       createOffer('salt-1','dm-blr-01','Salt 1kg',4),
-    ]} as unknown as CommerceCommands);
+    ]);
     const before=process.env.GEMINI_API_KEY;
     delete process.env.GEMINI_API_KEY;
     try {
