@@ -1,5 +1,5 @@
 import { getCommerceDatabase } from '../../db/runtime';
-import { readAccount } from './firebase-session';
+import { readAccount } from './email-session';
 import { OPERATOR_ROLE, verifyOperatorSession, type OperatorActor } from './operator-guard';
 import { HttpError } from '../errors/http-errors';
 
@@ -13,7 +13,7 @@ export async function findMerchant(uid: string): Promise<OperatorActor | null> {
   try {
     storeId = await getCommerceDatabase().transact(async client => {
       const { rows } = await client.query<{ store_id: string }>(
-        'SELECT store_id FROM operator_memberships WHERE firebase_uid = $1 AND active',
+        'SELECT store_id FROM account_merchant_branches WHERE account_id = $1 AND active ORDER BY store_id LIMIT 1',
         [uid],
       );
       return rows[0]?.store_id;
