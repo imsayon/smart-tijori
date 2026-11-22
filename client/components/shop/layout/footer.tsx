@@ -12,7 +12,7 @@ export function Footer() {
             <div><span>PLATFORM</span><Link href="/ops">Retail workspace</Link><Link href="/account">Account</Link><Link href="/orders">Orders</Link></div>
           </div>
         </div>
-        <div className="ga-footer-bottom"><span>SMARTTIJORI / PING FLOYD</span><span>INVENTORY IS BRANCH-SPECIFIC · CHECKED AGAIN AT CHECKOUT</span><a href="#top">BACK TO TOP ↑</a></div>
+        <div className="ga-footer-bottom"><span>SMARTTIJORI / PING FLOYD</span><span>INVENTORY IS BRANCH-SPECIFIC · CHECKED AGAIN AT CHECKOUT</span><Link href="/#top">BACK TO TOP ↑</Link></div>
       </div>
     </footer>
   );
