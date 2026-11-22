@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     const storeId = parsed.success ? parsed.data.storeId : undefined;
     const question = turns.at(-1)?.text ?? '';
     let catalogueContext: string | undefined;
-    let matchedProducts: Array<{name:string;purpose:string;pricePaise:number;pack:{quantity:number;unit:string};available:number}> = [];
+    let matchedProducts: Array<{productId:string;name:string;purpose:string;pricePaise:number;pack:{quantity:number;unit:string};available:number}> = [];
     if (storeId) {
       const offers = (await getCommerceCommands().getProductOffers(storeId))
         .filter(offer => offer.storeId === storeId && offer.available > 0);
@@ -83,7 +83,7 @@ Recommend only these products. If the shopper asks for a product not among these
           : 'I could not find matching in-stock products at this store. Try another search or branch.';
       const headers = new Headers({ 'Cache-Control': 'no-store' });
       if (isNew) headers.set('Set-Cookie', buildSessionCookieHeader(sessionId));
-      return Response.json({ reply: reply.slice(0, 1800) }, { headers });
+      return Response.json({ reply: reply.slice(0, 1800), ...(storeId ? { suggestions: matchedProducts.slice(0,3).map(product => ({ productId: product.productId, name: product.name, pricePaise: product.pricePaise, pack: product.pack, available: product.available })) } : {}) }, { headers });
     } catch (error) {
       if (error instanceof GeminiQuotaError) {
         return jsonError('DEPENDENCY_UNAVAILABLE', 'The shop assistant is busy. Try again shortly.', 429);
