@@ -115,7 +115,7 @@ export function GreenAtelierLanding() {
       <section className="ga-wrap ga-collection ga-reveal" id="collection" aria-labelledby="ga-collection-heading">
         <div className="ga-section-head">
           <div>
-            <p className="ga-kicker"><span className="ga-dot" /> SELECTED AT {selectedStore?.city?.toUpperCase() ?? 'YOUR NEIGHBOURHOOD'} / STORE 01</p>
+            <p className="ga-kicker"><span className="ga-dot" /> SELECTED AT {selectedStore?.name?.toUpperCase() ?? 'YOUR LOCAL SHOP'} / {selectedStore?.city?.toUpperCase() ?? 'CHOOSE A BRANCH'}</p>
             <h2 id="ga-collection-heading">Good finds, <em>just around the corner.</em></h2>
           </div>
           <Link href="/search" className="ga-text-link">Browse all products <Icon name="upRight" size={15} /></Link>
