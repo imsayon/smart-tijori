@@ -1513,3 +1513,52 @@ html { scroll-padding-top: 86px; }
  .st-receipt-meta{gap:16px 10px;}
  .st-receipt-hero{padding:25px 17px 35px;}
 }
+
+
+/* Checkout confirmation / collection verification QR */
+.st-handoff-qr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:26px;align-items:center;margin:28px 0;padding:clamp(20px,3vw,30px);border:1px solid #d4dfcd;border-radius:5px;background:linear-gradient(135deg,#f2f5e9,#fbfcf8);}
+.st-handoff-qr-copy{min-width:0;}
+.st-handoff-qr h2{font:400 clamp(27px,3vw,39px)/1.06 Georgia,serif;letter-spacing:-.04em;margin:12px 0;}
+.st-handoff-qr h2 em{color:#557a5a;}
+.st-handoff-qr-copy>p:not(.st-kicker){color:#5c7162;font-size:13px;line-height:1.7;max-width:470px;}
+.st-handoff-code{display:block;word-break:break-all;font:600 11px/1.6 ui-monospace,monospace;letter-spacing:.03em;color:#203c2a;margin:16px 0;}
+.st-handoff-demo{color:#865a3b!important;font:600 10px ui-monospace,monospace!important;}
+.st-handoff-restriction{font-size:11px!important;color:#6d7e71!important;}
+.st-handoff-qr-surface{display:grid;justify-items:center;gap:10px;min-width:246px;padding:16px;background:#fff;border:1px solid #d7e0d3;border-radius:6px;box-shadow:0 15px 30px #18332810;}
+.st-handoff-qr-surface small{font:600 9px/1.6 ui-monospace,monospace;text-align:center;letter-spacing:.04em;color:#42634b;}
+.st-order-qr-code{display:block;max-width:100%;height:auto;image-rendering:pixelated;background:#fff;}
+.st-verify-page{max-width:810px;margin:clamp(28px,6vw,75px) auto;min-height:50vh;background:#fbfbf6;padding:clamp(20px,5vw,45px);border:1px solid #d5dfd1;border-radius:6px;}
+.st-verify-page h1{margin:13px 0 20px;}
+.st-verify-page>p:not(.atelier-label){color:#53685b;max-width:650px;font-size:14px;line-height:1.75;margin:18px 0;}
+.st-verify-identity{display:grid;place-items:center;width:53px;height:53px;margin-bottom:19px;background:#dceac9;border:1px solid #adcea6;border-radius:50%;color:#244936;}
+.st-verify-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;border:1px solid #d5dfd1;background:#d5dfd1;margin:22px 0;}
+.st-verify-meta>div{background:#f3f7ee;padding:15px 17px;min-width:0;}
+.st-verify-meta dt{font:500 10px ui-monospace,monospace;color:#718572;letter-spacing:.06em;text-transform:uppercase;}
+.st-verify-meta dd{font-size:14px;color:#244c35;margin-top:8px;font-weight:650;overflow-wrap:anywhere;}
+.st-verify-mono{font-family:ui-monospace,monospace;font-size:12px!important;}
+.st-verify-page h2{font:400 28px Georgia,serif;margin:30px 0 14px;}
+.st-verify-lines{border-top:1px solid #d5dfd1;}
+.st-verify-lines li{padding:13px 0;display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dfd1;font-size:13px;}
+.st-verify-lines b{white-space:nowrap;}
+.st-verify-total{display:flex;justify-content:space-between;gap:10px;padding-top:20px;align-items:center;}
+.st-verify-total strong{font:400 32px Georgia,serif;color:#244c35;}
+.st-verify-notice{padding:15px 18px;background:#eef2e7;border-left:3px solid #628c61;}
+/* The animated marketing countdown is always visibly labeled as a simulation. */
+.ga-clock-preview{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px;background:#fff;border-radius:5px;box-shadow:0 15px 38px #0003;}
+.ga-clock-preview .st-order-qr-code{width:min(33vw,158px);height:auto;}
+.ga-clock-preview>span{font:700 8px/1.5 ui-monospace,monospace;letter-spacing:.04em;color:#4c6d52;text-align:center;}
+.ga-clock-complete>i:first-child{animation-play-state:paused;}
+.ga-clock-caption{display:flex;flex-direction:column;gap:5px;max-width:min(380px,85%);text-align:right;}
+.ga-clock-caption a{color:#d0e68a;font-size:11px;text-decoration:underline;text-underline-offset:3px;}
+/* External commodity photos are illustrative, not merchant-approved SKU packaging. */
+.atelier-photo-real{object-fit:cover;object-position:center;filter:saturate(.92);}
+.atelier-photo-representative{position:absolute;right:8px;bottom:8px;z-index:1;padding:5px 7px;background:#fafbf4ed;border:1px solid #d0d8c8;border-radius:2px;color:#56715b;font:600 9px/1 ui-monospace,monospace;letter-spacing:.02em;}
+@media(max-width:720px){
+  .st-handoff-qr{grid-template-columns:1fr;}
+  .st-handoff-qr-surface{width:min(100%,300px);justify-self:center;}
+  .st-verify-meta{grid-template-columns:1fr;}
+  .ga-clock-preview .st-order-qr-code{width:125px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .ga-clock-complete>i,.st-order-qr-code{animation:none!important;}
+}
