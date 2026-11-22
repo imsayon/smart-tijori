@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { readAccount, shopperId } from '@server/http/auth/firebase-session';
+import { readAccount, shopperId } from '@server/http/auth/email-session';
 import { createCommerceCommands } from '@server/commerce/commands';
 import { getCommerceDatabase } from '@server/db/runtime';
 import { handleServerError, HttpError } from '@server/http/errors/http-errors';

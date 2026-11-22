@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { CheckoutView } from '@/components/shop/checkout/checkout-view';
 import { createCommerceCommands } from '@server/commerce/commands';
 import { getCommerceDatabase } from '@server/db/runtime';
-import { readAccount, shopperId } from '@server/http/auth/firebase-session';
+import { readAccount, shopperId } from '@server/http/auth/email-session';
 import { paymentConfig } from '@server/payments/razorpay';
 
 export default async function CheckoutPage() {
