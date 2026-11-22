@@ -103,7 +103,7 @@ export function OpsOverview({
           <h2 id="os-hero-heading">Every sale.<br /><em>In its place.</em></h2>
           <p>One operational view for the shop floor, online checkout, reservations, and inventory changes. Every reported number below is read for your authorized branch.</p>
           <div className="os-hero-actions">
-            <Link href="/ops/cashier" className="os-hero-button">Open counter <Icon name="upRight" size={16}/></Link>
+            <Link href="/ops/cashier" className="os-hero-button">Point of sale <Icon name="upRight" size={16}/></Link>
             <Link href="/ops/inventory" className="os-hero-outline">See inventory <Icon name="arrow" size={16}/></Link>
           </div>
         </div>
