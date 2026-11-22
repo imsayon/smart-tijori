@@ -57,7 +57,13 @@ export async function POST(request: Request) {
         if (bag !== 'account') {
           await client.query('DELETE FROM cart_lines WHERE cart_id = $1', [to.id]);
           await client.query('UPDATE carts SET store_id = $2 WHERE id = $1', [to.id, from.store_id]);
-          await client.query('UPDATE cart_lines SET cart_id = $2 WHERE cart_id = $1', [from.id, to.id]);
+          // The shop service role has INSERT and DELETE on cart_lines but not UPDATE.
+          // Copy first and remove the guest rows within the same transaction.
+          await client.query(
+            'INSERT INTO cart_lines (cart_id, product_id, quantity) SELECT $2::uuid, product_id, quantity FROM cart_lines WHERE cart_id = $1::uuid',
+            [from.id, to.id],
+          );
+          await client.query('DELETE FROM cart_lines WHERE cart_id = $1', [from.id]);
         }
         return null;
       });
