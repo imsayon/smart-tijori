@@ -9,13 +9,22 @@ export async function readMerchant(cookie?: string | null): Promise<OperatorActo
 }
 
 export async function findMerchant(uid: string): Promise<OperatorActor | null> {
-  const storeId = await getCommerceDatabase().transact(async client => {
-    const { rows } = await client.query<{ store_id: string }>(
-      'SELECT store_id FROM operator_memberships WHERE firebase_uid = $1 AND active',
-      [uid],
-    );
-    return rows[0]?.store_id;
-  });
+  let storeId: string | undefined;
+  try {
+    storeId = await getCommerceDatabase().transact(async client => {
+      const { rows } = await client.query<{ store_id: string }>(
+        'SELECT store_id FROM operator_memberships WHERE firebase_uid = $1 AND active',
+        [uid],
+      );
+      return rows[0]?.store_id;
+    });
+  } catch (error) {
+    const sqlState = (error as { code?: string })?.code;
+    if (sqlState === '42501' || sqlState === '42P01') {
+      throw new HttpError('DEPENDENCY_UNAVAILABLE', 'Merchant sign-in is temporarily unavailable.', 503);
+    }
+    throw error;
+  }
   return storeId ? { operatorId: uid, role: OPERATOR_ROLE, storeId } : null;
 }
 
