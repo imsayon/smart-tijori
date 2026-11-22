@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/atelier';
+import { useStore } from '@/lib/session/store-context';
 
 type Turn = { role: 'user' | 'model'; text: string };
 
 export function ShopAssistant() {
+  const { selectedStoreId, selectedStore } = useStore();
   const dialog = useRef<HTMLDialogElement>(null);
   const log = useRef<HTMLDivElement>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -28,7 +30,7 @@ export function ShopAssistant() {
     try {
       const response = await fetch('/api/shop-assistant', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ turns: next }),
+        body: JSON.stringify({ turns: next, storeId: selectedStoreId || undefined }),
       });
       const result = await response.json();
       if (!response.ok || typeof result.reply !== 'string') {
@@ -54,7 +56,7 @@ export function ShopAssistant() {
         <button type="button" className="atelier-icon-button" aria-label="Close shop assistant" onClick={() => dialog.current?.close()}><Icon name="close" /></button>
       </header>
       <div ref={log} className="atelier-assistant-log" role="log" aria-label="Conversation">
-        <p>Ask about finding products, checkout holds, or what to do when an item sells out.</p>
+        <p>Ask about products {selectedStore ? `at ${selectedStore.name}` : 'at your selected store'}, alternatives, or checkout holds.</p>
         {turns.map((turn, index) => <div className="atelier-assistant-message" data-role={turn.role} key={index}>
           <strong>{turn.role === 'user' ? 'You' : 'Assistant'}</strong><p>{turn.text}</p>
         </div>)}
@@ -64,7 +66,7 @@ export function ShopAssistant() {
           <label htmlFor="shop-assistant-message">Your message</label>
           <div className="atelier-assistant-input">
             <input autoFocus id="shop-assistant-message" className="atelier-input" value={message} maxLength={500} required
-              onChange={event => setMessage(event.target.value)} readOnly={pending} placeholder="How does CartLock work?" />
+              onChange={event => setMessage(event.target.value)} readOnly={pending} placeholder="Which dal or rice is available at my store?" />
             <button type="submit" disabled={pending || !message.trim()} className="atelier-action">Send</button>
           </div>
           {error && <p role="status">{error}</p>}
