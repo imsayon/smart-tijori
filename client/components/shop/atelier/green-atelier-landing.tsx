@@ -80,7 +80,7 @@ export function GreenAtelierLanding() {
   const phase = allocations[activeStep];
 
   return (
-    <div className="ga-longscroll" ref={sectionRef}>
+    <div className="ga-longscroll" id="top" ref={sectionRef}>
       <section className="ga-wrap ga-hero" aria-labelledby="ga-heading">
         <div className="ga-hero-copy ga-reveal">
           <p className="ga-kicker"><span className="ga-dot" /> THE NEIGHBOURHOOD EDITION <span className="ga-number">/ 001</span></p>
