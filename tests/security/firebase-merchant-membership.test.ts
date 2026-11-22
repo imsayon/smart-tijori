@@ -11,7 +11,7 @@ vi.mock('@server/db/runtime', () => ({
     transact: (run: (client: { query: typeof mocks.query }) => Promise<unknown>) => run({ query: mocks.query }),
   }),
 }));
-vi.mock('@server/http/auth/firebase-session', () => ({ readAccount: mocks.readAccount }));
+vi.mock('@server/http/auth/email-session', () => ({ readAccount: mocks.readAccount }));
 
 describe('Firebase merchant identity and branch authorization', () => {
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('Firebase merchant identity and branch authorization', () => {
   it('does not grant a merchant role without an active DB membership', async () => {
     expect(await readMerchant('st_account=session-cookie')).toBeNull();
     expect(mocks.query).toHaveBeenCalledWith(
-      'SELECT store_id FROM operator_memberships WHERE firebase_uid = $1 AND active',
+      'SELECT store_id FROM account_merchant_branches WHERE account_id = $1 AND active ORDER BY store_id LIMIT 1',
       ['firebase-merchant-uid'],
     );
     await expect(requireMerchant(new Request('https://shop.example/api/ops/inventory', {
