@@ -12,6 +12,7 @@ import { OnlinePayment } from './online-payment';
 import { SimulatedPaymentReceipt } from './simulated-payment-receipt';
 import { ConflictRecoveryPanel } from '../recovery/conflict-recovery-panel';
 import { Alert } from '../feedback/alert';
+import { CartLockPreview, CheckoutLedger, PurchaseTrail } from '../atelier/purchase-details';
 
 type CheckoutState =
   | 'CREATING_HOLD'
@@ -229,22 +230,49 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
   }
 
   if (!checkoutStarted) {
-    return <section className="mx-auto max-w-xl space-y-5">
-      <h1 className="atelier-heading text-5xl">Checkout</h1>
-      <p>Reserve your bag for 59 seconds, then pay online.</p>
-      <p className="text-lg font-semibold">{formatPaise(cart.totalPaise)}</p>
-      <button type="button" className="atelier-action" onClick={() => setCheckoutStarted(true)}>Reserve items</button>
+    return <section className="st-purchase-page st-checkout-page">
+      <header className="st-purchase-heading">
+        <div className="st-purchase-heading-copy">
+          <p className="st-overline"><span className="st-mini-dot"/> CARTLOCK / CHECKOUT</p>
+          <h1 className="atelier-heading">Here’s to <em>what’s next.</em></h1>
+          <p>Your bag is ready. Let’s check whether your local store can hold every item before you pay.</p>
+        </div>
+        <div className="st-bag-count"><span>TOTAL</span><strong className="st-checkout-head-price">{formatPaise(cart.totalPaise)}</strong></div>
+      </header>
+      <PurchaseTrail current={2}/>
+      <div className="st-checkout-grid">
+        <div className="st-checkout-main st-checkout-invitation">
+          <CartLockPreview/>
+          <div className="st-checkout-ready">
+            <p className="st-overline">READY WHEN YOU ARE</p>
+            <h2>Secure your <em>selection.</em></h2>
+            <p>We’ll request a 59-second hold from your store. If any item has sold out, we’ll help you find another.</p>
+            <button type="button" className="st-button-primary" onClick={() => setCheckoutStarted(true)}>Reserve items <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+        <CheckoutLedger cart={cart} holding={false}/>
+      </div>
     </section>;
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <section className="st-purchase-page st-checkout-page">
+      <header className="st-purchase-heading">
+        <div className="st-purchase-heading-copy">
+          <p className="st-overline"><span className="st-mini-dot"/> CARTLOCK / CHECKOUT</p>
+          <h1 className="atelier-heading">A finite window. <em>Just for you.</em></h1>
+          <p>One store, your selection, and a clear path to confirmation.</p>
+        </div>
+        <Link className="st-quiet-link" href="/cart">Review your bag <span aria-hidden="true">↗</span></Link>
+      </header>
+      <PurchaseTrail current={state === 'ORDER_CONFIRMED' ? 3 : 2}/>
+      <div className="st-checkout-grid"><div className="st-checkout-main">
       {state === 'CREATING_HOLD' && (
         <div
           role="status"
           aria-live="polite"
           aria-busy="true"
-          className="bg-white rounded-3xl border border-stone-200 p-12 text-center shadow-xs"
+          className="st-checkout-waiting"
         >
           <div className="text-4xl animate-bounce mb-3">🔒</div>
           <h2 className="text-xl font-black text-stone-900 mb-2">Securing CartLock Hold</h2>
@@ -268,7 +296,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
         <div
           role="alert"
           aria-live="assertive"
-          className="bg-white rounded-3xl border border-red-200 p-8 shadow-sm text-center"
+          className="st-checkout-expired"
         >
           <div className="text-4xl mb-3">⏰</div>
           <h2 className="text-2xl font-black text-stone-900 mb-2">
@@ -366,6 +394,9 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
       {state === 'ORDER_CONFIRMED' && order && (
         <SimulatedPaymentReceipt order={order} />
       )}
-    </div>
+      </div>
+      <CheckoutLedger cart={cart} holding={state === 'HOLD_ACTIVE' || state === 'CONFIRMING_ORDER'}/>
+      </div>
+    </section>
   );
 }
