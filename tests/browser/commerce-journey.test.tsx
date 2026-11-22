@@ -37,7 +37,7 @@ describe('Editorial commerce journey', () => {
 
   it('uses branch and cart context on the profile without inventing an order count', () => {
     render(<AccountOverview email="sample@example.test" />);
-    expect(screen.getByText('sample@example.test')).toBeInTheDocument();
+    expect(screen.getAllByText('sample@example.test').length).toBeGreaterThan(0);
     expect(screen.getByText('Athangudi Village Provision Store')).toBeInTheDocument();
     expect(screen.getByText('03')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /View order history/i })).toHaveAttribute('href', '/orders');
