@@ -20,12 +20,14 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
     const response = await fetch('/api/account/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      cache: 'no-store',
       body: JSON.stringify({ token, bag, merchant }),
     });
     if (!response.ok) {
-      const result = await response.json();
-      if (result.bags) setConflict({ token, bags: result.bags });
-      else setMessage(result.error?.message ?? 'Sign-in is temporarily unavailable.');
+      const result = await response.json().catch(() => null);
+      if (response.status === 409 && result?.bags) setConflict({ token, bags: result.bags });
+      else setMessage(result?.error?.message ?? 'Sign-in is temporarily unavailable.');
       return;
     }
     window.location.assign(merchant ? '/ops' : next ?? '/account');
@@ -41,7 +43,7 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
     setMessage('');
     try {
       if (signedIn) {
-        const response = await fetch('/api/account/session', { method: 'DELETE' });
+        const response = await fetch('/api/account/session', { method: 'DELETE', credentials: 'same-origin', cache: 'no-store' });
         if (!response.ok) throw new Error('Sign-out failed');
         window.location.assign(merchant ? '/ops' : '/');
         return;
@@ -49,7 +51,7 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
       const apiKey = process.env.NEXT_PUBLIC_ST_FIREBASE_API_KEY;
       const authDomain = process.env.NEXT_PUBLIC_ST_FIREBASE_AUTH_DOMAIN;
       if (!apiKey || !authDomain) {
-        setMessage('Account sign-in is unavailable on this deployment.');
+        setMessage('Sign-in is temporarily unavailable. Please try again later.');
         return;
       }
       const { initializeApp, getApps } = await import('firebase/app');
@@ -93,8 +95,9 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
       if (google) {
         setMessage(code === 'auth/popup-closed-by-user' ? 'Google sign-in was cancelled.'
           : code === 'auth/popup-blocked' ? 'Allow popups for SmartTijori and try again.'
-            : code === 'auth/unauthorized-domain' ? 'Google sign-in is unavailable on this domain.'
-              : 'Google sign-in could not finish. Try again.');
+            : code === 'auth/unauthorized-domain' ? 'Google sign-in is unavailable at this address. Please try email sign-in.'
+              : code === 'auth/operation-not-allowed' ? 'Google sign-in is not available right now. Try email instead.'
+                : 'Google sign-in could not finish. Try again.');
       } else {
         setMessage(mode === 'signin' && !signedIn ? 'Sign-in failed. Check your email and password or try again.' : 'The account service could not complete the request. Try again.');
       }
