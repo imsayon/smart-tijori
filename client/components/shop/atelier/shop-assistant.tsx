@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/atelier';
 import { useStore } from '@/lib/session/store-context';
 
-type Turn = { role: 'user' | 'model'; text: string };
+type Suggestion = { productId: string; name: string; pricePaise: number; pack: { quantity: number; unit: string }; available: number };
+type Turn = { role: 'user' | 'model'; text: string; suggestions?: Suggestion[] };
 
 export function ShopAssistant() {
   const { selectedStoreId, selectedStore } = useStore();
@@ -36,7 +37,7 @@ export function ShopAssistant() {
       if (!response.ok || typeof result.reply !== 'string') {
         setError(result.error?.message ?? 'Try again in a moment.');
       } else {
-        setTurns([...next, { role: 'model', text: result.reply }]);
+        setTurns([...next, { role: 'model', text: result.reply, suggestions: Array.isArray(result.suggestions) ? result.suggestions : [] }]);
         setMessage('');
       }
     } catch {
@@ -59,6 +60,13 @@ export function ShopAssistant() {
         <p>Ask about products {selectedStore ? `at ${selectedStore.name}` : 'at your selected store'}, alternatives, or checkout holds.</p>
         {turns.map((turn, index) => <div className="atelier-assistant-message" data-role={turn.role} key={index}>
           <strong>{turn.role === 'user' ? 'You' : 'Assistant'}</strong><p>{turn.text}</p>
+          {turn.suggestions?.length ? <div className="atelier-assistant-suggestions">
+            {turn.suggestions.map(product => <Link key={product.productId}
+              href={`/search?q=${encodeURIComponent(product.name)}`}
+              onClick={() => dialog.current?.close()}>
+              <span>{product.name}</span><small>₹{(product.pricePaise / 100).toFixed(2)} · {product.pack.quantity} {product.pack.unit} · {product.available} in stock</small>
+            </Link>)}
+          </div> : null}
         </div>)}
         {pending && <p>Writing a reply…</p>}
       </div>
