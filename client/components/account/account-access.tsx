@@ -50,7 +50,8 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
       }
       const apiKey = process.env.NEXT_PUBLIC_ST_FIREBASE_API_KEY;
       const authDomain = process.env.NEXT_PUBLIC_ST_FIREBASE_AUTH_DOMAIN;
-      if (!apiKey || !authDomain) {
+      const projectId = process.env.NEXT_PUBLIC_ST_FIREBASE_PROJECT_ID;
+      if (!apiKey || !authDomain || !projectId) {
         setMessage('Sign-in is temporarily unavailable. Please try again later.');
         return;
       }
@@ -58,7 +59,7 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
       const { connectAuthEmulator, getAuth, setPersistence, inMemoryPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword,
         sendEmailVerification, sendPasswordResetEmail, signOut, GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
       const app = getApps().find(app => app.name === 'smarttijori') ??
-        initializeApp({ apiKey, authDomain, projectId: process.env.NEXT_PUBLIC_ST_FIREBASE_PROJECT_ID || 'cents-lab-32d71' }, 'smarttijori');
+        initializeApp({ apiKey, authDomain, projectId }, 'smarttijori');
       const auth = getAuth(app);
       const emulator = process.env.NEXT_PUBLIC_ST_FIREBASE_AUTH_EMULATOR;
       if (process.env.NODE_ENV === 'development' && emulator && !auth.emulatorConfig && new URL(emulator).hostname === '127.0.0.1') {
