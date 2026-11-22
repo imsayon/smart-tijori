@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { ACCOUNT_COOKIE, ACCOUNT_MAX_AGE, firebaseAuth, shopperId } from '@server/http/auth/firebase-session';
+import { ACCOUNT_COOKIE, ACCOUNT_MAX_AGE, firebaseAuth, readAccount, shopperId } from '@server/http/auth/firebase-session';
 import { findMerchant } from '@server/http/auth/merchant';
 import { handleServerError, HttpError } from '@server/http/errors/http-errors';
 import { validateMutationOrigin } from '@server/http/security/csrf';
@@ -10,6 +10,39 @@ import { getCommerceDatabase } from '@server/db/runtime';
 
 const input = z.object({ token: z.string().min(1).max(8192), bag: z.enum(['guest', 'account']).optional(), merchant: z.boolean().optional() });
 const cookie = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, path: '/' };
+const noStore = { 'Cache-Control': 'no-store' };
+
+const invalidFirebaseTokens = new Set([
+  'auth/id-token-expired', 'auth/id-token-revoked', 'auth/invalid-id-token',
+  'auth/argument-error', 'auth/user-disabled', 'auth/user-not-found',
+]);
+
+// Only ID-token/auth failures should be treated as bad credentials. Service outages
+// or missing Admin credentials must be reported as unavailable, never as bad passwords.
+async function verifyRecentToken(token: string) {
+  const auth = firebaseAuth();
+  const claims = await auth.verifyIdToken(token, true).catch((error: unknown) => {
+    const code = (error as { code?: string })?.code;
+    if (invalidFirebaseTokens.has(code ?? '')) {
+      throw new HttpError('FORBIDDEN', 'Your sign-in expired. Please sign in again.', 401);
+    }
+    throw new HttpError('DEPENDENCY_UNAVAILABLE', 'Secure sign-in is temporarily unavailable.', 503);
+  });
+  if (!claims.email_verified || Date.now() / 1000 - claims.auth_time > 300 || claims.auth_time > Date.now() / 1000 + 30) {
+    throw new HttpError('FORBIDDEN', 'Verify your email and sign in again.', 401);
+  }
+  return { auth, claims };
+}
+
+/** Minimal same-origin session status; never return Firebase tokens or privileged branch records. */
+export async function GET(request: Request) {
+  try {
+    const user = await readAccount(request.headers.get('cookie'));
+    return NextResponse.json(user ? { authenticated: true, email: user.email ?? null } : { authenticated: false }, { headers: noStore });
+  } catch (error) {
+    return handleServerError(error);
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -17,11 +50,7 @@ export async function POST(request: Request) {
     const parsed = input.safeParse(await parseBoundedJson(request));
     if (!parsed.success) throw new HttpError('VALIDATION_ERROR', 'Invalid sign-in request.');
     const { token, bag, merchant } = parsed.data;
-    const auth = firebaseAuth();
-    const claims = await auth.verifyIdToken(token, true).catch(() => null);
-    if (!claims || !claims.email_verified || Date.now() / 1000 - claims.auth_time > 300) {
-      throw new HttpError('FORBIDDEN', 'Verify your email, then sign in again.', 401);
-    }
+    const { auth, claims } = await verifyRecentToken(token);
     if (merchant && !await findMerchant(claims.uid)) {
       throw new HttpError('FORBIDDEN', 'This Google account has no active merchant branch. Use the account assigned to your branch.');
     }
@@ -58,9 +87,9 @@ export async function POST(request: Request) {
         }
         return null;
       });
-      if (conflict) return NextResponse.json({ bags: conflict }, { status: 409 });
+      if (conflict) return NextResponse.json({ bags: conflict }, { status: 409, headers: noStore });
     }
-    const response = new NextResponse(null, { status: 204 });
+    const response = new NextResponse(null, { status: 204, headers: noStore });
     response.cookies.set(ACCOUNT_COOKIE, session, { ...cookie, maxAge: ACCOUNT_MAX_AGE });
     return response;
   } catch (error) {
