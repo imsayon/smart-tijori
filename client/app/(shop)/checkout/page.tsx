@@ -5,5 +5,5 @@ import { CheckoutGate } from '@/components/shop/checkout/checkout-gate';
  * No stock is reserved and no order is confirmed on this route.
  */
 export default function CheckoutPage() {
-  return <CheckoutGate reason="preview" />;
+  return <CheckoutGate />;
 }
