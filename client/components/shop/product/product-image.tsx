@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import type { ProductOffer } from '@/contracts';
+import { chooseProductPhoto } from '@/lib/catalog/representative-photography';
 
 function ProductIllustration({ offer }: { offer: ProductOffer }) {
   const purpose = offer.purpose.toLowerCase();
@@ -41,10 +42,15 @@ function ProductIllustration({ offer }: { offer: ProductOffer }) {
 }
 
 export function ProductImage({ offer }: { offer: ProductOffer }) {
-  const [failed, setFailed] = useState(false);
-  const safeUrl = /^https:\/\//i.test(offer.imageUrl) || /^\/(?![\/\\])/.test(offer.imageUrl);
-  return !failed && safeUrl ? (
-    <Image src={offer.imageUrl} alt={offer.name} fill sizes="(max-width: 768px) 45vw, 288px"
-      unoptimized className="object-contain p-3" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
-  ) : <ProductIllustration offer={offer} />;
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const photo = chooseProductPhoto(offer);
+  if (!photo || failedUrl === photo.url) return <ProductIllustration offer={offer} />;
+
+  return <>
+    <Image src={photo.url} alt={photo.representative ? `Representative photograph of ${offer.name}; exact packaging may vary` : offer.name}
+      fill sizes="(max-width: 768px) 45vw, 288px" unoptimized
+      className={photo.representative ? 'atelier-photo-real' : 'object-contain p-3'}
+      referrerPolicy="no-referrer" onError={() => setFailedUrl(photo.url)} />
+    {photo.representative && <span className="atelier-photo-representative">Representative photo</span>}
+  </>;
 }
