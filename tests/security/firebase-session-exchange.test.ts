@@ -54,7 +54,7 @@ describe('Firebase session exchange and role boundary', () => {
     expect(res.headers.get('cache-control')).toBe('no-store');
     expect(res.headers.get('set-cookie')).toContain('st_account=signed-firebase-session');
     expect(res.headers.get('set-cookie')).toContain('HttpOnly');
-    expect(res.headers.get('set-cookie')).toContain('SameSite=Lax');
+    expect(res.headers.get('set-cookie')?.toLowerCase()).toContain('samesite=lax');
     expect(mocks.verifyIdToken).toHaveBeenCalledWith('fresh-id-token', true);
     expect(mocks.createSessionCookie).toHaveBeenCalledWith('fresh-id-token', { expiresIn: 28800000 });
     expect(mocks.findMerchant).not.toHaveBeenCalled();
