@@ -7,6 +7,17 @@ import type { ProductOffer } from '@/contracts';
  */
 const productPhoto: Readonly<Record<string, string>> = {
   // Produce and dairy
+  'demo-coriander-100g': 'Coriander_bunches_-_Wellington,_New_Zealand.jpg',
+  'demo-curd-400g': 'Plain_Yogurt.jpg',
+  'demo-atta-5kg': 'Wheat_flour_01.jpg',
+  'demo-chana-1kg': 'Chana_Ko_Dal.jpg',
+  'demo-poha-500g': 'Poha_(Rice_Flakes).jpg',
+  'demo-jaggery-1kg': 'Marayoor_Jaggery_in_bar_form.jpg',
+  'demo-chilli-100g': 'Cayenne_and_other_chilli_powders.JPG',
+  'demo-bajra-1kg': 'Bajra.JPG',
+  'demo-idlirice-1kg': 'Rice_Grains_1.jpg',
+  'demo-ladakh-apricot-250g': 'Dried_Apricots.jpg',
+  'demo-sona-masoori-1kg': 'Rice_Grains_1.jpg',
   'demo-tomato-500g': 'Vegetable_tomatoes.jpg',
   'demo-onion-1kg': 'Red_onion.jpg',
   'demo-potato-1kg': 'Potato1.jpg',
@@ -26,7 +37,6 @@ const productPhoto: Readonly<Record<string, string>> = {
   'demo-tea-250g': 'Steaming_tea_leaves.jpg',
   'demo-dry-fruit-250g': 'Raisins_02.jpg',
   'demo-almonds-250g': 'KASHMIRI_MAMRA_ALMONDS.jpg',
-  'demo-sona-masoori-1kg': 'Rice_Grains_1.jpg',
   'demo-assam-joha-500g': 'Rice_Grains_1.jpg',
   // Seafood
   'demo-rohu-500g': 'Rohu_(Lebeo_rohita)_fish_demo.jpg',
