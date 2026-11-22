@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { CheckoutView } from '@/components/shop/checkout/checkout-view';
+import { CheckoutGate } from '@/components/shop/checkout/checkout-gate';
 import { createCommerceCommands } from '@server/commerce/commands';
 import { getCommerceDatabase } from '@server/db/runtime';
 import { readAccount, shopperId } from '@server/http/auth/email-session';
@@ -11,17 +11,9 @@ export default async function CheckoutPage() {
   if (fixture) return <CheckoutView />;
 
   const user = await readAccount((await cookies()).toString());
-  if (!user) return <section className="space-y-4">
-    <h1 className="atelier-heading text-5xl">Checkout</h1>
-    <p>Sign in to pay and track your order. Your bag is saved on this device.</p>
-    <Link href="/account?next=checkout" className="atelier-action">Sign in</Link>
-  </section>;
+  if (!user) return <CheckoutGate reason="signin"/>;
   const config = paymentConfig();
-  if (!config) return <section className="space-y-4">
-    <h1 className="atelier-heading text-5xl">Checkout</h1>
-    <p>Online payments are currently unavailable. Your bag is saved.</p>
-    <Link href="/cart" className="atelier-action">Return to bag</Link>
-  </section>;
+  if (!config) return <CheckoutGate reason="payment"/>;
   const db = getCommerceDatabase();
   const owner = shopperId(user.uid);
   const { rows: [current] } = await db.transact(client => client.query<{ id: string }>(`
