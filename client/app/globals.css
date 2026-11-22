@@ -1141,3 +1141,17 @@ html { scroll-padding-top: 86px; }
 @media(prefers-reduced-motion:reduce) {
   .os-longscroll * {animation:none!important;transition:none!important;}
 }
+
+/* Editorial footer shared by the shopper journey. */
+.ga-site-footer {border-top:1px solid #cbd4c6;background:#e8eee1;color:#183328;padding:70px 0 23px;}
+.ga-footer-top {display:flex;justify-content:space-between;gap:45px;align-items:flex-start;margin-bottom:70px;}
+.ga-footer-brand .atelier-wordmark {font:400 32px Georgia,serif;letter-spacing:-1.2px;}
+.ga-footer-brand p {margin:17px 0 0;max-width:340px;font-size:14px;line-height:1.75;color:#657568;}
+.ga-footer-links {display:flex;gap:clamp(35px,7vw,125px);}
+.ga-footer-links>div {display:flex;flex-direction:column;align-items:flex-start;gap:12px;}
+.ga-footer-links span {color:#819580;font:10px ui-monospace,monospace;letter-spacing:1.2px;margin-bottom:6px;}
+.ga-footer-links a {font-size:13px;color:#335440;}
+.ga-footer-links a:hover {text-decoration:underline;text-underline-offset:4px;}
+.ga-footer-bottom {border-top:1px solid #c8d3c2;padding-top:22px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;color:#758876;font:10px/1.7 ui-monospace,monospace;letter-spacing:.4px;}
+.ga-footer-bottom a {color:#2d5739;}
+@media(max-width:690px) {.ga-site-footer {padding-top:50px;}.ga-footer-top {flex-direction:column;margin-bottom:50px;gap:38px;}.ga-footer-links {gap:60px;}.ga-footer-bottom {flex-direction:column;gap:8px;}}
