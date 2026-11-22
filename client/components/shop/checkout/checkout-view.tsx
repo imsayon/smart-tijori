@@ -342,6 +342,16 @@ export function CheckoutView() {
                 {state === 'CONFIRMING_ORDER' ? 'Confirming Order…' : 'Confirm Order (Simulated) →'}
               </button>
             </div>
+
+            <div className="mt-6 pt-4 border-t border-[#275546]/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <span>🔒</span>
+                <span>Simulated Checkout Sandbox · No financial card or credentials stored</span>
+              </span>
+              <span className="font-mono text-stone-400">
+                Atomic PostgreSQL Debit & Idempotency
+              </span>
+            </div>
           </div>
         </div>
       )}

@@ -96,6 +96,13 @@ export function CartView() {
             Proceed to Checkout →
           </Link>
         </div>
+
+        <div className="mt-6 pt-4 border-t border-[#275546]/10 flex items-start sm:items-center gap-2 text-xs text-stone-500">
+          <span className="text-sm">⏱️</span>
+          <span>
+            <strong className="text-stone-700">59-Second Hold Guarantee:</strong> Proceeding to checkout places an exclusive 59-second reservation hold on your items to guarantee stock availability while you complete simulated payment.
+          </span>
+        </div>
       </div>
     </div>
   );

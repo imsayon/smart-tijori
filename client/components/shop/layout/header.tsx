@@ -23,7 +23,7 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
           <button
             type="button"
             onClick={handleOpen}
-            className="flex min-w-0 items-center gap-1.5 text-xs sm:text-sm bg-[#275546] hover:bg-[#326956] text-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-600/40 transition-colors focus:outline-hidden focus:ring-2 focus:ring-lime-400"
+            className="flex min-w-0 items-center gap-1.5 text-xs sm:text-sm bg-[#275546] hover:bg-[#326956] text-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-600/40 transition-colors focus:outline-hidden focus:ring-2 focus:ring-lime-400 cursor-pointer"
             aria-label="Current store. Click to change store."
           >
             <span className="w-2 h-2 rounded-full bg-lime-400" />
@@ -40,12 +40,22 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
         </div>
 
         {/* Navigation links */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <Link
             href="/search"
             className="text-sm text-emerald-100 hover:text-white px-3 py-1.5 rounded-md hover:bg-emerald-800/40 transition-colors"
           >
             Search
+          </Link>
+
+          {/* Operations Workbench Link */}
+          <Link
+            href="/ops"
+            className="hidden sm:flex items-center gap-1.5 text-xs font-mono font-semibold text-emerald-100 hover:text-white bg-emerald-900/60 hover:bg-emerald-800/80 px-2.5 py-1.5 rounded-xl border border-emerald-700/60 transition-colors"
+            title="Open Store Operations Workbench"
+          >
+            <span>📊</span>
+            <span>Ops</span>
           </Link>
 
           {/* Cart Icon */}
