@@ -1,102 +1,110 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui/atelier';
 import { useStore } from '@/lib/session/store-context';
 import { formatPaise } from '@/lib/utils/currency';
+import { CartLockDial } from '../checkout/cartlock-dial';
 import { CartLineItem } from './cart-line-item';
-import { Alert } from '../feedback/alert';
 
 export function CartView() {
   const { cart, selectedStore, updateCartQuantity, removeFromCart, isLoading } = useStore();
 
   if (isLoading && !cart) {
-    return (
-      <div className="max-w-4xl mx-auto py-12 text-center text-stone-500 animate-pulse">
-        Loading cart details…
-      </div>
-    );
+    return <div className="st-journey st-journey-loading" role="status">
+      <p className="st-kicker">PREPARING YOUR SELECTION</p>
+      <div className="st-skeleton st-skeleton-heading" />
+      <div className="st-skeleton st-skeleton-line" />
+      <div className="st-skeleton st-skeleton-line" />
+    </div>;
   }
 
-  if (!cart || cart.lines.length === 0) {
-    return (
-      <div className="max-w-3xl mx-auto py-16 px-4 text-center">
-        <div className="w-20 h-20 bg-[#F5F1E8] rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 border border-stone-200">
-          🛒
-        </div>
-        <h2 className="text-2xl font-black text-stone-900 mb-2">Your cart is empty</h2>
-        <p className="text-sm text-stone-500 mb-6 max-w-sm mx-auto">
-          Explore our fresh local inventory at{' '}
-          <strong className="text-stone-700">{selectedStore?.name ?? 'your local branch'}</strong>.
-        </p>
-        <Link
-          href="/"
-          className="inline-block bg-[#173F35] hover:bg-[#275546] text-white font-bold px-6 py-3 rounded-xl transition-all shadow-xs"
-        >
-          Explore Catalog →
-        </Link>
+  const hasItems = Boolean(cart?.lines.length);
+  const totalItems = cart?.lines.reduce((sum, line) => sum + line.quantity, 0) ?? 0;
+
+  return <div className="st-journey st-cart-page">
+    <div className="st-breadcrumb"><Link href="/">THE NEIGHBOURHOOD</Link><span>/</span><span>YOUR BAG</span></div>
+
+    <header className="st-page-intro">
+      <div>
+        <p className="st-kicker"><span className="st-live-dot" /> YOUR SELECTION, CLOSE TO HOME</p>
+        <h1 className="st-display">Good things,<br/><em>almost yours.</em></h1>
+        <p className="st-intro-copy">A little collection of everyday essentials, thoughtfully picked from the shelves around you.</p>
       </div>
-    );
-  }
+      <Link className="st-text-link st-intro-link" href="/search">Keep exploring <Icon name="upRight" size={17}/></Link>
+    </header>
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-stone-200 mb-6 gap-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">Shopping Cart</h1>
-          <p className="text-xs text-stone-500 mt-1">
-            Fulfilling from <span className="font-semibold text-emerald-900">{selectedStore?.name}</span> ({cart.storeId})
-          </p>
-        </div>
-        <Link
-          href="/"
-          className="text-xs sm:text-sm font-semibold text-[#173F35] hover:underline"
-        >
-          ← Continue shopping
-        </Link>
-      </div>
-
-      {/* CartLock stock guarantee rule */}
-      <Alert type="info" className="mb-6">
-        Checkout holds your items for 59 seconds.
-      </Alert>
-
-      {/* Line Items */}
-      <div className="space-y-3 mb-8">
-        {cart.lines.map((line) => (
-          <CartLineItem
-            key={line.productId}
-            line={line}
-            onUpdateQuantity={(qty) => updateCartQuantity(line.productId, qty)}
-            onRemove={() => removeFromCart(line.productId)}
-          />
-        ))}
-      </div>
-
-      {/* Cart Summary & Checkout Action */}
-      <div className="bg-[#F5F1E8] border border-[#275546]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex items-center justify-between pb-4 border-b border-[#275546]/10 text-sm">
-          <span className="text-stone-600">Total lines</span>
-          <span className="font-bold text-stone-800">{cart.lines.length} items</span>
-        </div>
-        <div className="flex items-center justify-between py-4 border-b border-[#275546]/10">
+    {hasItems && cart ? <div className="st-cart-layout">
+      <div className="st-cart-left">
+        <div className="st-section-heading">
           <div>
-            <span className="text-base sm:text-lg font-bold text-stone-900">Total Order Amount</span>
+            <p className="st-kicker">01 / THE COLLECTION</p>
+            <h2>In your bag <span className="st-count-bubble">{totalItems}</span></h2>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#173F35]">
-            {formatPaise(cart.totalPaise)}
-          </span>
+          <span className="st-section-small">Picked from one local branch</span>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link
-            href="/checkout"
-            className="w-full sm:w-auto text-center bg-lime-400 hover:bg-lime-300 text-[#173F35] font-black text-base px-8 py-3.5 rounded-xl shadow-sm transition-transform active:scale-95 focus:ring-2 focus:ring-[#173F35]"
-          >
-            Proceed to Checkout →
-          </Link>
+        <div className="st-cart-items">
+          {cart.lines.map((line, index) => <CartLineItem key={line.productId} line={line} index={index}
+            onUpdateQuantity={qty => updateCartQuantity(line.productId, qty)}
+            onRemove={() => removeFromCart(line.productId)} />)}
+        </div>
+
+        <div className="st-branch-note">
+          <span className="st-branch-symbol"><Icon name="pin" size={19}/></span>
+          <div><span className="st-kicker">YOUR FULFILMENT BRANCH</span>
+            <strong>{selectedStore?.name ?? cart.storeId}</strong>
+            <span>All items will be checked against this store’s stock at checkout.</span></div>
+          <Link href="/stores" aria-label="Explore other stores"><Icon name="upRight" size={18}/></Link>
+        </div>
+
+        <div className="st-lock-feature">
+          <div className="st-lock-feature-copy">
+            <p className="st-kicker">02 / CARTLOCK</p>
+            <h2>One little window.<br/><em>All yours to finish.</em></h2>
+            <p>Your bag doesn’t reserve stock yet. When you begin checkout, SmartTijori attempts an exclusive 59-second hold for your items—subject to live availability.</p>
+            <div className="st-lock-feature-foot"><span className="st-live-dot" /> THE CLOCK STARTS AT CHECKOUT, NOT HERE</div>
+          </div>
+          <div className="st-lock-feature-visual">
+            <CartLockDial mode="preview" />
+          </div>
         </div>
       </div>
+
+      <aside className="st-cart-sidebar" aria-label="Order summary">
+        <div className="st-order-summary">
+          <div className="st-summary-top">
+            <p className="st-kicker">03 / THE FINAL DETAILS</p>
+            <h2>Order summary<span className="st-summary-spark" aria-hidden="true">✳</span></h2>
+            <p>Your neighbourhood picks, all in one place.</p>
+          </div>
+          <div className="st-summary-rows">
+            <div><span>Products</span><strong>{totalItems} {totalItems === 1 ? 'item' : 'items'}</strong></div>
+            <div><span>Selected branch</span><strong>{selectedStore?.city ?? 'Your local store'}</strong></div>
+            <div><span>Stock protection</span><strong>Starts at checkout</strong></div>
+          </div>
+          <div className="st-summary-total"><span>Total</span><strong>{formatPaise(cart.totalPaise)}</strong></div>
+          <Link href="/checkout" className="st-primary-cta">Continue to checkout <Icon name="arrow" size={19}/></Link>
+          <p className="st-summary-disclaimer"><Icon name="lock" size={14}/> Stock and payment are confirmed only during checkout.</p>
+        </div>
+        <div className="st-side-note">
+          <span className="st-kicker">A BETTER WAY TO SHOP LOCALLY</span>
+          <p>Real shelves. A fair window. <em>Fewer surprises.</em></p>
+          <div className="st-side-note-art" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/></div>
+        </div>
+      </aside>
+    </div> : <section className="st-cart-empty">
+      <div className="st-empty-art" aria-hidden="true"><span>✳</span><i/><i/></div>
+      <div><p className="st-kicker">YOUR BAG IS READY TO BEGIN</p>
+        <h2 className="st-display">Nothing in here.<br/><em>Yet.</em></h2>
+        <p>There are good things waiting at {selectedStore?.name ?? 'your local branch'}. Find a favourite and give it a home.</p>
+        <Link href="/search" className="st-primary-cta">Discover your next pick <Icon name="arrow" size={18}/></Link>
+      </div>
+    </section>}
+
+    <div className="st-journey-footnote">
+      <span>THE NEIGHBOURHOOD EDITION / YOUR BAG</span>
+      <span>GOOD THINGS. CLOSER HOME.</span>
     </div>
-  );
+  </div>;
 }

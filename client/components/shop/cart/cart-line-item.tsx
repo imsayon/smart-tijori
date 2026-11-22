@@ -1,69 +1,51 @@
 'use client';
 
-import React from 'react';
 import type { CartLine } from '@/contracts';
+import { Icon } from '@/components/ui/atelier';
 import { formatPaise } from '@/lib/utils/currency';
 
 interface CartLineItemProps {
   line: CartLine;
+  index?: number;
   onUpdateQuantity: (quantity: number) => void;
   onRemove: () => void;
 }
 
-export function CartLineItem({ line, onUpdateQuantity, onRemove }: CartLineItemProps) {
-  const lineTotal = line.unitPricePaise * line.quantity;
+function initials(name: string) {
+  const parts = name.replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/).filter(Boolean);
+  return (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase();
+}
 
+export function CartLineItem({ line, index = 0, onUpdateQuantity, onRemove }: CartLineItemProps) {
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-stone-200/80 shadow-2xs hover:border-stone-300 transition-colors">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center text-2xl border border-stone-200/50">
-          🛍️
-        </div>
-        <div>
-          <h4 className="font-bold text-stone-900 text-sm sm:text-base">{line.name}</h4>
-          <p className="text-xs text-stone-500">
-            {formatPaise(line.unitPricePaise)} each
-          </p>
-        </div>
+    <article className="st-cart-line">
+      <div className="st-cart-line-art" aria-hidden="true">
+        <span className="st-cart-line-art-arc" />
+        <span className="st-cart-line-monogram">{initials(line.name)}</span>
+        <span className="st-cart-line-art-index">{String(index + 1).padStart(2, '0')}</span>
       </div>
-
-      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
-        {/* Quantity Controls */}
-        <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200">
-          <button
-            type="button"
-            onClick={() => onUpdateQuantity(line.quantity - 1)}
-            className="w-7 h-7 rounded-lg bg-white text-stone-800 hover:bg-stone-200 font-bold text-sm flex items-center justify-center transition-colors shadow-2xs"
-            aria-label={`Decrease quantity of ${line.name}`}
-          >
-            −
-          </button>
-          <span className="text-xs font-bold w-6 text-center">{line.quantity}</span>
-          <button
-            type="button"
-            onClick={() => onUpdateQuantity(line.quantity + 1)}
-            className="w-7 h-7 rounded-lg bg-white text-stone-800 hover:bg-stone-200 font-bold text-sm flex items-center justify-center transition-colors shadow-2xs"
-            aria-label={`Increase quantity of ${line.name}`}
-          >
-            +
-          </button>
+      <div className="st-cart-line-details">
+        <span className="st-kicker">LOCAL PICK / {String(index + 1).padStart(2, '0')}</span>
+        <h3>{line.name}</h3>
+        <p>{formatPaise(line.unitPricePaise)} per item</p>
+      </div>
+      <div className="st-cart-line-end">
+        <div className="st-quantity" role="group" aria-label={`Quantity for ${line.name}`}>
+          <button type="button" onClick={() => onUpdateQuantity(line.quantity - 1)}
+            aria-label={`Decrease quantity of ${line.name}`} disabled={line.quantity < 1}>−</button>
+          <output aria-label="Quantity">{line.quantity}</output>
+          <button type="button" onClick={() => onUpdateQuantity(line.quantity + 1)}
+            aria-label={`Increase quantity of ${line.name}`}>+</button>
         </div>
-
-        {/* Subtotal */}
-        <div className="text-right min-w-[80px]">
-          <div className="font-black text-[#173F35] text-base">{formatPaise(lineTotal)}</div>
+        <div className="st-cart-line-price">
+          <strong>{formatPaise(line.unitPricePaise * line.quantity)}</strong>
+          <span>Line total</span>
         </div>
-
-        {/* Delete */}
-        <button
-          type="button"
-          onClick={onRemove}
-          className="text-stone-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-          aria-label={`Remove ${line.name} from cart`}
-        >
-          🗑️
+        <button type="button" className="st-remove-item" onClick={onRemove}
+          aria-label={`Remove ${line.name} from cart`} title={`Remove ${line.name}`}>
+          <Icon name="close" size={15} />
         </button>
       </div>
-    </div>
+    </article>
   );
 }

@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatPaise } from '@/lib/utils/currency';
+import { Icon } from '@/components/ui/atelier';
 
 type CheckoutOptions = {
   key: string; order_id: string; amount: number; currency: string; name: string;
@@ -52,16 +53,26 @@ export function OnlinePayment({ reservationId, amount, expiresAt, serverNow, tes
   }
 
   return (
-    <section className="space-y-4 border border-[#dcd6c9] bg-[#faf7f0] p-5">
+    <section className="st-payment-provider" aria-labelledby="st-pay-title">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive"
         onReady={() => setReady(true)} onError={() => setMessage('The payment window could not load. Reload to try again.')} />
-      <h2 className="atelier-heading text-3xl">Pay online</h2>
-      {testMode && <p className="text-sm">Razorpay Test Mode. No money will move.</p>}
-      <button type="button" disabled={!ready || busy} className="atelier-action" onClick={() => void pay()}>
-        {busy ? 'Opening checkout…' : `Pay ${formatPaise(amount)}`}
+      <div className="st-payment-provider-head">
+        <div><p className="st-kicker">THE FINAL STEP / PAYMENT</p>
+          <h2 id="st-pay-title">Ready to make<br/><em>it yours?</em></h2>
+          <p>Complete payment before your reservation window closes. We’ll confirm your order once payment is verified.</p>
+        </div>
+        <span className="st-pay-padlock"><Icon name="lock" size={25}/></span>
+      </div>
+      <div className="st-payment-provider-amount">
+        <div><span className="st-kicker">TOTAL DUE</span><strong>{formatPaise(amount)}</strong></div>
+        <span className="st-payment-provider-brand"><Icon name="check" size={14}/> Secure payment</span>
+      </div>
+      {testMode && <p className="st-pay-test">Test payment · No real money will move.</p>}
+      <button type="button" disabled={!ready || busy} className="st-primary-cta st-pay-button" onClick={() => void pay()}>
+        {busy ? 'Opening checkout…' : !ready ? 'Preparing secure payment…' : `Pay ${formatPaise(amount)}`} <Icon name="arrow" size={17}/>
       </button>
-      <Link className="block text-sm underline" href={`/checkout/status/${reservationId}`}>Check payment status</Link>
-      {message && <p role="alert">{message}</p>}
+      <Link className="st-payment-status-link" href={`/checkout/status/${reservationId}`}>Check payment status <Icon name="upRight" size={15}/></Link>
+      {message && <p role="alert" className="st-pay-error">{message}</p>}
     </section>
   );
 }

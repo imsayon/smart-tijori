@@ -135,8 +135,9 @@ describe('Checkout Re-Reserve & Retry Regression Tests', () => {
     });
 
     // Cart lines and quantities remain unchanged
-    expect(screen.getByText('Premium Basmati Rice')).toBeInTheDocument();
-    expect(screen.getByText(/× 2/)).toBeInTheDocument();
+    // The item appears in both the reservation and the persistent order recap.
+    expect(screen.getAllByText('Premium Basmati Rice').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/× 2/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/₹370/).length).toBeGreaterThan(0);
   });
 

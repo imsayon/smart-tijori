@@ -12,6 +12,8 @@ import { OnlinePayment } from './online-payment';
 import { SimulatedPaymentReceipt } from './simulated-payment-receipt';
 import { ConflictRecoveryPanel } from '../recovery/conflict-recovery-panel';
 import { Alert } from '../feedback/alert';
+import { CartLockDial } from './cartlock-dial';
+import { Icon } from '@/components/ui/atelier';
 
 type CheckoutState =
   | 'CREATING_HOLD'
@@ -229,24 +231,53 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
   }
 
   if (!checkoutStarted) {
-    return <section className="mx-auto max-w-xl space-y-5">
-      <h1 className="atelier-heading text-5xl">Checkout</h1>
-      <p>Reserve your bag for 59 seconds, then pay online.</p>
-      <p className="text-lg font-semibold">{formatPaise(cart.totalPaise)}</p>
-      <button type="button" className="atelier-action" onClick={() => setCheckoutStarted(true)}>Reserve items</button>
-    </section>;
+    return <main className="st-journey st-checkout-page">
+      <div className="st-breadcrumb"><Link href="/cart">YOUR BAG</Link><span>/</span><span>CHECKOUT</span></div>
+      <header className="st-page-intro">
+        <div><p className="st-kicker">YOUR FINISHING TOUCH / CHECKOUT</p>
+          <h1 className="st-display">Ready when<br/><em>you are.</em></h1>
+          <p className="st-intro-copy">Your {cart.lines.length} carefully chosen {cart.lines.length === 1 ? 'pick' : 'picks'} are waiting. We’ll reserve live stock only when you choose to begin.</p>
+        </div>
+      </header>
+      <div className="st-checkout-ready">
+        <div className="st-checkout-ready-copy">
+          <p className="st-kicker">01 / RESERVE YOUR SELECTION</p>
+          <h2>Your 59-second<br/><em>CartLock window.</em></h2>
+          <p>Nothing is reserved yet. Starting checkout checks the latest stock and, if available, creates one non-renewing hold.</p>
+          <div className="st-checkout-ready-total"><span>Your total</span><strong>{formatPaise(cart.totalPaise)}</strong></div>
+          <button type="button" className="st-primary-cta" onClick={() => setCheckoutStarted(true)}>Reserve items <Icon name="arrow" size={18}/></button>
+          <Link href="/cart" className="st-text-link">Review my bag <Icon name="upRight" size={15}/></Link>
+        </div>
+        <CartLockDial mode="preview"/>
+      </div>
+    </main>;
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <main className="st-journey st-checkout-page">
+      <div className="st-breadcrumb"><Link href="/cart">YOUR BAG</Link><span>/</span><span>CHECKOUT</span></div>
+      <header className="st-page-intro st-checkout-intro">
+        <div><p className="st-kicker"><span className="st-live-dot" /> A BETTER WAY TO CHECK OUT</p>
+          <h1 className="st-display">The final<br/><em>little details.</em></h1>
+          <p className="st-intro-copy">Your order is held only when stock is confirmed. Follow your reservation and payment status right here.</p>
+        </div>
+        <Link href="/cart" className="st-text-link st-intro-link">Back to bag <Icon name="upRight" size={17}/></Link>
+      </header>
+      <ol className="st-checkout-steps" aria-label="Checkout progress">
+        <li data-current={false}><span>01</span><strong>Your selection</strong><small>Bag prepared</small></li>
+        <li data-current={state !== 'ORDER_CONFIRMED'}><span>02</span><strong>Stock reservation</strong><small>59 seconds when active</small></li>
+        <li data-current={state === 'ORDER_CONFIRMED'}><span>03</span><strong>Order confirmation</strong><small>Payment verified first</small></li>
+      </ol>
+      <div className="st-checkout-layout">
+        <div className="st-checkout-main">
       {state === 'CREATING_HOLD' && (
         <div
           role="status"
           aria-live="polite"
           aria-busy="true"
-          className="bg-white rounded-3xl border border-stone-200 p-12 text-center shadow-xs"
+          className="st-checkout-state st-checkout-pending"
         >
-          <div className="text-4xl animate-bounce mb-3">🔒</div>
+          <div className="st-pending-glyph mb-3"><Icon name="lock" size={26}/></div>
           <h2 className="text-xl font-black text-stone-900 mb-2">Securing CartLock Hold</h2>
           <p className="text-xs text-stone-500 max-w-sm mx-auto">
             Contacting store inventory authority to lock your items for 59 seconds…
@@ -268,7 +299,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
         <div
           role="alert"
           aria-live="assertive"
-          className="bg-white rounded-3xl border border-red-200 p-8 shadow-sm text-center"
+          className="st-checkout-state st-checkout-expired"
         >
           <div className="text-4xl mb-3">⏰</div>
           <h2 className="text-2xl font-black text-stone-900 mb-2">
@@ -325,7 +356,7 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
 
           {online ? <OnlinePayment key={hold.id} reservationId={hold.id} amount={hold.totalPaise}
             expiresAt={hold.expiresAt} serverNow={hold.serverNow} testMode={online.testMode} /> :
-          <div className="bg-[#F5F1E8] border border-[#275546]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="st-payment-card">
             <div className="flex items-center justify-between pb-4 border-b border-[#275546]/10 mb-4">
               <div>
                 <h3 className="font-bold text-stone-900 text-lg">Payment Simulation</h3>
@@ -366,6 +397,27 @@ export function CheckoutView({ online, initialHold }: { online?: { testMode: boo
       {state === 'ORDER_CONFIRMED' && order && (
         <SimulatedPaymentReceipt order={order} />
       )}
-    </div>
+        </div>
+        <aside className="st-checkout-sidebar" aria-label="Checkout details">
+          <div className="st-checkout-aside-card">
+            <p className="st-kicker">YOUR ORDER AT A GLANCE</p>
+            <h2>Collected close<br/><em>to home.</em></h2>
+            <div className="st-aside-products">
+              {cart.lines.map(line => <div key={line.productId}>
+                <span>{line.name} <small>× {line.quantity}</small></span>
+                <strong>{formatPaise(line.unitPricePaise * line.quantity)}</strong>
+              </div>)}
+            </div>
+            <div className="st-aside-total"><span>Order total</span><strong>{formatPaise(cart.totalPaise)}</strong></div>
+            <div className="st-aside-detail"><Icon name="pin" size={16} /><span>Allocated only at <strong>{cart.storeId}</strong></span></div>
+          </div>
+          <div className="st-checkout-aside-tip">
+            <Icon name="lock" size={20} />
+            <p>Every order is checked against your branch’s real stock. The countdown never renews silently.</p>
+          </div>
+        </aside>
+      </div>
+      <div className="st-journey-footnote"><span>CARTLOCK / EXCLUSIVE STOCK WINDOW</span><span>PROTECTION STARTS AT RESERVATION</span></div>
+    </main>
   );
 }

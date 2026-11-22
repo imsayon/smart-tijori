@@ -1,5 +1,6 @@
 import { calculateHoldRemaining } from '@/lib/checkout/timer';
 import React, { useEffect, useState, useRef } from 'react';
+import { CartLockDial } from './cartlock-dial';
 
 interface HoldTimerProps {
   expiresAt: string;
@@ -71,21 +72,14 @@ export function HoldTimer({ expiresAt, serverNow, onExpire, className = '' }: Ho
   const isLowTime = timerState.remainingSeconds <= 15 && !timerState.isExpired;
 
   return (
-    <div
-      role="timer"
-      aria-live="off"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border font-mono text-sm font-bold shadow-2xs ${
-        timerState.isExpired
-          ? 'bg-red-100 text-red-800 border-red-300'
-          : isLowTime
-          ? 'bg-amber-100 text-amber-900 border-amber-300'
-          : 'bg-[#F5F1E8] text-[#173F35] border-[#275546]/30'
-      } ${className}`}
-    >
-      <span aria-hidden="true" className="text-base select-none">⏱️</span>
-      <span>
-        {timerState.isExpired ? 'Hold Expired' : `Stock reserved: ${timerState.formattedTime}`}
-      </span>
+    <div className={`st-live-hold-timer ${className}`} data-urgent={isLowTime || timerState.isExpired}>
+      <CartLockDial seconds={timerState.remainingSeconds}
+        mode={timerState.isExpired ? 'expired' : 'active'} compact />
+      <div className="st-live-hold-copy" role="timer" aria-live="off">
+        <span className="st-kicker">{timerState.isExpired ? 'WINDOW CLOSED' : isLowTime ? 'FINISH YOUR CHECKOUT' : 'STOCK PROTECTED'}</span>
+        <strong>{timerState.isExpired ? 'Hold Expired' : `Stock reserved: ${timerState.formattedTime}`}</strong>
+        <span>{timerState.isExpired ? 'Reserve again to continue.' : 'This countdown is tied to your actual reservation.'}</span>
+      </div>
     </div>
   );
 }
