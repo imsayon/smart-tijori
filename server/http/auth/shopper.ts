@@ -1,5 +1,5 @@
 import { HttpError } from '../errors/http-errors';
-import { ACCOUNT_COOKIE, readAccount, shopperId } from './firebase-session';
+import { ACCOUNT_COOKIE, readAccount, shopperId } from './email-session';
 import { parseCookies, resolveSession } from '../sessions/session-manager';
 
 export async function resolveShopper(cookie?: string | null) {
