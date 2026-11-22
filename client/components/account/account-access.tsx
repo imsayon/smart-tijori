@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
 type Mode = 'signin' | 'register' | 'reset';
 type Bag = { branch: string; quantity: number };
@@ -20,7 +20,7 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
     const response = await fetch('/api/account/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, bag }),
+      body: JSON.stringify({ token, bag, merchant }),
     });
     if (!response.ok) {
       const result = await response.json();
@@ -33,6 +33,10 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    await authenticate();
+  }
+
+  async function authenticate(google = false) {
     setPending(true);
     setMessage('');
     try {
@@ -50,7 +54,7 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
       }
       const { initializeApp, getApps } = await import('firebase/app');
       const { connectAuthEmulator, getAuth, setPersistence, inMemoryPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-        sendEmailVerification, sendPasswordResetEmail, signOut } = await import('firebase/auth');
+        sendEmailVerification, sendPasswordResetEmail, signOut, GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
       const app = getApps().find(app => app.name === 'smarttijori') ??
         initializeApp({ apiKey, authDomain, projectId: process.env.NEXT_PUBLIC_ST_FIREBASE_PROJECT_ID || 'cents-lab-32d71' }, 'smarttijori');
       const auth = getAuth(app);
@@ -66,9 +70,13 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
         setMessage('If an account exists, you’ll receive a password reset email.');
         return;
       }
-      const { user } = mode === 'register'
-        ? await createUserWithEmailAndPassword(auth, email, password)
-        : await signInWithEmailAndPassword(auth, email, password);
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
+      const { user } = google
+        ? await signInWithPopup(auth, googleProvider)
+        : mode === 'register'
+          ? await createUserWithEmailAndPassword(auth, email, password)
+          : await signInWithEmailAndPassword(auth, email, password);
       try {
         if (!user.emailVerified) {
           await sendEmailVerification(user);
@@ -80,30 +88,31 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
       } finally {
         await signOut(auth);
       }
-    } catch {
-      setMessage(mode === 'signin' && !signedIn ? 'Sign-in failed. Check your email and password or try again.' : 'The account service could not complete the request. Try again.');
+    } catch (error) {
+      const code = error instanceof Error && 'code' in error ? error.code : undefined;
+      if (google) {
+        setMessage(code === 'auth/popup-closed-by-user' ? 'Google sign-in was cancelled.'
+          : code === 'auth/popup-blocked' ? 'Allow popups for SmartTijori and try again.'
+            : code === 'auth/unauthorized-domain' ? 'Google sign-in is unavailable on this domain.'
+              : 'Google sign-in could not finish. Try again.');
+      } else {
+        setMessage(mode === 'signin' && !signedIn ? 'Sign-in failed. Check your email and password or try again.' : 'The account service could not complete the request. Try again.');
+      }
     } finally {
       setPending(false);
     }
   }
 
-  const formRef = useRef<HTMLFormElement>(null);
-
   const switchMode = (newMode: Mode) => {
     setMode(newMode);
     setMessage('');
-    if (formRef.current) {
-      const el = formRef.current;
-      void import('animejs').then(({ animate }) => {
-        animate(el, { opacity: [0.7, 1], translateY: [8, 0], duration: 320, ease: 'outQuad' });
-      }).catch(() => {});
-    }
   };
 
   return (
-    <form ref={formRef} onSubmit={submit} className={signedIn ? 'atelier-signout' : 'atelier-access-form'}>
+    <form onSubmit={submit} className={signedIn ? 'atelier-signout' : 'atelier-access-form'}>
       {!signedIn && <>
-        <h1 className="atelier-heading atelier-form-title">{merchant ? 'Merchant sign-in' : mode === 'reset' ? 'Reset password' : mode === 'register' ? 'Create an account' : 'Sign in'}</h1>
+        <h1 className="atelier-heading atelier-form-title">{mode === 'reset' ? 'Reset password' : mode === 'register' ? 'Create an account' : merchant ? 'Merchant sign-in' : 'Sign in'}</h1>
+        {merchant && mode === 'signin' && <p>Use the account assigned to your branch.</p>}
         {conflict ? <>
           <p>Choose which bag to continue with.</p>
           {(['guest', 'account'] as const).map(bag => (
@@ -116,6 +125,10 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
             </button>
           ))}
         </> : <>
+          {mode === 'signin' && <>
+            <button type="button" className="atelier-secondary" disabled={pending} onClick={() => void authenticate(true)}>Continue with Google</button>
+            <p className="atelier-auth-divider">or use email</p>
+          </>}
           <label className="block">Email<input type="email" autoComplete="email" required value={email}
             onChange={event => setEmail(event.target.value)} className="atelier-input" /></label>
           {mode !== 'reset' && (
@@ -128,9 +141,9 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
         {signedIn ? 'Sign out' : mode === 'reset' ? 'Send reset email' : mode === 'register' ? 'Register' : 'Sign in'}
       </button>}
       {!signedIn && !conflict && <div className="flex flex-wrap gap-4 text-sm">
-        {mode === 'signin' && !merchant && <button type="button" className="underline" onClick={() => switchMode('register')}>Create an account</button>}
-        {mode === 'signin' ? <button type="button" className="underline" onClick={() => switchMode('reset')}>Forgot password</button>
-          : <button type="button" className="underline" onClick={() => switchMode('signin')}>Back to sign-in</button>}
+        {mode === 'signin' && !merchant && <button type="button" className="underline" disabled={pending} onClick={() => switchMode('register')}>Create an account</button>}
+        {mode === 'signin' ? <button type="button" className="underline" disabled={pending} onClick={() => switchMode('reset')}>Forgot password</button>
+          : <button type="button" className="underline" disabled={pending} onClick={() => switchMode('signin')}>Back to sign-in</button>}
       </div>}
       {message && <p role="status" className="text-sm">{message}</p>}
     </form>

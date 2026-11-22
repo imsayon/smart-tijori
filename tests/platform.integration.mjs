@@ -406,8 +406,8 @@ test("illustrative nationwide store seed is valid, idempotent and assortment-spe
     (SELECT count(*)::int FROM stores WHERE id LIKE 'dm-%') AS stores,
     (SELECT count(*)::int FROM products WHERE id LIKE 'demo-%') AS products,
     (SELECT count(*)::int FROM inventory WHERE store_id LIKE 'dm-%') AS offers`);
-  assert.equal(first.stores, 47);
-  assert.equal(first.products, 41);
+  assert.equal(first.stores, 55);
+  assert.equal(first.products, 49);
   assert.ok(first.offers > 100);
   const fishRows = await rows(`
     SELECT p.purpose FROM inventory i JOIN products p ON p.id = i.product_id

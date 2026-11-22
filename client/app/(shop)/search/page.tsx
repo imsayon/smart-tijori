@@ -1,5 +1,6 @@
 import { BranchBanner } from '@/components/shop/navigation/branch-banner';
 import { Catalog } from '@/components/shop/catalog/catalog';
+import { AtelierTitle } from '@/components/ui/atelier';
 
 export default async function SearchPage({ searchParams }: PageProps<'/search'>) {
   const { q } = await searchParams;
@@ -7,8 +8,8 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
 
   return (
     <>
+      <AtelierTitle lead="Good finds," accent="close to home." description="Browse products at the branch you’ve selected." />
       <BranchBanner />
-      <h1 className="mb-4 text-2xl font-black text-stone-900">Search catalog</h1>
       <Catalog key={query} initialQuery={query} />
     </>
   );

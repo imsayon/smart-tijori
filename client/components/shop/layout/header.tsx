@@ -15,8 +15,8 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
       <Wordmark href="/" />
       <nav aria-label="Shop navigation" className="atelier-shop-nav">
         <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Discover</Link>
-        <Link href="/#market">Shop products</Link>
-        <Link href="/stores">Our stores</Link>
+        <Link href="/search" aria-current={pathname === '/search' ? 'page' : undefined}>Shop products</Link>
+        <Link href="/stores" aria-current={pathname === '/stores' ? 'page' : undefined}>Our stores</Link>
         <Link href="/#stock">How it works</Link>
         <Link href="/ops">For merchants <Icon name="upRight" size={13} /></Link>
       </nav>
@@ -32,8 +32,7 @@ export function Header({ onOpenStoreSelector }: { onOpenStoreSelector?: () => vo
           <nav aria-label="More shop links" className="atelier-shop-popover">
             <p className="atelier-label">Your shop</p>
             <Link href="/"><Icon name="shop" />Discover</Link>
-            <Link href="/#market"><Icon name="shelf" />Shop products</Link>
-            <Link href="/search"><Icon name="search" />Search products</Link>
+            <Link href="/search"><Icon name="shelf" />Shop products</Link>
             <Link href="/#stock"><Icon name="lock" />How it works</Link>
             <Link href="/stores"><Icon name="pin" />Choose a branch</Link>
             <Link href="/orders"><Icon name="receipt" />Orders</Link>

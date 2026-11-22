@@ -5,7 +5,6 @@ import Link from 'next/link';
 import type { OpsFacts, PipelineFacts } from '@/contracts';
 import { api } from '@/lib/api-client';
 import { AtelierTitle, Icon, type IconName } from '@/components/ui/atelier';
-import { RetailPulse } from '@/components/shop/atelier/atelier-hero';
 
 const formatTime = new Intl.DateTimeFormat('en-IN', {
   day: '2-digit',
@@ -93,24 +92,6 @@ export function OpsOverview({
           </>
         }
       />
-
-      {/* POS Quick Action Bar */}
-      <div className="atelier-pos-quick-bar">
-        <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#142a20] animate-pulse" />
-          <span className="text-xs font-mono text-[#142a20] font-semibold tracking-wider uppercase">
-            Your counter is ready
-          </span>
-          <span className="text-xs text-[#53645b] hidden sm:inline">
-            Fast barcode scanning & immediate stock debits
-          </span>
-        </div>
-        <Link href="/ops/cashier" className="text-xs font-bold text-[#6e4731] hover:underline flex items-center gap-1">
-          Open cashier counter <Icon name="arrow" size={13} />
-        </Link>
-      </div>
-
-      <RetailPulse />
 
       <dl className="atelier-stats">
         <Fact label="Tracked SKUs" icon="shelf" value={stock?.length} detail="Products at this branch" />

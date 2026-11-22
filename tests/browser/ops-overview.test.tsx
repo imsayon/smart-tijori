@@ -29,7 +29,6 @@ describe('Operations Overview', () => {
     render(<OpsOverview storeId="blr-01" initialInventoryFacts={inventoryFacts} initialPipelineFacts={pipelineFacts} />);
 
     expect(screen.getByRole('heading', { name: /A clearer view of commerce/i })).toBeInTheDocument();
-    expect(screen.getByText('One stock ledger')).toBeInTheDocument();
     expect(screen.getByText(/blr-01/)).toBeInTheDocument();
     expect(screen.getByText('Tracked SKUs')).toBeInTheDocument();
     expect(screen.getByText('Available units')).toBeInTheDocument();

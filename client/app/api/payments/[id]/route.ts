@@ -27,6 +27,9 @@ export async function POST(request: Request, { params }: Context) {
     const { db, owner, id, email } = await ownedCheckout(request, (await params).id);
     const hold = await createCommerceCommands(db).getHold({ kind: 'shopper', id: owner }, id);
     if (!hold.ok) throw new HttpError(hold.error.code, hold.error.message);
+    if (config.keyId.startsWith('rzp_live_') && hold.value.storeId.startsWith('dm-')) {
+      throw new HttpError('FORBIDDEN', 'Illustrative stores cannot accept real payments.');
+    }
     if (hold.value.status !== 'ACTIVE') throw new HttpError('HOLD_NOT_ACTIVE', 'Start a new reservation before paying.');
     const attempt = await db.transact(async client => {
       // The account cart is the shared lock for checkout attempts from separate tabs.

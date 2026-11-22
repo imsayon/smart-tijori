@@ -5,6 +5,7 @@ import { Header } from './header';
 import { Footer } from './footer';
 import { StoreModal } from '../store-selector/store-modal';
 import { BranchSwitchDialog } from '../cart/branch-switch-dialog';
+import { ShopAssistant } from '../atelier/shop-assistant';
 import { useStore } from '@/lib/session/store-context';
 
 export function ShopperShell({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export function ShopperShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
+      <ShopAssistant />
 
       <StoreModal
         isOpen={isStoreModalOpen}

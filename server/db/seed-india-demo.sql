@@ -49,7 +49,15 @@ INSERT INTO stores (id, name, city) VALUES
   ('dm-rai-gol-kr', 'Gol Bazar Kirana', 'Raipur'),
   ('dm-amr-hal-bk', 'Hall Bazaar Bakery Counter', 'Amritsar'),
   ('dm-deh-pal-kr', 'Paltan Bazar Grocery Shop', 'Dehradun'),
-  ('dm-sri-lal-dr', 'Lal Chowk Dry Fruit Seller', 'Srinagar')
+  ('dm-sri-lal-dr', 'Lal Chowk Dry Fruit Seller', 'Srinagar'),
+  ('dm-asm-maj-ha', 'Garamur Weekly Haat', 'Majuli'),
+  ('dm-nag-kho-ha', 'Khonoma Village Produce Stall', 'Khonoma'),
+  ('dm-ker-kum-fi', 'Kumarakom Fish Counter', 'Kumarakom'),
+  ('dm-guj-dho-kr', 'Dholavira Village Kirana', 'Dholavira'),
+  ('dm-tam-ath-kr', 'Athangudi Village Provision Store', 'Athangudi'),
+  ('dm-raj-man-kr', 'Mandawa Bazaar General Store', 'Mandawa'),
+  ('dm-hp-kaz-kr', 'Kaza Town Grocery Counter', 'Kaza'),
+  ('dm-sik-nam-vg', 'Namchi Market Vegetable Seller', 'Namchi')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO products (id, name, category, purpose, price_paise, pack_quantity, pack_unit, attributes) VALUES
@@ -93,7 +101,21 @@ INSERT INTO products (id, name, category, purpose, price_paise, pack_quantity, p
   ('demo-water-1l', 'Drinking Water Bottle', 'essentials', 'drinking-water', 2000, 1000, 'ml', '{}'::jsonb),
   ('demo-rohu-500g', 'Rohu Fish (Portion)', 'essentials', 'fresh-fish', 12500, 500, 'g', '{"storage":"chilled"}'::jsonb),
   ('demo-sardines-500g', 'Fresh Sardines', 'essentials', 'fresh-fish', 9500, 500, 'g', '{"storage":"chilled"}'::jsonb),
-  ('demo-prawns-500g', 'Fresh Prawns', 'essentials', 'fresh-seafood', 22000, 500, 'g', '{"storage":"chilled"}'::jsonb)
+  ('demo-prawns-500g', 'Fresh Prawns', 'essentials', 'fresh-seafood', 22000, 500, 'g', '{"storage":"chilled"}'::jsonb),
+  ('demo-bajra-1kg', 'Pearl Millet (Bajra)', 'pantry', 'millet-grain', 6800, 1000, 'g', '{}'::jsonb),
+  ('demo-sona-masoori-1kg', 'Sona Masoori Rice', 'pantry', 'everyday-rice', 8400, 1000, 'g', '{}'::jsonb),
+  ('demo-assam-joha-500g', 'Joha Aromatic Rice', 'pantry', 'aromatic-rice', 9000, 500, 'g', '{}'::jsonb),
+  ('demo-mustard-greens-250g', 'Mustard Greens Bunch', 'essentials', 'leafy-greens', 2900, 250, 'g', '{}'::jsonb),
+  ('demo-ginger-250g', 'Fresh Ginger', 'essentials', 'fresh-vegetable', 4000, 250, 'g', '{}'::jsonb),
+  ('demo-ladakh-apricot-250g', 'Dried Apricots', 'pantry', 'dry-fruit', 22000, 250, 'g', '{}'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+
+-- Pack name and size follow manufacturer listings. Store offers remain illustrative.
+INSERT INTO products (id, name, category, purpose, price_paise, pack_quantity, pack_unit, attributes, image_url) VALUES
+  ('demo-aashirvaad-shudh-chakki-5kg', 'Aashirvaad Shudh Chakki Atta, 5 kg', 'pantry', 'wheat-flour', 29500, 5000, 'g', '{"brand":"Aashirvaad"}'::jsonb,
+   'https://shop.aashirvaad.com/shudhchakki/quality_certificate_dhc_od/assets/sku_1_shudh_chakki_150_by_150.jpg'),
+  ('demo-india-gate-classic-1kg', 'India Gate Classic Basmati Rice, 1 kg', 'pantry', 'basmati-rice', 24500, 1000, 'g', '{"brand":"India Gate"}'::jsonb,
+   'https://krblrice.com/wp-content/uploads/2024/05/IG-Classic-Basmati-Rice.png')
 ON CONFLICT (id) DO NOTHING;
 
 WITH profiles(store_id, kind) AS (
@@ -144,7 +166,15 @@ WITH profiles(store_id, kind) AS (
   ('dm-rai-gol-kr', 'kirana'),
   ('dm-amr-hal-bk', 'bakery'),
   ('dm-deh-pal-kr', 'kirana'),
-  ('dm-sri-lal-dr', 'dry-fruit')
+  ('dm-sri-lal-dr', 'dry-fruit'),
+  ('dm-asm-maj-ha', 'haat'),
+  ('dm-nag-kho-ha', 'haat'),
+  ('dm-ker-kum-fi', 'fish'),
+  ('dm-guj-dho-kr', 'kirana'),
+  ('dm-tam-ath-kr', 'kirana'),
+  ('dm-raj-man-kr', 'kirana'),
+  ('dm-hp-kaz-kr', 'kirana'),
+  ('dm-sik-nam-vg', 'vegetable')
 )
 INSERT INTO inventory (store_id, product_id, stock_on_hand)
 SELECT profiles.store_id, products.id,
@@ -160,6 +190,8 @@ WHERE
   OR (profiles.kind = 'kirana' AND products.purpose NOT IN ('fresh-fish', 'fresh-seafood', 'dry-fruit'))
   OR (profiles.kind = 'vegetable' AND products.purpose IN ('fresh-vegetable', 'fresh-fruit', 'leafy-greens', 'drinking-water'))
   OR (profiles.kind = 'street' AND products.purpose IN ('fresh-vegetable', 'fresh-fruit', 'leafy-greens', 'savory-snacks', 'drinking-water'))
+  OR (profiles.kind = 'haat' AND products.purpose IN ('fresh-vegetable', 'fresh-fruit', 'leafy-greens', 'eggs', 'aromatic-rice', 'millet-grain'))
+  OR (profiles.store_id = 'dm-hp-kaz-kr' AND products.id = 'demo-ladakh-apricot-250g')
   OR (profiles.kind = 'spices' AND (products.purpose LIKE 'spice-%' OR products.purpose IN ('black-tea', 'dry-fruit', 'jaggery', 'flattened-rice')))
   OR (profiles.kind = 'fish' AND products.purpose IN ('fresh-fish', 'fresh-seafood', 'drinking-water'))
   OR (profiles.kind = 'household' AND products.category = 'household')

@@ -1,12 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useStore } from '@/lib/session/store-context';
 import { BranchCard } from '@/components/shop/store-selector/branch-card';
-import { Alert } from '@/components/shop/feedback/alert';
+import { Icon } from '@/components/ui/atelier';
 
 export default function StoresPage() {
-  const { availableStores, selectedStoreId, selectStore } = useStore();
+  const { availableStores, selectedStoreId, selectStore, isLoading, error } = useStore();
   const [city, setCity] = useState('ALL');
   const [search, setSearch] = useState('');
   const cities = useMemo(() => [...new Set(availableStores.map(store => store.city))]
@@ -22,10 +23,7 @@ export default function StoresPage() {
     <div className="atelier-directory">
       <p className="atelier-label">SHOP LOCAL / THE INDIA DIRECTORY</p>
       <h1 className="atelier-heading">A good shop <em>closer home.</em></h1>
-      <p className="atelier-directory-intro">Discover neighbourhood markets, corner kiranas and grocers. Select a branch to browse its own product catalogue.</p>
-      <Alert type="info" className="mb-6">
-        Store stock is separate for every branch. Changing branches clears an incompatible cart; a cart alone does not hold inventory.
-      </Alert>
+      <p className="atelier-directory-intro">Find a local market, kirana, or grocer. Each store has its own catalog.</p>
       <div className="atelier-store-filters">
         <label className="atelier-store-search">Shop, locality or city
           <input className="atelier-input" type="search" value={search} onChange={e => setSearch(e.target.value)}
@@ -38,11 +36,14 @@ export default function StoresPage() {
           </select>
         </label>
       </div>
-      <p className="atelier-store-count" role="status">{matches.length} stores found</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 my-4">
+        <p className="atelier-store-count" role="status">{isLoading ? 'Loading stores…' : error ? 'Stores could not be loaded' : `${matches.length} stores found`}</p>
+        {selectedStoreId && <Link href="/search" className="atelier-action">Browse selected store <Icon name="upRight" size={15} /></Link>}
+      </div>
       <div className="atelier-directory-grid">
         {matches.map(store => <BranchCard key={store.id} store={store}
           isSelected={selectedStoreId === store.id} onSelect={() => selectStore(store)} />)}
-        {!matches.length && <p className="atelier-store-empty">No stores found. Try another search or city.</p>}
+        {!isLoading && !error && !matches.length && <p className="atelier-store-empty">No stores found. Try another search or city.</p>}
       </div>
       <p className="atelier-store-note">Certain outlets are illustrative profiles, not verified retail partners. Availability is based on the selected store record only.</p>
     </div>

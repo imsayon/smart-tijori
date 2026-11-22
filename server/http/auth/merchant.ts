@@ -5,15 +5,18 @@ import { HttpError } from '../errors/http-errors';
 
 export async function readMerchant(cookie?: string | null): Promise<OperatorActor | null> {
   const user = await readAccount(cookie);
-  if (!user) return null;
+  return user ? findMerchant(user.uid) : null;
+}
+
+export async function findMerchant(uid: string): Promise<OperatorActor | null> {
   const storeId = await getCommerceDatabase().transact(async client => {
     const { rows } = await client.query<{ store_id: string }>(
       'SELECT store_id FROM operator_memberships WHERE firebase_uid = $1 AND active',
-      [user.uid],
+      [uid],
     );
     return rows[0]?.store_id;
   });
-  return storeId ? { operatorId: user.uid, role: OPERATOR_ROLE, storeId } : null;
+  return storeId ? { operatorId: uid, role: OPERATOR_ROLE, storeId } : null;
 }
 
 export async function requireMerchant(request: Request) {

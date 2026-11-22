@@ -98,7 +98,6 @@ describe('Operations Workbench Shell & Navigation Tests', () => {
     render(await OpsOverviewPage());
 
     expect(screen.getByRole('heading', { name: /A clearer view of commerce/i })).toBeInTheDocument();
-    expect(screen.getByText('One stock ledger')).toBeInTheDocument();
     expect(screen.getByText('Recent stock movements')).toBeInTheDocument();
     expect(screen.getByText('Store updates')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Open counter/i })).toHaveAttribute('href', '/ops/cashier');

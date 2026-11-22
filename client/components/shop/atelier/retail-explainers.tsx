@@ -1,37 +1,8 @@
 import Link from 'next/link';
 import { Icon } from '@/components/ui/atelier';
 
-/** A visual explanation of the checkout duration, not a running reservation timer. */
-export function CartLockEdition() {
-  return <section className="atelier-precision" aria-labelledby="atelier-precision-title">
-    <div className="atelier-precision-copy">
-      <p className="atelier-label">THE CHECKOUT PROMISE / CARTLOCK</p>
-      <h2 className="atelier-heading" id="atelier-precision-title">A finite window.<br/><em>Not a promise forever.</em></h2>
-      <p>Keep browsing as long as you like. When you begin checkout, we attempt to set aside your items for 59 seconds. That hold never quietly renews, and a cart alone reserves nothing.</p>
-      <Link className="atelier-action" href="/cart">Go to your bag <Icon name="upRight" size={15}/></Link>
-      <p className="atelier-precision-caption">Your actual countdown starts only when a reservation is accepted.</p>
-    </div>
-    <div className="atelier-precision-art">
-      <div className="atelier-precision-halo" aria-hidden="true">
-        <svg viewBox="0 0 360 360">
-          <circle cx="180" cy="180" r="153" fill="none" stroke="currentColor" strokeWidth=".5" opacity=".3"/>
-          {Array.from({length:80},(_,i)=><line key={i} x1="180" y1="18" x2="180" y2={i%5===0?"35":"29"}
-            stroke="currentColor" strokeWidth={i%5===0?3.2:2} transform={`rotate(${i*4.5} 180 180)`} opacity={i%5===0?1:.78}/>)}
-          <circle cx="180" cy="180" r="103" fill="none" stroke="currentColor" strokeWidth=".6" opacity=".55"/>
-        </svg>
-      </div>
-      <div className="atelier-precision-center">
-        <strong aria-label="Maximum fifty nine seconds">00:59</strong>
-        <small>SECONDS</small>
-      </div>
-      <span className="atelier-precision-note atelier-precision-note-left">CHECKOUT ONLY</span>
-      <span className="atelier-precision-note atelier-precision-note-right">STOCK REVALIDATED</span>
-    </div>
-  </section>;
-}
-
 export function ShopFlowArtwork() {
-  return <section className="atelier-sync-explainer" aria-labelledby="atelier-sync-title">
+  return <section id="stock" className="atelier-sync-explainer" aria-labelledby="atelier-sync-title">
     <div className="atelier-sync-copy">
       <p className="atelier-label">ONE CONNECTED STORE / THE TIJORI WAY</p>
       <h2 className="atelier-heading" id="atelier-sync-title">One source of truth.<br/><em>Every counter.</em></h2>

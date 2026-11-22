@@ -63,13 +63,16 @@ Firebase test users, and Razorpay Test Mode for staging. Test payment rows stay
 in staging.
 
 - Firebase uses the `cents-lab-32d71` project. Register the SmartTijori web app,
-  enable Email/Password and configure its authorized domains. Set the public
+  enable Google and authorize the storefront domain for popups. Enable Email/Password only if the email flow is offered. Set the public
   web configuration at build time and use Application Default Credentials on
   the server. Keep the service account credential file outside the repository.
 - Grant merchant access explicitly in `operator_memberships` using the verified
   Firebase UID and its branch ID. Set `active = false` to revoke branch access.
   Use a separate, random `SESSION_SECRET` per deployment. Legacy unsigned guest
   cookies are replaced once the secret is configured.
+- The shop assistant uses `GEMINI_API_KEY` and `GEMINI_MODEL` on the server.
+  It provides general shopping guidance and sends only the submitted chat turns to Gemini.
+  The assistant does not access orders, payment details or stock.
 - Set the Razorpay key pair and a distinct webhook secret. Enable automatic
   capture and subscribe to `payment.captured` on `/api/payments/webhook`.
   Keep the worker running to reconcile captures and late-payment refunds.

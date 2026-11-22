@@ -13,6 +13,7 @@ const paths = {
   shop: 'M5 9h14l1 11H4zm4 0V6a3 3 0 1 1 6 0v3',
   pin: 'M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0zM14 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z',
   search: 'M16 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0zm-2 5 6 6',
+  chat: 'M4 5h16v11H9l-5 4zM8 9h8m-8 3h5',
   lock: 'M6 10h12v11H6zm3 0V6a3 3 0 1 1 6 0v4m-3 5v2',
   menu: 'M4 6h16M4 12h16M4 18h16',
   close: 'M6 6l12 12M18 6 6 18',

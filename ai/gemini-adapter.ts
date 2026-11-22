@@ -33,6 +33,12 @@ export interface ExtractIntentOptions {
   timeoutMs?: number;
 }
 
+export type GeminiChatTurn = { role: 'user' | 'model'; text: string };
+
+const CHAT_INSTRUCTION = `You are the SmartTijori shop assistant. Answer briefly in plain text and in the shopper's language.
+SmartTijori shows products and offers for the selected branch. A bag does not reserve stock. CartLock attempts a short hold at checkout, where the shopper can see the real expiry. If something sells out, use the alternatives shown by the storefront. Order history is under Orders.
+You cannot see live stock, prices, accounts, payments or order details, or perform any actions. Never invent them. For current offers, direct the shopper to search and select a branch. For order or payment status, direct them to Orders. Do not request credentials, payment details or personal identifiers. Only help with shopping and using SmartTijori.`;
+
 const DEFAULT_MODEL = "gemini-2.5-flash-lite";
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_INPUT_LENGTH = 500;
@@ -65,6 +71,7 @@ interface GeminiApiResponse {
     content?: {
       parts?: Array<{
         text?: string;
+        thought?: boolean;
       }>;
     };
   }>;
@@ -103,19 +110,7 @@ export class GeminiModelAdapter {
       );
     }
 
-    if (!this.isConfigured()) {
-      throw new GeminiConfigError("GEMINI_API_KEY is not configured");
-    }
-
-    const timeout = options?.timeoutMs ?? this.timeoutMs;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
-      this.model
-    )}:generateContent`;
-
-    const requestBody = {
+    const candidateText = await this.generate({
       contents: [
         {
           parts: [
@@ -135,7 +130,41 @@ export class GeminiModelAdapter {
       generationConfig: {
         responseMimeType: "application/json",
       },
-    };
+    }, options?.timeoutMs ?? this.timeoutMs);
+
+    let parsedContent: unknown;
+    try {
+      parsedContent = JSON.parse(candidateText);
+    } catch {
+      throw new GeminiMalformedResponseError("Gemini candidate text is not valid JSON");
+    }
+
+    const validated = safeParseShopperIntent(parsedContent);
+    if (!validated.success) {
+      throw new GeminiMalformedResponseError(
+        `Gemini output failed schema validation: ${validated.error.message}`
+      );
+    }
+
+    return options?.explicitConstraints
+      ? mergeShopperConstraints(validated.data, options.explicitConstraints)
+      : validated.data;
+  }
+
+  async replyToShopper(turns: GeminiChatTurn[]): Promise<string> {
+    return this.generate({
+      systemInstruction: { parts: [{ text: CHAT_INSTRUCTION }] },
+      contents: turns.map(({ role, text }) => ({ role, parts: [{ text }] })),
+      generationConfig: { maxOutputTokens: 400 },
+    }, 12_000);
+  }
+
+  private async generate(requestBody: object, timeout: number): Promise<string> {
+    if (!this.isConfigured()) {
+      throw new GeminiConfigError("GEMINI_API_KEY is not configured");
+    }
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.model)}:generateContent`;
+    const signal = AbortSignal.timeout(timeout);
 
     let response: Response;
     try {
@@ -146,15 +175,13 @@ export class GeminiModelAdapter {
           "x-goog-api-key": this.apiKey!,
         },
         body: JSON.stringify(requestBody),
-        signal: controller.signal,
+        signal,
       });
     } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") {
+      if (signal.aborted || (err instanceof Error && err.name === "AbortError")) {
         throw new GeminiTimeoutError(`Gemini request timed out after ${timeout}ms`);
       }
       throw new GeminiProviderError("Network failure while contacting Gemini API");
-    } finally {
-      clearTimeout(timer);
     }
 
     if (response.status === 401 || response.status === 403) {
@@ -181,32 +208,13 @@ export class GeminiModelAdapter {
     }
 
     const typedResponse = responseData as GeminiApiResponse | null | undefined;
-    const candidateText = typedResponse?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (typeof candidateText !== "string") {
+    const parts = typedResponse?.candidates?.[0]?.content?.parts;
+    const candidateText = Array.isArray(parts) ? parts.filter(part => !part?.thought && typeof part?.text === 'string')
+      .map(part => part.text).join('').trim() : '';
+    if (!candidateText) {
       throw new GeminiMalformedResponseError("Gemini response missing candidate text part");
     }
-
-    let parsedContent: unknown;
-    try {
-      parsedContent = JSON.parse(candidateText);
-    } catch {
-      throw new GeminiMalformedResponseError("Gemini candidate text is not valid JSON");
-    }
-
-    const validated = safeParseShopperIntent(parsedContent);
-    if (!validated.success) {
-      throw new GeminiMalformedResponseError(
-        `Gemini output failed schema validation: ${validated.error.message}`
-      );
-    }
-
-    const extractedIntent = validated.data;
-
-    if (options?.explicitConstraints) {
-      return mergeShopperConstraints(extractedIntent, options.explicitConstraints);
-    }
-
-    return extractedIntent;
+    return candidateText;
   }
 }
 
