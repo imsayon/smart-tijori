@@ -42,7 +42,7 @@ export function SimulatedPaymentReceipt({ order }: SimulatedPaymentReceiptProps)
       </div>
       <section className="st-handoff-qr" aria-labelledby="st-handoff-title">
         <div className="st-handoff-qr-copy">
-          <p className="st-kicker">03 / READY FOR COLLECTION</p>
+          <p className="st-kicker">03 / CONFIRMED ORDER · STAFF VERIFICATION</p>
           <h2 id="st-handoff-title">Your <em>order code.</em></h2>
           <p>Show this code to a cashier or authorized store partner. Scanning opens a branch-protected verification page where the staff member can confirm the order against SmartTijori.</p>
           <span className="st-handoff-code">{order.id}</span>
