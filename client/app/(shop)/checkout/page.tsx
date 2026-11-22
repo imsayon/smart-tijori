@@ -5,23 +5,44 @@ import { createCommerceCommands } from '@server/commerce/commands';
 import { getCommerceDatabase } from '@server/db/runtime';
 import { readAccount, shopperId } from '@server/http/auth/email-session';
 import { paymentConfig } from '@server/payments/razorpay';
+import { CartLockPreview, PurchaseTrail } from '@/components/shop/atelier/purchase-details';
+
+function CheckoutGate({ reason }: { reason: 'sign-in' | 'unavailable' }) {
+  const signin = reason === 'sign-in';
+  return <section className="st-purchase-page st-checkout-page">
+    <header className="st-purchase-heading">
+      <div className="st-purchase-heading-copy">
+        <p className="st-overline"><span className="st-mini-dot"/> CARTLOCK / CHECKOUT</p>
+        <h1 className="atelier-heading">{signin ? 'Your next step.' : 'Nearly there.'} <em>{signin ? 'Your way.' : 'Not quite yet.'}</em></h1>
+        <p>{signin ? 'Sign in to continue from your saved bag and track your order.' : 'Online payments are currently unavailable. Your bag is saved and you can continue browsing.'}</p>
+      </div>
+    </header>
+    <PurchaseTrail current={2}/>
+    <div className="st-checkout-gate">
+      <div className="st-checkout-gate-message">
+        <p className="st-overline">{signin ? 'YOUR ACCOUNT / SECURE CHECKOUT' : 'CHECKOUT / TEMPORARILY UNAVAILABLE'}</p>
+        <h2>{signin ? 'Keep your favourites close.' : 'Your bag can wait.'}</h2>
+        <p>{signin ? 'Your picks are still here. Sign in, then we will check live stock before creating any hold.' : 'We have not held any stock or charged you. Return to your bag while checkout is unavailable.'}</p>
+        <div className="st-checkout-gate-actions">
+          <Link className="st-button-primary" href={signin ? '/account?next=checkout' : '/cart'}>
+            {signin ? 'Sign in to continue' : 'Return to bag'} <span aria-hidden="true">↗</span>
+          </Link>
+          <Link className="st-quiet-link" href={signin ? '/cart' : '/search'}>{signin ? 'Review bag' : 'Explore products'}</Link>
+        </div>
+      </div>
+      <CartLockPreview compact/>
+    </div>
+  </section>;
+}
 
 export default async function CheckoutPage() {
   const fixture = process.env.SMARTTIJORI_DEMO_MODE === 'true';
   if (fixture) return <CheckoutView />;
 
   const user = await readAccount((await cookies()).toString());
-  if (!user) return <section className="space-y-4">
-    <h1 className="atelier-heading text-5xl">Checkout</h1>
-    <p>Sign in to pay and track your order. Your bag is saved on this device.</p>
-    <Link href="/account?next=checkout" className="atelier-action">Sign in</Link>
-  </section>;
+  if (!user) return <CheckoutGate reason="sign-in"/>;
   const config = paymentConfig();
-  if (!config) return <section className="space-y-4">
-    <h1 className="atelier-heading text-5xl">Checkout</h1>
-    <p>Online payments are currently unavailable. Your bag is saved.</p>
-    <Link href="/cart" className="atelier-action">Return to bag</Link>
-  </section>;
+  if (!config) return <CheckoutGate reason="unavailable"/>;
   const db = getCommerceDatabase();
   const owner = shopperId(user.uid);
   const { rows: [current] } = await db.transact(client => client.query<{ id: string }>(`
