@@ -1,69 +1,36 @@
 'use client';
 
-import React from 'react';
 import type { CartLine } from '@/contracts';
 import { formatPaise } from '@/lib/utils/currency';
+import { Icon } from '@/components/ui/atelier';
 
 interface CartLineItemProps {
   line: CartLine;
+  index?: number;
   onUpdateQuantity: (quantity: number) => void;
   onRemove: () => void;
 }
 
-export function CartLineItem({ line, onUpdateQuantity, onRemove }: CartLineItemProps) {
-  const lineTotal = line.unitPricePaise * line.quantity;
-
-  return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-stone-200/80 shadow-2xs hover:border-stone-300 transition-colors">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center text-2xl border border-stone-200/50">
-          🛍️
-        </div>
-        <div>
-          <h4 className="font-bold text-stone-900 text-sm sm:text-base">{line.name}</h4>
-          <p className="text-xs text-stone-500">
-            {formatPaise(line.unitPricePaise)} each
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
-        {/* Quantity Controls */}
-        <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200">
-          <button
-            type="button"
-            onClick={() => onUpdateQuantity(line.quantity - 1)}
-            className="w-7 h-7 rounded-lg bg-white text-stone-800 hover:bg-stone-200 font-bold text-sm flex items-center justify-center transition-colors shadow-2xs"
-            aria-label={`Decrease quantity of ${line.name}`}
-          >
-            −
-          </button>
-          <span className="text-xs font-bold w-6 text-center">{line.quantity}</span>
-          <button
-            type="button"
-            onClick={() => onUpdateQuantity(line.quantity + 1)}
-            className="w-7 h-7 rounded-lg bg-white text-stone-800 hover:bg-stone-200 font-bold text-sm flex items-center justify-center transition-colors shadow-2xs"
-            aria-label={`Increase quantity of ${line.name}`}
-          >
-            +
-          </button>
-        </div>
-
-        {/* Subtotal */}
-        <div className="text-right min-w-[80px]">
-          <div className="font-black text-[#173F35] text-base">{formatPaise(lineTotal)}</div>
-        </div>
-
-        {/* Delete */}
-        <button
-          type="button"
-          onClick={onRemove}
-          className="text-stone-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-          aria-label={`Remove ${line.name} from cart`}
-        >
-          🗑️
-        </button>
-      </div>
+export function CartLineItem({ line, index, onUpdateQuantity, onRemove }: CartLineItemProps) {
+  return <article className="st-cart-item">
+    <div className="st-cart-item-illustration" aria-hidden="true">
+      <div className="st-cart-item-orbit"/><Icon name="package" size={30}/>
     </div>
-  );
+    <div className="st-cart-item-details">
+      <span className="st-overline">{index ? `SELECTION / ${String(index).padStart(2,'0')}` : 'LOCAL SHELF / SELECTED'}</span>
+      <h3>{line.name}</h3>
+      <p>{formatPaise(line.unitPricePaise)} per item</p>
+    </div>
+    <div className="st-cart-item-controls">
+      <div className="st-quantity-controls" role="group" aria-label={`Quantity for ${line.name}`}>
+        <button type="button" onClick={() => onUpdateQuantity(line.quantity - 1)} aria-label={`Decrease quantity of ${line.name}`}>−</button>
+        <span aria-live="polite">{line.quantity}</span>
+        <button type="button" onClick={() => onUpdateQuantity(line.quantity + 1)} aria-label={`Increase quantity of ${line.name}`}>+</button>
+      </div>
+      <strong className="st-cart-item-price">{formatPaise(line.unitPricePaise * line.quantity)}</strong>
+      <button type="button" onClick={onRemove} className="st-cart-item-remove" aria-label={`Remove ${line.name} from cart`} title="Remove from bag">
+        <Icon name="close" size={16}/>
+      </button>
+    </div>
+  </article>;
 }
