@@ -20,7 +20,7 @@ export function AccountAccess({ signedIn, merchant = false, next }: {
     const response = await fetch('/api/account/session', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin', cache: 'no-store',
-      body: JSON.stringify({ email, password, mode, bag, merchant }),
+      body: JSON.stringify({ email, password, mode: bag ? 'signin' : mode, bag, merchant }),
     });
     if (!response.ok) {
       const result = await response.json().catch(() => null);
